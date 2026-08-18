@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Catch the Dot Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #gameArea {
+      position: relative;
+      width: 600px;
+      height: 400px;
+      margin: 40px auto;
+      background: #fff;
+      border: 2px solid #333;
+      overflow: hidden;
+      box-shadow: 0 0 10px #aaa;
+    }
+    #dot {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e74c3c;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px #888;
+      display: none;
+    }
+    #score, #timer {
+      font-size: 1.5em;
+      margin: 10px;
+    }
+    #startBtn {
+      padding: 10px 30px;
+      font-size: 1.2em;
+      border: none;
+      background: #27ae60;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #startBtn:active {
+      background: #219150;
+    }
+    #gameOver {
+      font-size: 2em;
+      color: #c0392b;
+      margin-top: 30px;
+      display: none;
+   #logo {
+       position: fixed;
+      bottom: 0;
+      right: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Catch the Dot!</h1>
+  <h2>By Glo :D</h2>
+  <div id="score">Score: 0</div>
+  <div id="timer">Time: 30</div>
+  <div id="gameArea">
+    <div id="dot"></div>
+  </div>
+  <button id="startBtn">Start Game</button>
+  <div id="gameOver"></div>
+<img id="logo" src="https://th.bing.com/th/id/R.ec003a0524ac08498962a84c285b8cab?rik=oY7tvV%2beDdG4pQ&pid=ImgRaw&r=0" width="120" height="60" style="float:right" alt="kp logo">
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const dot = document.getElementById('dot');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+    const gameOverDisplay = document.getElementById('gameOver');
+
+    let score = 0;
+    let timeLeft = 30;
+    let gameActive = false;
+    let timerInterval = null;
+
+    function randomPosition() {
+      const areaRect = gameArea.getBoundingClientRect();
+      const dotSize = 40;
+      // Calculate max top/left so dot stays inside the area
+      const maxLeft = gameArea.clientWidth - dotSize;
+      const maxTop = gameArea.clientHeight - dotSize;
+      const left = Math.random() * maxLeft;
+      const top = Math.random() * maxTop;
+      dot.style.left = left + 'px';
+      dot.style.top = top + 'px';
+      // Change color for fun
+      dot.style.background = `hsl(${Math.random()*360},70%,60%)`;
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 30;
+      gameActive = true;
+      scoreDisplay.textContent = 'Score: 0';
+      timerDisplay.textContent = 'Time: 30';
+      gameOverDisplay.style.display = 'none';
+      startBtn.disabled = true;
+      dot.style.display = 'block';
+      randomPosition();
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = 'Time: ' + timeLeft;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      dot.style.display = 'none';
+      startBtn.disabled = false;
+      gameOverDisplay.textContent = `Game Over! Your score: ${score}`;
+      gameOverDisplay.style.display = 'block';
+    }
+
+    dot.addEventListener('click', () => {
+      if (!gameActive) return;
+      score++;
+      scoreDisplay.textContent = 'Score: ' + score;
+      randomPosition();
+    });
+
+    startBtn.addEventListener('click', startGame);
+
+    // Optional: Prevent accidental text selection
+    gameArea.onselectstart = () => false;
+  </script>
+</body>
+</html>

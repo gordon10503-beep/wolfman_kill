@@ -1,1 +1,0 @@
-print ("Not Hello World")

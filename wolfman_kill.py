@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-狼人殺語音 MC 程式 v12
+狼人殺語音 MC 程式 v13
 
 安裝：
     pip install --upgrade edge-tts pygame
 
 執行：
-    python werewolf_mc_v12.py
-    python werewolf_mc_v12.py --debug
-    python werewolf_mc_v12.py --mute
-    python werewolf_mc_v12.py --skip-confirm
+    python werewolf_mc_v13.py
+    python werewolf_mc_v13.py --debug
+    python werewolf_mc_v13.py --mute
+    python werewolf_mc_v13.py --skip-confirm
 
 任何正常輸入位置可輸入：
     debug / 除錯 / 偵錯          切換 DEBUG（跳過一般倒數與確認）
     mute / 靜音                 切換 MUTE（靜音）
     skip / skip-confirm / 略過   切換略過一般 Enter 確認
 
-v12 重點：
-- pygame 阻塞播放：一段 MC 台詞完整播放後才會進入下一步。
-- 狼人提交擊殺目標後立即清屏，女巫無法看到狼人輸入。
-- 女巫可看到當晚的狼人擊殺目標與可用目標名單。
-- 預言家只會看到「本晚開始時」仍存活的可查驗玩家，不會得知當晚死者。
-- 預言家查驗結果必須由預言家本人按 Enter 確認，不能由 debug/skip 自動略過。
-- 公開資訊不會自動清屏；角色私密畫面在確認後才清除。
+v13 重點：
+- pygame 阻塞播放：每段 MC 音檔完整播放後才會進入下一步。
+- 恢復所有「閉眼／睜眼」的語音廣播。
+- 狼人輸入擊殺目標後立即清屏，女巫看不到狼人輸入。
+- 狼人與女巫可看到本夜開始時的存活玩家名單。
+- 預言家只看到本夜開始時的可查驗存活玩家，不會知道當晚死者。
+- 預言家查驗結果必須由預言家本人按 Enter 關閉，debug/skip 不會略過。
 """
 
 import asyncio
@@ -65,7 +65,7 @@ SPEAK_GAP_SECONDS = 0.5
 WITCH_CAN_SAVE_SELF = False
 # True：女巫當晚被狼人殺仍可行動；False：被殺的女巫當晚不能行動。
 WITCH_ACTS_IF_KILLED_TONIGHT = True
-# True：狼人數量不少於好人數量即狼人勝；False：必須殺光全部好人才勝。
+# True：狼人數量不少於好人數量即狼人勝；False：殺光全部好人才算狼人勝。
 WOLVES_WIN_ON_PARITY = True
 
 DEBUG_MODE = "--debug" in sys.argv or "-d" in sys.argv
@@ -100,7 +100,7 @@ atexit.register(_cleanup_temp_dir)
 
 
 def clear_screen_for_privacy():
-    """只用於私密角色資料與角色交接。"""
+    """只用於私密資訊、角色輸入與角色交接。"""
     command = "cls" if os.name == "nt" else "clear"
     result = os.system(command)
     if result != 0:
@@ -153,7 +153,7 @@ def wait_enter(prompt="按 Enter 繼續。", clear_after=False):
 
 
 def mandatory_private_enter(prompt="確認後，直接按 Enter 清除畫面。"):
-    """私密結果專用確認；絕不被 debug 或 skip-confirm 自動略過。"""
+    """私密結果專用確認；不會被 DEBUG 或 skip-confirm 自動略過。"""
     while True:
         raw = input_with_toggle(f"\n>>> {prompt}").strip()
         if raw == "":
@@ -161,14 +161,18 @@ def mandatory_private_enter(prompt="確認後，直接按 Enter 清除畫面。"
         print("[提示] 請直接按 Enter 確認。")
 
 
-def private_handoff(prompt: str):
-    """交給下一名私密角色前，先清除上一位角色的資料。"""
+def private_handoff(*lines: str, prompt="確認後，按 Enter 繼續。"):
+    """
+    私密角色交接：
+    1. 清除上一角色資料；2. 語音播出閉眼／睜眼指令；3. 確認後再清屏。
+    """
     clear_screen_for_privacy()
+    speak_sequence(list(lines))
     wait_enter(prompt, clear_after=True)
 
 
 def countdown_wait(seconds: int, label: str = "等待中"):
-    """倒數只會在上一段語音播放完後開始。Ctrl+C 可跳過本次倒數。"""
+    """倒數只會在上一段語音完整播畢後開始；Ctrl+C 可略過本次倒數。"""
     if DEBUG_MODE:
         print(f"[DEBUG] 跳過等待：{label}")
         return
@@ -217,7 +221,7 @@ def _diagnose_tts_error(e: Exception) -> str:
 
 
 def play_audio(filepath: str):
-    """同步阻塞播放，只有音檔真正播完才 return。"""
+    """同步阻塞播放，只有音檔真正播完才會 return。"""
     if pygame is None:
         raise RuntimeError("未安裝 pygame。請執行：pip install pygame")
 
@@ -244,7 +248,7 @@ def play_audio(filepath: str):
 
 
 def speak_sequence(texts: list[str], show_text: bool = True):
-    """同一流程節點的連續台詞合併成一段音檔並完整播放。"""
+    """同一流程節點的連續台詞合併成一段音檔，並完整播放。"""
     cleaned = [str(text).strip() for text in texts if str(text).strip()]
     if not cleaned:
         return
@@ -282,7 +286,7 @@ def speak(text: str, show_text: bool = True):
 
 
 def announce_then_confirm(*lines: str, prompt="按 Enter 繼續。", private=False):
-    """先播完台詞，再要求一般確認。private=True 時確認後清屏。"""
+    """先播完台詞，再要求一般確認；private=True 時確認後清屏。"""
     speak_sequence(list(lines))
     wait_enter(prompt, clear_after=private)
 
@@ -425,7 +429,7 @@ class GameState:
 
 
 def living_players_text(game: GameState, exclude_seats: Optional[set[int]] = None) -> str:
-    """只按目前 alive 狀態列出座位，沒有顯示角色或死亡原因。"""
+    """按目前 alive 狀態列出座位，不顯示角色或死亡原因。"""
     excluded = exclude_seats or set()
     seats = [
         player.seat
@@ -595,8 +599,8 @@ def hunter_shot(game: GameState, hunter: Player, reason: str):
 
 def seer_phase(game: GameState):
     """
-    注意：本函數在 resolve_night_deaths 前執行。
-    因此預言家看到的是本晚開始時的存活名單，完全不會得知當晚的狼人／女巫死亡結果。
+    在 resolve_night_deaths 前執行，因此預言家只看見本晚開始時的存活名單，
+    不會得知狼人擊殺或女巫毒藥的當晚結果。
     """
     seer = next(
         (player for player in game.players if player.role == "預言家" and player.alive),
@@ -606,8 +610,11 @@ def seer_phase(game: GameState):
         speak("本場沒有存活的預言家，跳過查驗環節。")
         return
 
-    private_handoff("預言家請睜眼。預言家準備好後，按 Enter 繼續。")
-    speak_sequence(["預言家請選擇一位仍然存活的玩家查驗身分。"])
+    private_handoff(
+        "預言家請睜眼。",
+        "請選擇一位仍然存活的玩家查驗身分。",
+        prompt="預言家準備好後，按 Enter 查看可查驗玩家。",
+    )
 
     valid_targets = game.alive_seats() - {seer.seat}
     clear_screen_for_privacy()
@@ -630,17 +637,19 @@ def seer_phase(game: GameState):
         prompt="預言家確認查驗結果後，按 Enter 關閉畫面。",
     )
 
-    private_handoff("預言家請閉眼。確認預言家已閉眼後，按 Enter 繼續。")
+    private_handoff(
+        "預言家請閉眼。",
+        prompt="確認預言家已閉眼後，按 Enter 繼續。",
+    )
 
 
 def night_phase(game: GameState) -> tuple[str, str]:
     game.day_count += 1
 
-    announce_then_confirm(
+    private_handoff(
         f"天黑請閉眼。第 {game.day_count} 晚，所有玩家請閉上眼睛。",
         "狼人請睜眼。狼人互相確認身分，然後選擇今晚要殺的目標。",
         prompt="狼人確認後，按 Enter 查看可擊殺玩家。",
-        private=True,
     )
 
     wolf_targets = game.alive_seats()
@@ -655,7 +664,7 @@ def night_phase(game: GameState) -> tuple[str, str]:
         allow_zero=True,
     )
 
-    # 關鍵：清除狼人輸入的擊殺座位，女巫不能看到這行紀錄。
+    # 清除狼人所輸入的目標，避免女巫看見。
     clear_screen_for_privacy()
 
     poisoned_seat = "0"
@@ -664,7 +673,11 @@ def night_phase(game: GameState) -> tuple[str, str]:
     witch_can_act = witch is not None and (WITCH_ACTS_IF_KILLED_TONIGHT or not witch_killed_tonight)
 
     if witch_can_act:
-        private_handoff("狼人請閉眼。女巫請睜眼。女巫準備好後，按 Enter 繼續。")
+        private_handoff(
+            "狼人請閉眼。",
+            "女巫請睜眼。",
+            prompt="女巫準備好後，按 Enter 查看今晚資訊。",
+        )
 
         clear_screen_for_privacy()
         print("\n" + "=" * 56)
@@ -712,7 +725,7 @@ def night_phase(game: GameState) -> tuple[str, str]:
                     print(f"可選毒藥目標：{living_players_text(game, excluded)}")
                     print("=" * 56)
                     poisoned_seat = ask_seat("女巫毒哪個座位？：", valid_targets, allow_zero=False)
-                    # 清除女巫輸入的毒藥目標，再交接給預言家。
+                    # 清除女巫輸入的毒藥目標，預言家不會看見。
                     clear_screen_for_privacy()
                     game.witch_poison_used = True
                 else:
@@ -720,15 +733,20 @@ def night_phase(game: GameState) -> tuple[str, str]:
         elif game.witch_poison_used and not used_save_this_night:
             speak("女巫的毒藥已經用完。")
 
-        private_handoff("女巫請閉眼。確認女巫已閉眼後，按 Enter 繼續。")
+        private_handoff(
+            "女巫請閉眼。",
+            prompt="確認女巫已閉眼後，按 Enter 繼續。",
+        )
     else:
         if witch is None:
             message = "狼人請閉眼。本場沒有存活女巫，跳過女巫環節。"
         else:
             message = "狼人請閉眼。女巫今晚被殺，而且本局規則不允許其行動。"
-        private_handoff(f"{message} 確認後，按 Enter 進入下一個夜晚環節。")
+        private_handoff(
+            message,
+            prompt="確認後，按 Enter 進入預言家環節。",
+        )
 
-    # 預言家是唯一被叫醒並完成查驗的地方。
     seer_phase(game)
     return killed_seat, poisoned_seat
 
@@ -843,7 +861,7 @@ def closing_script():
 
 def main():
     print("=" * 52)
-    print("狼人殺語音 MC 程式 v12")
+    print("狼人殺語音 MC 程式 v13")
     print(f"目前語音：{VOICE}")
     print(f"DEBUG 模式（跳過等待）：{'開啟' if DEBUG_MODE else '關閉'}")
     print(f"MUTE 模式（靜音）：{'開啟' if MUTE_MODE else '關閉'}")

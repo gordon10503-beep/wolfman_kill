@@ -1,0 +1,37 @@
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local secrets / environment files
+.env
+.env.*

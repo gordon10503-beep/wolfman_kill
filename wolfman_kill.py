@@ -1,29 +1,67 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-狼人殺語音 MC 程式 v13
+狼人殺語音 MC 程式 v18
 
-安裝：
-    pip install --upgrade edge-tts pygame
+==================== 安裝及虛擬環境 ====================
 
-執行：
-    python werewolf_mc_v13.py
-    python werewolf_mc_v13.py --debug
-    python werewolf_mc_v13.py --mute
-    python werewolf_mc_v13.py --skip-confirm
+建議使用 Python 3.10 或以上版本。
+先確認版本：
+    python --version
+
+Windows PowerShell：
+    py -3.13 -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip setuptools wheel
+    python -m pip install --upgrade edge-tts pygame
+
+如果 PowerShell 阻止啟用 venv，可只對目前視窗執行：
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+然後再執行：
+    .\.venv\Scripts\Activate.ps1
+
+Windows Command Prompt（cmd）：
+    py -3.13 -m venv .venv
+    .venv\Scripts\activate.bat
+    python -m pip install --upgrade pip setuptools wheel
+    python -m pip install --upgrade edge-tts pygame
+
+macOS / Linux：
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install --upgrade pip setuptools wheel
+    python -m pip install --upgrade edge-tts pygame
+
+離開虛擬環境：
+    deactivate
+
+==================== 執行 ====================
+
+先啟用上述虛擬環境，然後：
+    python .\wolfman_kill.py
+    python .\wolfman_kill.py --debug
+    python .\wolfman_kill.py --mute
+    python .\wolfman_kill.py --skip-confirm
 
 任何正常輸入位置可輸入：
-    debug / 除錯 / 偵錯          切換 DEBUG（跳過一般倒數與確認）
+    debug / 除錯 / 偵錯          切換 DEBUG（只跳過倒數）
     mute / 靜音                 切換 MUTE（靜音）
     skip / skip-confirm / 略過   切換略過一般 Enter 確認
 
-v13 重點：
+==================== v18 重點 ====================
+
+- DEBUG 模式只跳過倒數，例如 90 秒討論與 15 秒投票統計；不會略過 Enter 確認。
+- skip-confirm 才會略過一般 Enter 確認；私密結果確認永遠不會略過。
+- 開局前控制面板：可選擇語音測試、DEBUG、靜音與略過確認。
 - pygame 阻塞播放：每段 MC 音檔完整播放後才會進入下一步。
-- 恢復所有「閉眼／睜眼」的語音廣播。
-- 狼人輸入擊殺目標後立即清屏，女巫看不到狼人輸入。
+- 所有閉眼／睜眼廣播均保留語音。
+- 自動角色交接統一由 auto_handoff() 處理，日後新增角色可直接重用。
+- 狼人提交擊殺目標後立即清屏，女巫看不到狼人輸入。
 - 狼人與女巫可看到本夜開始時的存活玩家名單。
 - 預言家只看到本夜開始時的可查驗存活玩家，不會知道當晚死者。
-- 預言家查驗結果必須由預言家本人按 Enter 關閉，debug/skip 不會略過。
+- 女巫的解藥／毒藥行動為私密；每晚毒藥階段的公開語音與流程一致，
+  避免其他玩家從互動差異推斷女巫是否使用了解藥。
+- 遊戲結束後會公開完整復盤：勝方、每個座位的身分、生死與死亡原因。
 """
 
 import asyncio
@@ -40,7 +78,7 @@ from typing import Optional
 try:
     import edge_tts
 except ImportError:
-    print("請先安裝 edge-tts：pip install --upgrade edge-tts")
+    print("請先安裝 edge-tts：python -m pip install --upgrade edge-tts")
     sys.exit(1)
 
 try:
@@ -63,13 +101,13 @@ SPEAK_GAP_SECONDS = 0.5
 
 # 規則設定
 WITCH_CAN_SAVE_SELF = False
-# True：女巫當晚被狼人殺仍可行動；False：被殺的女巫當晚不能行動。
 WITCH_ACTS_IF_KILLED_TONIGHT = True
-# True：狼人數量不少於好人數量即狼人勝；False：殺光全部好人才算狼人勝。
 WOLVES_WIN_ON_PARITY = True
 
+# DEBUG 只會跳過 countdown_wait() 倒數；不會跳過任何 Enter 確認。
 DEBUG_MODE = "--debug" in sys.argv or "-d" in sys.argv
 MUTE_MODE = "--mute" in sys.argv or "-m" in sys.argv
+# 只有這個開關才會略過一般 Enter 確認；私密確認例外。
 SKIP_CONFIRMATIONS = (
     "--skip-confirm" in sys.argv
     or "--auto-confirm" in sys.argv
@@ -113,7 +151,7 @@ def _check_toggle_commands(raw: str) -> bool:
 
     if normalized in TOGGLE_COMMANDS:
         DEBUG_MODE = not DEBUG_MODE
-        print(f"\n[切換成功] DEBUG 模式（跳過等待）現在：{'開啟' if DEBUG_MODE else '關閉'}")
+        print(f"\n[切換成功] DEBUG 模式（只跳過倒數）現在：{'開啟' if DEBUG_MODE else '關閉'}")
         return True
 
     if normalized in MUTE_COMMANDS:
@@ -142,8 +180,8 @@ def input_with_toggle(prompt: str) -> str:
 
 
 def wait_enter(prompt="按 Enter 繼續。", clear_after=False):
-    """一般確認：可被 DEBUG 或 skip-confirm 略過。"""
-    if DEBUG_MODE or SKIP_CONFIRMATIONS:
+    """一般確認只可被 SKIP_CONFIRMATIONS 略過；DEBUG 不影響確認。"""
+    if SKIP_CONFIRMATIONS:
         print(f"[自動略過] {prompt}")
     else:
         input_with_toggle(f"\n>>> {prompt}（可輸入 debug/mute/skip 切換模式）")
@@ -162,19 +200,30 @@ def mandatory_private_enter(prompt="確認後，直接按 Enter 清除畫面。"
 
 
 def private_handoff(*lines: str, prompt="確認後，按 Enter 繼續。"):
-    """
-    私密角色交接：
-    1. 清除上一角色資料；2. 語音播出閉眼／睜眼指令；3. 確認後再清屏。
-    """
+    """角色需要操作電腦前的交接：播報後等待 Enter，再清屏。"""
     clear_screen_for_privacy()
     speak_sequence(list(lines))
     wait_enter(prompt, clear_after=True)
 
 
+def auto_handoff(*lines: str, clear_before=True, clear_after=True):
+    """
+    自動角色交接，不要求任何人按 Enter。
+
+    日後新增角色可直接使用，例如：
+        auto_handoff("守衛請閉眼。", "預言家請睜眼。")
+    """
+    if clear_before:
+        clear_screen_for_privacy()
+    speak_sequence(list(lines))
+    if clear_after:
+        clear_screen_for_privacy()
+
+
 def countdown_wait(seconds: int, label: str = "等待中"):
-    """倒數只會在上一段語音完整播畢後開始；Ctrl+C 可略過本次倒數。"""
+    """DEBUG 開啟時只跳過倒數，不會影響任何輸入或確認。"""
     if DEBUG_MODE:
-        print(f"[DEBUG] 跳過等待：{label}")
+        print(f"[DEBUG] 跳過倒數：{label}")
         return
 
     print(f"\n>>> {label}（{seconds} 秒後自動繼續）")
@@ -183,9 +232,6 @@ def countdown_wait(seconds: int, label: str = "等待中"):
         for remaining in range(seconds, 0, -1):
             print(f"\r    倒數 {remaining:>3} 秒 ", end="", flush=True)
             time.sleep(1)
-            if DEBUG_MODE:
-                print("\r    DEBUG 已開啟，跳過剩餘倒數。           ")
-                return
     except KeyboardInterrupt:
         print("\n[略過] 已中止本次倒數。")
         return
@@ -205,7 +251,7 @@ def _diagnose_tts_error(e: Exception) -> str:
 
     if "403" in msg or "forbidden" in msg:
         hints.append(
-            "可能是 edge-tts 版本或驗證問題。請執行：pip install --upgrade edge-tts，"
+            "可能是 edge-tts 版本或驗證問題。請執行：python -m pip install --upgrade edge-tts，"
             "並確認電腦系統時間正確。"
         )
     if "noaudioreceived" in msg.replace(" ", "") or "no audio" in msg:
@@ -223,7 +269,7 @@ def _diagnose_tts_error(e: Exception) -> str:
 def play_audio(filepath: str):
     """同步阻塞播放，只有音檔真正播完才會 return。"""
     if pygame is None:
-        raise RuntimeError("未安裝 pygame。請執行：pip install pygame")
+        raise RuntimeError("未安裝 pygame。請執行：python -m pip install pygame")
 
     try:
         if not pygame.mixer.get_init():
@@ -312,7 +358,7 @@ def self_test_voice():
 
     if pygame is None:
         print("[警告] 未安裝 pygame，程式會以文字模式繼續。")
-        print("請執行：pip install --upgrade pygame")
+        print("請執行：python -m pip install --upgrade pygame")
         VOICE_HEALTHY = False
         return
 
@@ -345,6 +391,45 @@ def self_test_voice():
                 os.remove(test_filename)
         except OSError:
             pass
+
+
+def startup_control_panel():
+    """角色人數設定前的開局控制面板。"""
+    global DEBUG_MODE, MUTE_MODE, SKIP_CONFIRMATIONS
+
+    while True:
+        print("\n" + "=" * 60)
+        print("                 【開局前控制面板】")
+        print("=" * 60)
+        print(f"1. DEBUG 模式（只跳過倒數）：{'開啟' if DEBUG_MODE else '關閉'}")
+        print(f"2. MUTE 模式（靜音）：{'開啟' if MUTE_MODE else '關閉'}")
+        print(f"3. 跳過一般確認鍵（Enter）：{'開啟' if SKIP_CONFIRMATIONS else '關閉'}")
+        print("4. 執行語音測試")
+        print("5. 開始設定玩家與角色人數")
+        print("0. 結束程式")
+        print("=" * 60)
+
+        choice = input_with_toggle("請輸入選項（0-5）：").strip()
+
+        if choice == "1":
+            DEBUG_MODE = not DEBUG_MODE
+            print(f"[設定完成] DEBUG 模式（只跳過倒數）現在：{'開啟' if DEBUG_MODE else '關閉'}")
+        elif choice == "2":
+            MUTE_MODE = not MUTE_MODE
+            print(f"[設定完成] MUTE 模式現在：{'開啟' if MUTE_MODE else '關閉'}")
+        elif choice == "3":
+            SKIP_CONFIRMATIONS = not SKIP_CONFIRMATIONS
+            print(f"[設定完成] 跳過一般確認鍵現在：{'開啟' if SKIP_CONFIRMATIONS else '關閉'}")
+        elif choice == "4":
+            self_test_voice()
+        elif choice == "5":
+            print("[開始遊戲設定] 現在進入玩家與角色人數設定。")
+            return
+        elif choice == "0":
+            print("已中止程式。")
+            sys.exit(0)
+        else:
+            print("[輸入錯誤] 請輸入 0 至 5。")
 
 
 # ============ 輸入驗證 ============
@@ -386,7 +471,7 @@ def ask_role(prompt_prefix: str, role_names: list[str]) -> str:
         print(f"[輸入錯誤] 請輸入 1 至 {len(role_names)}，或角色名稱：{'、'.join(role_names)}")
 
 
-# ============ 資料模型 ============
+# ============ 資料模型與賽後復盤 ============
 
 @dataclass
 class Player:
@@ -402,6 +487,7 @@ class GameState:
     day_count: int = 0
     witch_save_used: bool = False
     witch_poison_used: bool = False
+    winner: str = ""
 
     def alive_players(self) -> list[Player]:
         return [player for player in self.players if player.alive]
@@ -416,20 +502,8 @@ class GameState:
         seat_number = int(seat)
         return next((player for player in self.players if player.seat == seat_number), None)
 
-    def status_text(self, include_dead: bool = True) -> str:
-        alive = "、".join(
-            f"{player.seat}號" for player in sorted(self.alive_players(), key=lambda p: p.seat)
-        ) or "沒有"
-        if not include_dead:
-            return f"目前存活玩家：{alive}。"
-        dead = "、".join(
-            f"{player.seat}號" for player in sorted(self.dead_players(), key=lambda p: p.seat)
-        ) or "沒有"
-        return f"目前存活玩家：{alive}。已死亡玩家：{dead}。"
-
 
 def living_players_text(game: GameState, exclude_seats: Optional[set[int]] = None) -> str:
-    """按目前 alive 狀態列出座位，不顯示角色或死亡原因。"""
     excluded = exclude_seats or set()
     seats = [
         player.seat
@@ -445,6 +519,49 @@ def print_role_sheet(game: GameState):
     for player in sorted(game.players, key=lambda p: p.seat):
         print(f"  座位 {player.seat} 號：{player.role}")
     print("=" * 42)
+
+
+def death_cause_text(cause: str) -> str:
+    mapping = {
+        "wolf": "被狼人殺害",
+        "poison": "被女巫毒死",
+        "vote": "被投票放逐",
+        "hunter_shot": "被獵人開槍帶走",
+        "": "仍然存活",
+    }
+    return mapping.get(cause, cause)
+
+
+def end_game_briefing(game: GameState):
+    clear_screen_for_privacy()
+    print("\n" + "=" * 62)
+    print("                【遊戲結束・賽後復盤】")
+    print("=" * 62)
+    print(f"勝利陣營：{game.winner or '未記錄'}")
+    print(f"進行夜晚數：{game.day_count}")
+    print("-" * 62)
+    print(f"{'座位':<8}{'身分':<10}{'最終狀態':<10}{'結果／死因'}")
+    print("-" * 62)
+
+    for player in sorted(game.players, key=lambda p: p.seat):
+        status = "存活" if player.alive else "死亡"
+        detail = "存活至遊戲結束" if player.alive else death_cause_text(player.death_cause)
+        print(f"{str(player.seat) + '號':<8}{player.role:<10}{status:<10}{detail}")
+
+    print("-" * 62)
+    print(
+        "女巫道具："
+        f"解藥{'已使用' if game.witch_save_used else '未使用'}；"
+        f"毒藥{'已使用' if game.witch_poison_used else '未使用'}。"
+    )
+    print("=" * 62)
+
+    speak_sequence([
+        "現在公開賽後復盤。",
+        f"本局勝利陣營是{game.winner or '未記錄'}。",
+        "所有玩家的身分與最終結果已顯示在螢幕上。",
+    ])
+    wait_enter("全體查看完賽後復盤後，按 Enter 繼續。")
 
 
 # ============ 開局設定 ============
@@ -598,10 +715,7 @@ def hunter_shot(game: GameState, hunter: Player, reason: str):
 
 
 def seer_phase(game: GameState):
-    """
-    在 resolve_night_deaths 前執行，因此預言家只看見本晚開始時的存活名單，
-    不會得知狼人擊殺或女巫毒藥的當晚結果。
-    """
+    """夜晚死亡尚未結算，預言家不會得知本晚死亡資訊。"""
     seer = next(
         (player for player in game.players if player.role == "預言家" and player.alive),
         None,
@@ -637,10 +751,7 @@ def seer_phase(game: GameState):
         prompt="預言家確認查驗結果後，按 Enter 關閉畫面。",
     )
 
-    private_handoff(
-        "預言家請閉眼。",
-        prompt="確認預言家已閉眼後，按 Enter 繼續。",
-    )
+    auto_handoff("預言家請閉眼。")
 
 
 def night_phase(game: GameState) -> tuple[str, str]:
@@ -663,8 +774,6 @@ def night_phase(game: GameState) -> tuple[str, str]:
         wolf_targets,
         allow_zero=True,
     )
-
-    # 清除狼人所輸入的目標，避免女巫看見。
     clear_screen_for_privacy()
 
     poisoned_seat = "0"
@@ -692,30 +801,53 @@ def night_phase(game: GameState) -> tuple[str, str]:
         clear_screen_for_privacy()
 
         used_save_this_night = False
+
         if killed_seat != "0" and not game.witch_save_used:
             can_save_target = WITCH_CAN_SAVE_SELF or killed_seat != str(witch.seat)
             if can_save_target:
                 announce_then_confirm(
-                    "女巫可以使用本局唯一一瓶解藥，救回今晚被殺的玩家。",
+                    "女巫，你要不要使用解藥救回今晚被殺的玩家？",
                     prompt="女巫聽完後，按 Enter 決定。",
                 )
                 if ask_yes_no("女巫是否使用解藥？(y/n)："):
                     game.witch_save_used = True
                     used_save_this_night = True
                     killed_seat = "0"
-                    speak("女巫使用了解藥，今晚被殺的玩家已被救回。")
+                    clear_screen_for_privacy()
+                    print("\n🔒 [只供女巫查看] 你已使用解藥。今晚被殺的玩家已被救回。")
+                    mandatory_private_enter("女巫確認後，按 Enter 繼續。")
+                    clear_screen_for_privacy()
             else:
-                speak("女巫今晚被殺，而本局規則不允許女巫自救，因此不能使用解藥。")
+                clear_screen_for_privacy()
+                print("\n🔒 [只供女巫查看] 你今晚被殺，而本局規則不允許女巫自救，因此不能使用解藥。")
+                mandatory_private_enter("女巫確認後，按 Enter 繼續。")
+                clear_screen_for_privacy()
         elif game.witch_save_used:
-            speak("女巫的解藥已經用完。")
+            clear_screen_for_privacy()
+            print("\n🔒 [只供女巫查看] 你的解藥已經用完。")
+            mandatory_private_enter("女巫確認後，按 Enter 繼續。")
+            clear_screen_for_privacy()
 
-        if not used_save_this_night and not game.witch_poison_used:
-            announce_then_confirm(
-                "女巫可以選擇使用本局唯一一瓶毒藥毒死一位玩家。",
-                "本局規則禁止同一晚同時使用解藥和毒藥。",
-                prompt="女巫聽完後，按 Enter 決定。",
-            )
-            if ask_yes_no("女巫是否使用毒藥？(y/n)："):
+        # 每晚都播出同一段毒藥詢問，避免外界從語音得知解藥是否已使用。
+        announce_then_confirm(
+            "女巫，你要不要使用毒藥毒死一位玩家？",
+            prompt="女巫聽完後，按 Enter 決定。",
+        )
+
+        if used_save_this_night:
+            # 私密提示，不會語音播出；外部仍聽到相同的毒藥詢問流程。
+            clear_screen_for_privacy()
+            print("\n🔒 [只供女巫查看] 你今晚已使用解藥，因此不能使用毒藥。")
+            mandatory_private_enter("女巫確認毒藥決定後，按 Enter 繼續。")
+            clear_screen_for_privacy()
+        elif game.witch_poison_used:
+            clear_screen_for_privacy()
+            print("\n🔒 [只供女巫查看] 你的毒藥已經用完。")
+            mandatory_private_enter("女巫確認毒藥決定後，按 Enter 繼續。")
+            clear_screen_for_privacy()
+        else:
+            use_poison = ask_yes_no("女巫是否使用毒藥？(y/n)：")
+            if use_poison:
                 excluded = {int(killed_seat)} if killed_seat != "0" else set()
                 valid_targets = game.alive_seats() - excluded
                 if valid_targets:
@@ -725,27 +857,21 @@ def night_phase(game: GameState) -> tuple[str, str]:
                     print(f"可選毒藥目標：{living_players_text(game, excluded)}")
                     print("=" * 56)
                     poisoned_seat = ask_seat("女巫毒哪個座位？：", valid_targets, allow_zero=False)
-                    # 清除女巫輸入的毒藥目標，預言家不會看見。
                     clear_screen_for_privacy()
                     game.witch_poison_used = True
                 else:
-                    speak("沒有可選擇的存活目標，毒藥未使用。")
-        elif game.witch_poison_used and not used_save_this_night:
-            speak("女巫的毒藥已經用完。")
+                    clear_screen_for_privacy()
+                    print("\n🔒 [只供女巫查看] 沒有可選擇的存活目標，毒藥未使用。")
+                    mandatory_private_enter("女巫確認毒藥決定後，按 Enter 繼續。")
+                    clear_screen_for_privacy()
 
-        private_handoff(
-            "女巫請閉眼。",
-            prompt="確認女巫已閉眼後，按 Enter 繼續。",
-        )
+        auto_handoff("女巫請閉眼。")
     else:
         if witch is None:
             message = "狼人請閉眼。本場沒有存活女巫，跳過女巫環節。"
         else:
             message = "狼人請閉眼。女巫今晚被殺，而且本局規則不允許其行動。"
-        private_handoff(
-            message,
-            prompt="確認後，按 Enter 進入預言家環節。",
-        )
+        auto_handoff(message)
 
     seer_phase(game)
     return killed_seat, poisoned_seat
@@ -839,14 +965,17 @@ def check_win_condition(game: GameState) -> bool:
     villagers = [player for player in alive if player.role != "狼人"]
 
     if not wolves:
+        game.winner = "好人陣營"
         speak("所有狼人已被淘汰，好人陣營勝利。遊戲結束。")
         return True
 
     if WOLVES_WIN_ON_PARITY:
         if len(wolves) >= len(villagers):
+            game.winner = "狼人陣營"
             speak("狼人數量已經不少於好人數量，狼人陣營勝利。遊戲結束。")
             return True
     elif not villagers:
+        game.winner = "狼人陣營"
         speak("所有好人已被淘汰，狼人陣營勝利。遊戲結束。")
         return True
 
@@ -861,15 +990,15 @@ def closing_script():
 
 def main():
     print("=" * 52)
-    print("狼人殺語音 MC 程式 v13")
+    print("狼人殺語音 MC 程式 v18")
     print(f"目前語音：{VOICE}")
-    print(f"DEBUG 模式（跳過等待）：{'開啟' if DEBUG_MODE else '關閉'}")
+    print(f"DEBUG 模式（只跳過倒數）：{'開啟' if DEBUG_MODE else '關閉'}")
     print(f"MUTE 模式（靜音）：{'開啟' if MUTE_MODE else '關閉'}")
-    print(f"跳過確認鍵：{'開啟' if SKIP_CONFIRMATIONS else '關閉'}")
+    print(f"跳過一般確認鍵：{'開啟' if SKIP_CONFIRMATIONS else '關閉'}")
     print("提示：在任何輸入位置打 debug / mute / skip 可即時切換。")
     print("=" * 52)
 
-    self_test_voice()
+    startup_control_panel()
 
     setup = configure_role_quota()
     players = collect_roles_from_players(setup["total"], setup["quota"])
@@ -893,6 +1022,7 @@ def main():
         if check_win_condition(game):
             break
 
+    end_game_briefing(game)
     closing_script()
     print("\n遊戲結束，感謝使用！")
 

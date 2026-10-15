@@ -1,5 +1,8 @@
 /** Local, display-only translations. Never requests or publishes private data. */
 const COPY = {
+  '女巫每晚用藥':'Witch potions per night', '最多一瓶':'One potion', '無限制':'No limit',
+  '本局可同晚使用解藥及毒藥，各限全局一次。解藥只能救狼人目標；毒藥可選任意存活玩家。':'Both potions may be used on the same night, each once per game. The antidote saves the wolves’ target; poison may target any living player.',
+  '女巫的抉擇':'The witch’s choice',
   '啟用遺言':'Enable last words', '遺言':'Last words', '最後的話':'Last words',
   '請指定座位發表遺言。說完後由主持人確認，再繼續遊戲。':'The indicated player may give their last words. The host confirms when they finish, then the game continues.',
   '遺言結束，繼續':'Last words finished · Continue', '逐票記錄（可選）':'Record individual ballots (optional)',

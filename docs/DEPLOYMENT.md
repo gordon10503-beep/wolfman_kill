@@ -1,5 +1,7 @@
 # Share Moonfall and install it as an app
 
+Live site: [Moonfall](https://moonfall-wolfman.onrender.com/).
+
 One HTTPS website serves the frontend and Python API on iPhone, Android, Windows and Mac. This remains an in-person game: one host device handles private handoffs; audience links are read-only, not remote player accounts.
 
 ## Recommended free setup
@@ -49,3 +51,15 @@ This is an installable web app, not an App Store/Play Store binary. It includes 
 Local play uses SQLite; `DATABASE_URL` selects PostgreSQL. Both stores hash access passes and enforce atomic version checks. PostgreSQL locks each game row while committing an action.
 
 CI provisions PostgreSQL 17 and runs the shared permission, restart, concurrency, rollback and last-words tests on both stores. To run these locally, set `TEST_DATABASE_URL` to a **dedicated test database** and run `python -m pytest tests/test_storage.py -q`. Tests create records; never point them at the live game database.
+
+## View your Neon data
+
+Open your `moonfall` project in Neon Console and expand **Postgres database** to reach the table viewer or SQL editor. The `games` table holds `id`, hashed `host`/`viewer` passes, and the JSON snapshot in `state`. To list games without showing secret identities:
+
+```sql
+SELECT id, state::jsonb->>'phase' AS phase,
+       state::jsonb->>'day' AS round
+FROM games;
+```
+
+The full snapshot contains roles, life/death state, rules, inventories, queues and the chronicle. Audio files are not stored in Neon. Deleting this database removes its saves and breaks the deployed backend until reconfigured. Switching to SQLite does not migrate these games and Render Free cannot preserve that local disk; migrate to another persistent database before removing Neon. Your PC's local SQLite games are independent.

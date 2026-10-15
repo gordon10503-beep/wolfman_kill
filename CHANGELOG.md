@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 — 2026-10-15
+
+- Added a bilingual one-potion/no-nightly-limit witch house rule. Both potions may be used together when allowed, including separate effects; each remains single-use per game. Legacy games retain one potion per night.
+- Published Moonfall on Render Free with Neon PostgreSQL saves and verified live Cantonese/English narration.
+
 ## 1.6.0 — 2026-10-15
 
 - Added optional bilingual last-words turns: first-night casualties and voted-out players speak after hunter chains and before victory/next phase.

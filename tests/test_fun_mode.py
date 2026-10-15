@@ -44,6 +44,19 @@ def test_multiple_poison_targets_resolve_together_and_suppress_hunter_shots():
     assert result['hunters']==[] and result['phase']=='discussion'
 
 
+def test_multiple_witches_can_use_both_potions_with_independent_inventories():
+    g=make();g['rules']['witch_one_potion_per_night']=False
+    g=act(g,'wolves',{'target':8})
+    g=act(g,'witch',{'save':True,'poison':6})
+    assert private_view(g)['can_save'] and private_view(g)['can_poison']
+    g=act(g,'witch',{'save':True,'poison':7})
+    assert g['kill'] is None
+    assert all(p=={'save_used':True,'poison_used':True} for p in g['witch_potions'].values())
+    g['phase']='dawn';g=act(g,'dawn',{})
+    assert g['players'][7]['alive'] and all(g['players'][s-1]['cause']=='poison' for s in (6,7))
+    assert not g['hunters']
+
+
 def test_seer_turns_keep_results_private_and_use_faction_alignment():
     g=make(phase='seer')
     assert private_view(g)['actor_seat']==4

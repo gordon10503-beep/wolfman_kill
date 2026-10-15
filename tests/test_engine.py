@@ -140,6 +140,28 @@ def test_witch_potions_single_use_and_mutually_exclusive():
         act(g, "witch", {"poison": 2})
 
 
+def test_witch_nightly_limit_can_be_removed_without_refilling_potions():
+    g=game();g['rules']['witch_one_potion_per_night']=False
+    g=act(g,'wolves',{'target':6})
+    g=act(g,'witch',{'save':True,'poison':1})
+    assert g['kill'] is None and g['poison']==1
+    assert g['save_used'] and g['poison_used']
+    g['phase']='witch';g['wolf_target']=g['kill']=7
+    with pytest.raises(RuleError):act(g,'witch',{'save':True})
+    with pytest.raises(RuleError):act(g,'witch',{'poison':2})
+
+
+def test_witch_legacy_limit_and_poison_priority_with_both_potions():
+    g=game();del g['rules']['witch_one_potion_per_night']
+    g=act(g,'wolves',{'target':5})
+    with pytest.raises(RuleError):act(g,'witch',{'save':True,'poison':5})
+    g['rules']['witch_one_potion_per_night']=False
+    g=act(g,'witch',{'save':True,'poison':5});g['phase']='dawn'
+    g=act(g,'dawn',{})
+    assert g['players'][4]['cause']=='poison' and not g['hunters']
+    with pytest.raises(RuleError):new_game({'wolf':1,'witch':1,'seer':1,'hunter':1,'villager':1},{'witch_one_potion_per_night':'false'})
+
+
 def test_seer_cannot_self_inspect_repeat_or_skip_result():
     g = game(phase="seer")
     for action, data in (("inspect", {"target": 4}), ("ack", {})):

@@ -159,7 +159,7 @@ dialog::backdrop { backdrop-filter: blur(6px); }
 .role-tip { border: 1px solid var(--border); border-radius: 15px; background: var(--glass-sheen); padding: 16px; margin: 18px 0; }
 .role-tip > strong { font-size: 11px; color: var(--gold); letter-spacing: 1px; }
 .role-tip p { font-size: 12px; margin: 10px 0 0; }
-.role-projectile { position: fixed; left: 0; top: 0; width: 44px; height: 44px; z-index: 5; color: var(--gold); pointer-events: none; border-radius: 50%; background: var(--panel); border: 1px solid var(--gold); padding: 6px; box-shadow: 0 0 20px var(--glass-shadow); }
+.role-projectile { position: fixed; left: 0; top: 0; opacity: 0; width: 44px; height: 44px; z-index: 5; color: var(--gold); pointer-events: none; border-radius: 50%; background: var(--panel); border: 1px solid var(--gold); padding: 6px; box-shadow: 0 0 20px var(--glass-shadow); }
 .role-projectile svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; }
 .save-target { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--gold); font-size: 10px; }
 .save-target strong { font: 32px var(--serif); }

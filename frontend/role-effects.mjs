@@ -22,9 +22,9 @@ export async function roleEffect(form, role, seat) {
     {transform:`translate(${origin.x+origin.width/2-22}px,${origin.y-22}px) scale(.6)`,opacity:0},
     {offset:.18,opacity:1},
     {transform:`translate(${destination.x+destination.width/2-22}px,${destination.y+destination.height/2-22}px) scale(1.15)`,opacity:1}
-  ],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
+  ],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'});
   const flip = card.animate([{transform:'perspective(500px) rotateY(0)'},{transform:'perspective(500px) rotateY(360deg)'}],{duration:650,delay:150,easing:'ease-in-out'});
   try { await Promise.all([flight.finished,flip.finished]); return dialog.open && form.isConnected && !document.hidden; }
   catch { return false; }
-  finally { flight.cancel(); flip.cancel(); icon.remove(); }
+  finally { icon.remove(); flight.cancel(); flip.cancel(); }
 }

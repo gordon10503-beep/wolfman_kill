@@ -6,12 +6,19 @@ let motionPreference = sessionStorage.getItem('moonfall-forest-motion');
 function updateMotion() {
   const enabled = motionPreference !== 'off';
   app.querySelectorAll('.forest-scene').forEach(scene => scene.classList.toggle('forest-motion-off', !enabled));
-  app.querySelectorAll('.forest-motion-control').forEach(button => {
+  document.querySelectorAll('#motion').forEach(button => {
     button.setAttribute('aria-pressed', String(enabled));
     button.textContent = enabled ? '動畫開啟 · Motion on' : '啟用動畫 · Enable motion';
     button.title = enabled ? '暫停動畫 / Pause animation' : '播放動畫 / Play animation';
   });
 }
+const control = document.querySelector('#motion');
+control.addEventListener('click', () => {
+  motionPreference = control.getAttribute('aria-pressed') === 'true' ? 'off' : 'on';
+  sessionStorage.setItem('moonfall-forest-motion', motionPreference);
+  updateMotion();
+});
+updateMotion();
 function mountForest() {
   if (!illustration) return;
   const hosts = [...app.querySelectorAll('.hero')];
@@ -26,15 +33,7 @@ function mountForest() {
     scene.querySelectorAll('.star-field circle').forEach(star => star.setAttribute('r', Math.min(3, Number(star.getAttribute('r')) * 1.7)));
     host.prepend(scene);
     host.classList.add('has-forest-scene');
-    const control = document.createElement('button');
-    control.type = 'button';
-    control.className = 'icon-button forest-motion-control';
-    control.addEventListener('click', () => {
-      motionPreference = control.getAttribute('aria-pressed') === 'true' ? 'off' : 'on';
-      sessionStorage.setItem('moonfall-forest-motion', motionPreference);
-      updateMotion();
-    });
-    host.append(control);
+
   }
   updateMotion();
 }

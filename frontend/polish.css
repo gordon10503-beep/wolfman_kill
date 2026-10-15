@@ -31,7 +31,23 @@
 @keyframes forest-sway { from { transform: rotate(-1.8deg); } to { transform: rotate(1.8deg); } }
 .forest-scene.forest-motion-off .star-field, .forest-scene.forest-motion-off .moon,
 .forest-scene.forest-motion-off .trees-back, .forest-scene.forest-motion-off .trees-front { animation-play-state: paused; }
-.forest-motion-control { position: absolute; z-index: 2; top: 15px; right: 15px; background: #0a161dd9; color: #d1ded4; font-size: 10px; letter-spacing: .3px; }
+#motion { font-size: 10px; white-space: nowrap; }
+.handoff-seat { text-align: center; margin: 20px 0 24px; padding: 18px 12px; border: 1px solid var(--border); border-radius: 18px; background: linear-gradient(145deg, var(--glass-sheen), transparent); box-shadow: inset 0 1px var(--glass-edge); }
+.handoff-seat-label { display: block; color: var(--muted); font-size: 10px; letter-spacing: 1px; }
+.handoff-seat strong { display: block; font: 110px/.95 var(--serif); color: var(--gold); margin-top: 12px; font-variant-numeric: tabular-nums; }
+.wolf-transition { position: fixed; inset: 0; z-index: 100; overflow: hidden; cursor: wait; }
+.wolf-curtain { position: absolute; inset: 0; background: linear-gradient(110deg, #071016, #172a30 70%, #0a151b); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); animation: wolf-wipe 1.2s cubic-bezier(.4,0,.25,1) both; }
+.wolf-runner { position: absolute; left: 0; top: 32%; width: min(85vw, 1000px); height: auto; filter: drop-shadow(0 0 12px #040a0e88) blur(.7px); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 86%, transparent); animation: wolf-cross 1.2s cubic-bezier(.3,0,.5,1) both; }
+@keyframes wolf-wipe { 0% { transform: translateX(105%); } 38%,58% { transform: translateX(0); } 100% { transform: translateX(-105%); } }
+@keyframes wolf-cross { 0% { transform: translateX(110vw); opacity: 0; } 16%,75% { opacity: 1; } 100% { transform: translateX(-110%); opacity: 0; } }
+@media (max-width: 720px) {
+  .topbar { height: auto; min-height: 80px; flex-wrap: wrap; gap: 14px; padding-top: 16px; padding-bottom: 16px; }
+  .top-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .handoff-seat { margin: 16px 0; padding: 14px; }
+  .handoff-seat strong { font-size: 92px; }
+  .wolf-runner { width: 115vw; top: 38%; }
+}
+
 
 .panel, .table-panel, .narration, .winner-banner, .debug-panel, .viewer-note {
   border-radius: 22px;
@@ -103,3 +119,10 @@ dialog::backdrop { backdrop-filter: blur(6px); }
   .progress > span { border-radius: 9px; }
   dialog::backdrop { backdrop-filter: none; }
 }
+
+/* Prioritize the current seat over decorative space during role handoff. */
+.handoff-stage .phase-symbol { display: none; }
+.handoff-header h1 > .english-subtext { display: inline; margin-left: 10px; }
+.handoff-header h1 > .muted { display: block; }
+.handoff-header h1 > .muted .english-subtext { display: inline; margin-left: 6px; }
+[data-theme="lobby"] .game-hero { height: 75px; gap: 6px; }

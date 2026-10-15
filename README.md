@@ -166,3 +166,5 @@ No license has been selected. Add an explicit license before inviting redistribu
 ### Appearance and motion
 
 The lobby and role-handoff forest use staggered star twinkles, a slow moon drift, and gentle tree sway. A small module loads the existing SVG once and mounts its layers in the page so animation works under the page’s content security policy. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. Forest motion is on by default. The bilingual switch in the banner lets players explicitly enable or pause it and remembers that choice per tab. The sky is anchored at the top so stars remain visible instead of being cropped away. Mobile dialogs omit backdrop blur. Day and night keep their own palettes.
+
+The animation switch sits next to **LOCAL TABLE** and the debug control. Role handoff displays the current seat as a large number. A brief wolf silhouette sweeps from right to left when starting a new game and after the final role confirmation (including debug skip). The page changes under the sweep; pausing motion skips the transition immediately.

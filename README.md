@@ -165,4 +165,4 @@ No license has been selected. Add an explicit license before inviting redistribu
 
 ### Appearance and motion
 
-The lobby forest uses staggered star twinkles, a slow moon drift, and subtle tree sway in the existing SVG. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. The SVG respects `prefers-reduced-motion`, and mobile dialogs omit backdrop blur. Day and night keep their own palettes.
+The lobby and role-handoff forest use staggered star twinkles, a slow moon drift, and subtle tree sway. A small module loads the existing SVG once and mounts its layers in the page so animation works under the page’s content security policy. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. The SVG respects `prefers-reduced-motion`, and mobile dialogs omit backdrop blur. Day and night keep their own palettes.

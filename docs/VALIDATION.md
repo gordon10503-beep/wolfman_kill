@@ -21,3 +21,5 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Bilingual UI browser pass: setup rules, role reveal, wolf target/pass choices, witch potion instructions, seer result, debug roster, daytime events, and all-player voting checked in a separate QA game. Existing user games were not advanced.
 
 - Forest polish: browser-confirmed SVG animation styles run under a resource-specific CSP hash. Added a regression check for the exact style hash and reduced-motion rule. Glass-like highlights use static gradients and shadows, with no per-card backdrop blur.
+
+- Animation visibility fix: confirmed moving moon/tree transform values and changing star opacity inside the actual homepage DOM, plus exactly one forest after changing the player preset. The illustration now mounts as SVG elements with external CSS rather than relying on an animated CSS background image.

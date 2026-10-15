@@ -15,6 +15,24 @@
   box-shadow: inset 0 1px #e7fff322, 0 20px 60px #0003;
 }
 .hero:before { border-radius: inherit; }
+/* Animate DOM layers, rather than relying on animation inside a CSS image. */
+.has-forest-scene { position: relative; overflow: hidden; isolation: isolate; background-image: none; }
+.forest-scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
+.hero.has-forest-scene:before { z-index: -1; }
+.forest-scene .star-field circle { stroke: #d4e1d4; stroke-width: .7; }
+.forest-scene .star-field { animation: forest-twinkle 3.2s ease-in-out infinite alternate; }
+.forest-scene .stars-b { animation-duration: 4.4s; animation-delay: -2.1s; }
+.forest-scene .stars-c { animation-duration: 3.8s; animation-delay: -1.2s; }
+.forest-scene .moon { animation: forest-moon 12s ease-in-out infinite alternate; }
+.forest-scene .trees-back { transform-origin: 700px 700px; animation: forest-sway 7s ease-in-out infinite alternate; }
+.forest-scene .trees-front { transform-origin: 700px 700px; animation: forest-sway 9s ease-in-out -3s infinite alternate-reverse; }
+@keyframes forest-twinkle { from { opacity: .12; } to { opacity: 1; } }
+@keyframes forest-moon { from { transform: translateY(2px); } to { transform: translateY(-9px); } }
+@keyframes forest-sway { from { transform: rotate(-.55deg); } to { transform: rotate(.55deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .forest-scene .star-field, .forest-scene .moon, .forest-scene .trees-back, .forest-scene .trees-front { animation: none; }
+  .forest-scene .star-field { opacity: .7; }
+}
 .panel, .table-panel, .narration, .winner-banner, .debug-panel, .viewer-note {
   border-radius: 22px;
   box-shadow: inset 0 1px var(--glass-edge), 0 12px 32px var(--glass-shadow);

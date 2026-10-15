@@ -147,10 +147,13 @@ def act(original, action, data):
     require(phase != "finished", "遊戲已結束。")
     fields = {"ack": set(), "wolves": {"target"}, "witch": {"save", "poison"},
               "inspect": {"target"}, "dawn": set(), "shoot": {"target"},
-              "vote": set(), "ballots": {"ballots"}}
+              "vote": set(), "ballots": {"ballots"}, "debug_skip_reveal": set()}
     require(action in fields, "未知行動。")
     require(isinstance(data, dict) and set(data) <= fields[action], "未知行動參數。")
-    if phase == "reveal" and action == "ack":
+    if phase == "reveal" and action == "debug_skip_reveal":
+        g["reveal_seat"] = len(g["players"])
+        g["phase"] = "wolves"
+    elif phase == "reveal" and action == "ack":
         if g["reveal_seat"] == len(g["players"]):
             g["phase"] = "wolves"
         else:

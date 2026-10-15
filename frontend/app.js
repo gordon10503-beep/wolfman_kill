@@ -135,6 +135,13 @@ function renderGame() {
   ${!session.viewer && p!=='finished'?`<button class="primary" id="stage-action">${({reveal:'私下查看身份 ↗',wolves:'狼人私人行動 ↗',witch:'女巫私人行動 ↗',seer:'預言家私人行動 ↗',dawn:'公布昨晚結果 →',hunter:'決定最後一槍 ↗',discussion:'開始投票 →',vote:'記錄全體投票 ↗',runoff:'記錄加賽投票 ↗'})[p]}</button>`:''}
   ${session.viewer?'<p class="notice">等待主持人推進遊戲。</p>':'<p class="fineprint">私人畫面不會讀出秘密。<br>切換分頁時會自動遮蔽。</p>'}<button class="secondary" id="replay">↻ 重播公開旁白</button></aside></div>`;
   $('#stage-action')?.addEventListener('click',()=>{if(p==='dawn')action('dawn');else if(p==='discussion')action('vote');else if(['vote','runoff'].includes(p))openBallots();else openPrivate();});
+  if(p==='reveal' && debug) {
+    const skip = document.createElement('button');
+    skip.id = 'skip-reveal'; skip.className = 'secondary';
+    skip.textContent = '跳過身份交接（DEBUG） →';
+    skip.onclick = () => action('debug_skip_reveal');
+    $('#stage-action').after(skip);
+  }
   $('#replay').onclick=()=>{voice=true;updateVoice();narrator.speak();};
   $('#audience')?.addEventListener('click',()=>{
     const url=`${location.origin}/#watch=${session.id}&key=${session.viewerToken}`;

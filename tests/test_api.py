@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.2.0"}
-    assert response.headers["x-moonfall-version"] == "1.2.0"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.2.1"}
+    assert response.headers["x-moonfall-version"] == "1.2.1"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -66,6 +66,20 @@ def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(clie
     assert debug["potions"] == {"save_used": False, "poison_used": False}
     assert client.get(path, headers=viewer).json() == before
     assert all("role" not in p for p in before["players"])
+
+
+def test_skip_reveal_is_host_only_atomic_and_keeps_roles_private(client):
+    g = create(client)
+    path = "/api/games/" + g["id"]
+    viewer = {"Authorization": "Bearer " + g["viewer_token"]}
+    host = {"Authorization": "Bearer " + g["host_token"]}
+    action = {"version": 0, "action": "debug_skip_reveal"}
+    assert client.post(path + "/actions", headers=viewer, json=action).status_code == 403
+    response = client.post(path + "/actions", headers=host, json=action)
+    assert response.status_code == 200 and response.json()["phase"] == "wolves"
+    assert all("role" not in p for p in response.json()["players"])
+    assert client.post(path + "/actions", headers=host, json=action).status_code == 409
+    assert client.get(path, headers=viewer).json()["phase"] == "wolves"
 
 
 def test_two_tabs_only_one_action_commits(tmp_path):

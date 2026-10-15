@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-10-15
+
+- Added a host DEBUG button to skip all remaining role reveals and enter the first night, preserving the assigned identities. Available only during role reveal; audience credentials cannot invoke it.
+
 ## 1.2.0 — 2026-10-15
 
 - Replaced the red screen wash with a natural moonlit forest, shadowed wolves, mist, and restrained blood marks; panels return to charcoal/forest tones.

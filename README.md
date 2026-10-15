@@ -53,7 +53,7 @@ The table follows the game clock: wolves/witch/seer phases use a moonlit forest 
 | --- | --- |
 | ![Bright morning table](docs/day-preview.png) | ![Moonlit night table](docs/night-preview.png) |
 
-For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
+For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During role reveal, **跳過身份交接（DEBUG）** skips all remaining reveals and starts the first night without changing the assigned identities. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
 
 ## What changed
 

@@ -52,4 +52,4 @@ Raw schema: `/openapi.json`. Protected routes use `Authorization: Bearer <capabi
 | POST | `/api/games/{id}/actions` | Host; `{version, action, data}` |
 | GET | `/api/games/{id}/audio` | Host/viewer; public MP3 or 503 |
 
-Phase-specific actions: `ack`, `wolves`, `witch`, `inspect`, `dawn`, `shoot`, `vote`, `ballots`. Rule violations return 409; schema errors 422; missing credentials 401; forbidden credentials 403; unknown game 404. Polling runs every three seconds while visible without a private dialog. After uncertain network failure, synchronize before retrying: a committed action cannot reuse its old version.
+Phase-specific actions: `ack`, `wolves`, `witch`, `inspect`, `dawn`, `shoot`, `vote`, `ballots`, `debug_skip_reveal`. Rule violations return 409; schema errors 422; missing credentials 401; forbidden credentials 403; unknown game 404. Polling runs every three seconds while visible without a private dialog. After uncertain network failure, synchronize before retrying: a committed action cannot reuse its old version.

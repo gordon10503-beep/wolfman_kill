@@ -42,6 +42,19 @@ def test_reveal_each_seat_then_start():
     assert g["phase"] == "wolves"
 
 
+def test_debug_skip_remaining_reveals_preserves_deal_and_only_works_during_reveal():
+    g = act(game(phase="reveal"), "ack", {})
+    players = deepcopy(g["players"])
+    skipped = act(g, "debug_skip_reveal", {})
+    assert skipped["phase"] == "wolves" and skipped["day"] == 1
+    assert skipped["reveal_seat"] == len(players)
+    assert skipped["players"] == players
+    assert skipped["version"] == g["version"] + 1
+    assert g["phase"] == "reveal"
+    with pytest.raises(RuleError):
+        act(skipped, "debug_skip_reveal", {})
+
+
 def test_no_night_leaks_and_snapshot_remains_alive_for_seer():
     g = night(game(), victim=4, poison=7)
     view = public_view(g)

@@ -127,15 +127,32 @@ def test_ballots_tie_runoff_then_tie_means_no_death():
     assert all(p["alive"] for p in g["players"])
 
 
-def test_votes_require_alive_voters_and_targets_no_self_vote():
+def test_votes_require_alive_voters_and_targets():
     g = game(phase="vote")
     ballots = {str(i): None for i in range(1, 8)}
-    for invalid in ({"1": 2}, {**ballots, "1": 1}, {**ballots, "1": 99}, {**ballots, "1": True}):
+    for invalid in ({"1": 2}, {**ballots, "1": 99}, {**ballots, "1": True}):
         with pytest.raises(RuleError):
             act(g, "ballots", {"ballots": invalid})
     g["players"][6]["alive"] = False
     with pytest.raises(RuleError):
         act(g, "ballots", {"ballots": ballots})
+
+
+def test_self_vote_can_eliminate_the_voter():
+    g = game(phase="vote")
+    ballots = {str(i): (1 if i == 1 else None) for i in range(1, 8)}
+    g = act(g, "ballots", {"ballots": ballots})
+    assert not g["players"][0]["alive"]
+    assert g["players"][0]["cause"] == "vote"
+
+
+def test_self_vote_is_also_allowed_in_runoff():
+    g = game(phase="vote")
+    ballots = {str(i): i for i in range(1, 8)}
+    g = act(g, "ballots", {"ballots": ballots})
+    assert g["phase"] == "runoff"
+    g = act(g, "ballots", {"ballots": ballots})
+    assert g["phase"] == "wolves" and all(p["alive"] for p in g["players"])
 
 
 def test_hunter_vote_can_kill_last_wolf_before_victory():

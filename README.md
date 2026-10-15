@@ -20,15 +20,17 @@ Windows PowerShell:
 
 ```powershell
 .venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+.venv\Scripts\python run.py
 ```
 
 macOS / Linux:
 
 ```bash
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+.venv/bin/python run.py
 ```
+
+The local launcher automatically reloads Python changes. After updating an older running server, stop it once with `Ctrl+C` and use `python run.py`; refreshing the browser alone cannot update an already-loaded backend. `/api/health` reports the running version.
 
 Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)**. Stop with `Ctrl+C`.
 
@@ -45,11 +47,11 @@ Use **觀眾畫面** for a read-only public table in another window. The host br
 
 Every action saves to SQLite. Reloading the same tab resumes the game; the home page offers a resume button for its existing session. **Keep the host tab open:** credentials live in session storage; closing/clearing it can lose host access. There is no account recovery.
 
-The table follows the game clock: wolves/witch/seer phases use a restrained blood-red night palette; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
+The table follows the game clock: wolves/witch/seer phases use a moonlit forest with mist, wolf silhouettes, and small blood traces; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
 
 | Morning | Night |
 | --- | --- |
-| ![Bright morning table](docs/day-preview.png) | ![Blood-red night table](docs/night-preview.png) |
+| ![Bright morning table](docs/day-preview.png) | ![Moonlit night table](docs/night-preview.png) |
 
 For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
 
@@ -57,7 +59,7 @@ For testing, toggle **DEBUG on** in the host header. It shows all seat identitie
 
 | Area | Implementation |
 | --- | --- |
-| Frontend | Responsive HTML/CSS/ES modules, original forest SVG, dark teal and antique gold, English/Traditional Chinese copy |
+| Frontend | Responsive HTML/CSS/ES modules, moonlit forest artwork, SVG icons, dark teal and antique gold, English/Traditional Chinese copy |
 | Backend | FastAPI, pure game state machine, strict validation, SQLite transactions, optimistic version checks |
 | Privacy | Separate host/viewer capabilities, server-side public/private views, no private TTS, no-store responses |
 | Audio | One cancellable playback owner, stale-response guards, timeouts/retry/cache, Cantonese system-voice fallback, captions |
@@ -109,7 +111,7 @@ frontend/
   style.css     responsive moonlit design
   app.js        table, handoffs, ballots, timer, audience mode
   audio.mjs     single cancellable audio owner
-  assets/       original SVG artwork
+  assets/       SVG artwork and generated night forest
 tests/          rules, API, speech, and audio tests
 docs/           architecture, rules review, terminal guide
 wolfman_kill.py original terminal application

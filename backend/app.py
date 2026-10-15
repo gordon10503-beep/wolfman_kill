@@ -14,6 +14,7 @@ from .speech import Speech
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
+VERSION = "1.2.0"
 
 
 class CreateGame(BaseModel):
@@ -36,7 +37,7 @@ def create_app(database=None):
         app.state.speech = Speech()
         yield
 
-    app = FastAPI(title="Moonfall · 狼人殺", version="1.1.0", lifespan=lifespan, docs_url=None, redoc_url=None)
+    app = FastAPI(title="Moonfall · 狼人殺", version=VERSION, lifespan=lifespan, docs_url=None, redoc_url=None)
     auth = HTTPBearer(auto_error=False)
 
     def token(credentials: HTTPAuthorizationCredentials | None = Depends(auth)):
@@ -61,6 +62,7 @@ def create_app(database=None):
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Moonfall-Version"] = VERSION
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
         return response
 
@@ -78,7 +80,7 @@ def create_app(database=None):
 
     @app.get("/api/health")
     def health():
-        return {"status": "ok"}
+        return {"status": "ok", "version": VERSION}
 
     @app.post("/api/games", status_code=201)
     def create(body: CreateGame):

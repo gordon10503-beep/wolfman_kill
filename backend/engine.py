@@ -204,7 +204,7 @@ def act(original, action, data):
         seats = alive(g)
         require(isinstance(ballots, dict) and set(ballots) == {str(s) for s in seats}, "必須記錄每位存活玩家的一票（或棄權）。")
         for voter, choice in ballots.items():
-            target(g, choice, [int(voter)])
+            target(g, choice)
             require(choice is None or phase != "runoff" or choice in g["runoff"], "加賽只可投平票玩家。")
         tally = Counter(s for s in ballots.values() if s is not None)
         leaders = sorted(s for s, n in tally.items() if n == max(tally.values())) if tally else []

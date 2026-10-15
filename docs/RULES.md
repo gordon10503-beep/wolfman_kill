@@ -13,7 +13,7 @@ The web engine uses explicit house rules; Hong Kong tables may use different con
 | Night deaths | Resolve together at dawn. Private target lists use night-start living seats, including tonight's victims. |
 | Missing/dead role | Same public phase and neutral prompt; host acknowledges privately. No announcement of absence. |
 | Hunter | May shoot after wolf/vote/shot death; poison disables it. May decline. Winner checks wait for the shot. |
-| Ballots | One per living voter. No self-vote or dead target/voter. Abstain allowed. Most votes eliminates; no absolute-majority requirement. |
+| Ballots | One per living voter. Self-votes and abstentions allowed; no dead target/voter. Most votes eliminates; no absolute-majority requirement. |
 | Ties | One runoff among tied leaders; all living players vote. Another tie or all abstentions → no elimination. |
 | Victory | After deaths/hunter: no wolves → village; wolves ≥ good → wolves by default. Parity off requires eliminating all good. |
 | Both factions gone | Draw, evaluated before either side's victory. |

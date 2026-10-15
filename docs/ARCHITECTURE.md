@@ -14,6 +14,8 @@ FastAPI
 
 Frontend/API share one origin with no Node build or external font/CDN requests. The terminal application runs independently.
 
+`python run.py` starts the local server with Python autoreload. This prevents newer frontend files from being paired with an already-loaded older backend after source changes. Existing non-reloading servers need one manual restart when adopting this launcher. `/api/health` and `X-Moonfall-Version` identify the loaded backend version. An unavailable debug endpoint produces a restart explanation and retry control in the host UI.
+
 ## Persistence and concurrency
 
 SQLite stores one JSON snapshot per game. `BEGIN IMMEDIATE` reserves the writer before reading. Every mutation includes the previous version; two tabs cannot commit the same action. The engine copies its input, so failed validation cannot partly mutate state. State survives restart; session storage retains credentials through same-tab reload. Closing/clearing the session loses credentials; no recovery/account system is included.

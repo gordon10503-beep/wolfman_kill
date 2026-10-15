@@ -6,7 +6,7 @@ const privateDialog = $('#private-dialog');
 const labels = {wolf:'狼人',seer:'預言家',witch:'女巫',hunter:'獵人',villager:'平民'};
 const symbols = Object.fromEntries(Object.keys(labels).map(role=>[role,`<svg viewBox="0 0 48 48" aria-hidden="true"><use href="/assets/roles.svg#${role}"></use></svg>`]));
 const names = {reveal:'身份交接',wolves:'狼人行動',witch:'女巫行動',seer:'預言家查驗',dawn:'等待天亮',hunter:'獵人的最後一槍',discussion:'白天討論',vote:'村莊公投',runoff:'平票加賽',finished:'月落，真相浮現'};
-const descriptions = {reveal:'請將裝置交給指定座位。只有本人可以打開身份卡，確認後立即收起。',wolves:'所有人閉眼。只有狼人可以查看私人畫面，並共同選擇今晚的目標。',witch:'狼人閉眼，女巫睜眼。請女巫私下決定是否使用藥物。',seer:'女巫閉眼，預言家睜眼。查驗結果只會在私人畫面顯示。',dawn:'所有夜間行動已鎖定。確認大家睜眼後，公布昨晚的結果。',hunter:'勝負尚未結算。獵人可以帶走一位存活玩家，或放棄開槍。',discussion:'每個聲音都可能藏著線索。依座位發言，仔細聆聽，再作判斷。',vote:'依次記錄每位存活玩家的選擇。可以棄權，不能投自己。',runoff:'只在平票玩家之間再投一次。若仍平票，今晚無人出局。',finished:'所有秘密已經揭曉。回看每個座位的身份，拼出這一夜的故事。'};
+const descriptions = {reveal:'請將裝置交給指定座位。只有本人可以打開身份卡，確認後立即收起。',wolves:'所有人閉眼。只有狼人可以查看私人畫面，並共同選擇今晚的目標。',witch:'狼人閉眼，女巫睜眼。請女巫私下決定是否使用藥物。',seer:'女巫閉眼，預言家睜眼。查驗結果只會在私人畫面顯示。',dawn:'所有夜間行動已鎖定。確認大家睜眼後，公布昨晚的結果。',hunter:'勝負尚未結算。獵人可以帶走一位存活玩家，或放棄開槍。',discussion:'每個聲音都可能藏著線索。依座位發言，仔細聆聽，再作判斷。',vote:'依次記錄每位存活玩家的選擇。可以棄權，也可以投自己。',runoff:'只在平票玩家之間再投一次。若仍平票，今晚無人出局。',finished:'所有秘密已經揭曉。回看每個座位的身份，拼出這一夜的故事。'};
 const causes = {wolf:'夜晚出局',poison:'被毒殺',vote:'公投出局',hunter:'被獵人帶走'};
 const presets = {6:{wolf:2,seer:1,witch:1,hunter:0,villager:2},9:{wolf:3,seer:1,witch:1,hunter:1,villager:3},12:{wolf:4,seer:1,witch:1,hunter:1,villager:5}};
 let counts = {...presets[9]}, state = null, session = null, busy = false, voice = false, pollBusy = false;
@@ -15,7 +15,7 @@ let debugEnabled = sessionStorage.getItem('moonfall-debug') === 'true';
 let debugRequest = 0;
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  $('meta[name="theme-color"]').content = {lobby:'#0b1113',day:'#edf3eb',night:'#180b10'}[theme];
+  $('meta[name="theme-color"]').content = {lobby:'#0b1113',day:'#edf3eb',night:'#0a1116'}[theme];
 }
 function updateDebugButton() {
   $('#debug').hidden = !!session?.viewer;
@@ -33,7 +33,11 @@ async function loadDebug() {
     if (info.version !== state.version) { await refresh(); return; }
     slot.innerHTML = `<div class="debug-heading"><span class="eyebrow">DEBUG · 主持人專用</span><span class="muted">${escape(info.phase)} / v${info.version}</span></div><div class="debug-roster">${info.players.map(p=>`<div><strong>${p.seat} 號 · ${labels[p.role]}</strong><span>${p.alive?'存活':causes[p.cause]}</span></div>`).join('')}</div><p class="muted">解藥：${info.potions.save_used?'已使用':'未使用'} · 毒藥：${info.potions.poison_used?'已使用':'未使用'}<br>本晚狼刀：${info.night.kill??'無'} · 毒藥目標：${info.night.poison??'無'}${info.night.inspection?` · 查驗：${info.night.inspection.seat} 號（${info.night.inspection.alignment==='wolf'?'狼人':'好人'}）`:''}</p>`;
   } catch(error) {
-    if(request === debugRequest && $('#debug-panel')) slot.textContent = error.message;
+    if(request === debugRequest && $('#debug-panel')) {
+      const message = error.status === 404 ? 'DEBUG 尚未載入：伺服器可能仍在執行舊版本。請重新啟動 Python 伺服器，再重試。' : error.message;
+      slot.innerHTML = `<p class="dialog-error">${escape(message)}</p><button class="icon-button" id="retry-debug">重試 DEBUG</button>`;
+      $('#retry-debug').onclick = loadDebug;
+    }
   }
 }
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -45,7 +49,11 @@ async function api(path, options = {}) {
   try {
     const response = await fetch(path, {...options,signal:controller.signal,headers:{'Content-Type':'application/json',...(session ? {Authorization:`Bearer ${session.token}`} : {}),...options.headers}});
     const json = await response.json();
-    if (!response.ok) throw new Error(typeof json.detail === 'string' ? json.detail : '請檢查輸入，再試一次。');
+    if (!response.ok) {
+      const error = new Error(typeof json.detail === 'string' ? json.detail : '請檢查輸入，再試一次。');
+      error.status = response.status;
+      throw error;
+    }
     return json;
   } catch (e) { if (e.name === 'AbortError') throw new Error('連線逾時，請檢查網絡並重新同步。'); throw e; }
   finally { clearTimeout(timeout); }
@@ -121,7 +129,7 @@ function renderGame() {
   ${debug?'<section id="debug-panel" class="debug-panel" aria-label="DEBUG 主持人身份表"></section>':''}
   <div class="game-grid"><section><div class="table-panel"><div class="table-top"><p class="eyebrow">THE VILLAGE <span class="muted">/ 座位</span></p><span class="live-count"><i></i>${living} / ${state.players.length} 存活</span></div><div class="village">${state.players.map(pl=>`<article class="seat ${!pl.alive?'dead':''} ${pl.role==='wolf'?'revealed-wolf':''}"><div class="avatar">${p==='finished'?symbols[pl.role]:'♙'}</div><strong>SEAT ${String(pl.seat).padStart(2,'0')} · ${pl.seat} 號</strong><small>${p==='finished'?labels[pl.role]+' · '+(pl.alive?'存活':causes[pl.cause]):pl.alive?'身份未公開':'已出局'}</small></article>`).join('')}</div></div>
   <div class="narration"><span class="sigil">◖</span><div><span class="micro">THE NARRATOR · 語音主持</span><p>${escape(state.narration)}</p><small id="voice-status">${voice?'語音已啟用':'語音關閉 · 可按右上角啟用'}</small></div></div>
-  <section class="chronicle"><h3>Night chronicle <span class="muted">夜的紀錄</span></h3>${[...state.events].reverse().map(e=>`<div class="event"><time>ROUND ${String(e.day).padStart(2,'0')}</time><span>${escape(e.text)}</span></div>`).join('')}</section></section>
+  <section class="chronicle"><h3>Day & night chronicle <span class="muted">日夜紀錄</span></h3>${[...state.events].reverse().map(e=>`<div class="event"><time>ROUND ${String(e.day).padStart(2,'0')}</time><span>${escape(e.text)}</span></div>`).join('')}</section></section>
   <aside class="panel stage-panel"><p class="eyebrow">${p==='finished'?'THE EPILOGUE':night?'THE NIGHT RITUAL':'THE NEXT CHAPTER'}</p><div class="phase-symbol" aria-hidden="true">${({reveal:'✧',wolves:'☾',witch:'⚗',seer:'✧',dawn:'☼',hunter:'⌖',discussion:'☼',vote:'⚖',runoff:'⚖',finished:'☾'})[p]}</div><h2>${names[p]}</h2><p class="muted">${descriptions[p]}</p>${p==='reveal'?`<p class="notice">現在輪到 ${state.reveal_seat} 號玩家。其他人請移開視線。</p>`:''}${p==='hunter'?`<p class="notice">獵人：${state.hunter} 號</p>`:''}${p==='runoff'?`<p class="notice">平票座位：${state.runoff.join('、')} 號</p>`:''}
   ${p==='discussion'?(debug?'<p class="notice">DEBUG：略過討論倒數，可直接進入投票。</p>':'<div class="timer" id="timer">01:30</div><div class="timer-controls"><button class="icon-button" id="timer-toggle">開始計時</button><button class="icon-button" id="timer-reset">重設</button></div>'):''}
   ${!session.viewer && p!=='finished'?`<button class="primary" id="stage-action">${({reveal:'私下查看身份 ↗',wolves:'狼人私人行動 ↗',witch:'女巫私人行動 ↗',seer:'預言家私人行動 ↗',dawn:'公布昨晚結果 →',hunter:'決定最後一槍 ↗',discussion:'開始投票 →',vote:'記錄全體投票 ↗',runoff:'記錄加賽投票 ↗'})[p]}</button>`:''}
@@ -190,7 +198,7 @@ function renderPrivate(info) {
 }
 function openBallots() {
   const living=state.players.filter(p=>p.alive).map(p=>p.seat);
-  privateDialog.innerHTML=`<p class="eyebrow">THE VILLAGE DECIDES</p><h2>${state.phase==='runoff'?'平票加賽':'記錄全體投票'}</h2><p>先核對每人的選擇，再一次提交。空白代表棄權。</p><form id="ballot-form"><div class="ballot-list">${living.map(s=>`<label class="ballot-row"><span>${s} 號玩家投給</span><select name="${s}"><option value="">棄權</option>${(state.phase==='runoff'?state.runoff:living).filter(n=>n!==s).map(n=>`<option value="${n}">${n} 號</option>`).join('')}</select></label>`).join('')}</div><div class="button-row"><button class="secondary" type="button" id="cancel-ballot">返回</button><button class="primary">確認全體投票</button></div></form>`;
+  privateDialog.innerHTML=`<p class="eyebrow">THE VILLAGE DECIDES</p><h2>${state.phase==='runoff'?'平票加賽':'記錄全體投票'}</h2><p>先核對每人的選擇，再一次提交。空白代表棄權。</p><form id="ballot-form"><div class="ballot-list">${living.map(s=>`<label class="ballot-row"><span>${s} 號玩家投給</span><select name="${s}"><option value="">棄權</option>${(state.phase==='runoff'?state.runoff:living).map(n=>`<option value="${n}">${n} 號</option>`).join('')}</select></label>`).join('')}</div><div class="button-row"><button class="secondary" type="button" id="cancel-ballot">返回</button><button class="primary">確認全體投票</button></div></form>`;
   privateDialog.showModal();$('#cancel-ballot').onclick=closePrivate;
   $('#ballot-form').onsubmit=e=>{e.preventDefault();const ballots=Object.fromEntries([...new FormData(e.currentTarget)].map(([s,t])=>[s,t?Number(t):null]));action('ballots',{ballots});};
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 — 2026-10-15
+
+- Replaced the red screen wash with a natural moonlit forest, shadowed wolves, mist, and restrained blood marks; panels return to charcoal/forest tones.
+- Added an autoreloading local launcher and running-version health metadata. DEBUG now explains an outdated backend and offers retry instead of a bare “Not Found”.
+- Renamed the event log to “Day & night chronicle · 日夜紀錄”.
+- Allowed self-voting in both normal voting and runoffs; updated UI, rules, and tests.
+
 ## 1.1.0 — 2026-10-15
 
 - Shortened the private-screen back button to 「返回」.

@@ -2,7 +2,7 @@
 
 **When the moon rises, trust no one. 天黑請閉眼，故事即將開始。**
 
-A full-stack, Cantonese-friendly companion for in-person Werewolf. A mysterious moonlit interface replaces terminal prompts, while a Python backend handles rules, private actions, saved games, and narration. The original terminal interface remains available.
+A full-stack, Bilingual-friendly companion for in-person Werewolf. A mysterious moonlit interface replaces terminal prompts, while a Python backend handles rules, private actions, saved games, and narration. The original terminal interface remains available.
 
 ![Moonfall interface](docs/preview.png)
 

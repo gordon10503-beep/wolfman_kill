@@ -17,6 +17,18 @@ NARRATION = {
     "runoff": "本輪平票。請在平票玩家之間再投一次。",
     "finished": "遊戲結束。請查看勝方與完整復盤。",
 }
+NARRATION_EN = {
+    "reveal": "Welcome to Werewolf. Players, take turns checking your secret roles.",
+    "wolves": "Night falls. Everyone, close your eyes. Werewolves, open your eyes and choose tonight's target.",
+    "witch": "Werewolves, close your eyes. Witch, open your eyes. Review tonight's information and decide whether to use a potion.",
+    "seer": "Witch, close your eyes. Seer, open your eyes and choose a player to investigate.",
+    "dawn": "Seer, close your eyes. Morning has arrived. Everyone, open your eyes.",
+    "hunter": "Hunter, decide whether to take your final shot.",
+    "discussion": "The daytime discussion begins. Please speak in seat order and listen carefully.",
+    "vote": "Voting begins. Choose the player you suspect is a werewolf. You may vote for yourself or abstain.",
+    "runoff": "The vote is tied. Vote once more, choosing only from the tied players.",
+    "finished": "The game is over. You may now view the winning team and the full recap.",
+}
 
 
 class RuleError(ValueError):
@@ -36,7 +48,7 @@ def new_game(counts, rules=None):
     require(0 < counts["wolf"] < total - counts["wolf"], "至少一位狼人，而且開局狼人必須少於好人。")
     require(all(counts[r] <= 1 for r in ("seer", "witch", "hunter")), "預言家、女巫及獵人各最多一位。")
     options = {"witch_self_save": False, "witch_acts_when_killed": True,
-               "parity_wins": True, "discussion_seconds": 90}
+               "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True}
     if rules:
         require(set(rules) <= set(options), "未知規則。")
         options.update(rules)
@@ -129,6 +141,7 @@ def private_view(g):
                       targets=[s for s in alive(g) if seer and s != seer["seat"]])
     elif phase == "wolves":
         result["wolves"] = [p["seat"] for p in g["players"] if p["alive"] and p["role"] == "wolf"]
+        result["can_abstain"] = g["rules"].get("wolves_can_abstain", True)
     return result
 
 
@@ -138,6 +151,7 @@ def public_view(g):
     result["players"] = [{k: v for k, v in p.items() if k in ("seat", "alive") or g["phase"] == "finished"} for p in g["players"]]
     result["hunter"] = g["hunters"][0] if g["phase"] == "hunter" else None
     result["narration"] = NARRATION[g["phase"]]
+    result["narration_en"] = NARRATION_EN[g["phase"]]
     return result
 
 
@@ -159,7 +173,7 @@ def act(original, action, data):
         else:
             g["reveal_seat"] += 1
     elif phase == "wolves" and action == "wolves":
-        target(g, data.get("target"))
+        target(g, data.get("target"), optional=g["rules"].get("wolves_can_abstain", True))
         g["kill"], g["phase"] = data.get("target"), "witch"
     elif phase == "witch" and action == "witch":
         save, poison = data.get("save", False), data.get("poison")

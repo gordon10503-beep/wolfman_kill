@@ -12,7 +12,15 @@ logger = logging.getLogger(__name__)
 PROFILES = {
     "original": {"voice": "zh-HK-HiuMaanNeural", "rate": "+0%", "pitch": "+0Hz"},
     "narrator": {"voice": "zh-HK-WanLungNeural", "rate": "-5%", "pitch": "+0Hz"},
+    "english": {"voice": "en-US-JennyNeural", "rate": "+0%", "pitch": "+0Hz"},
+    "english_narrator": {"voice": "en-US-GuyNeural", "rate": "-5%", "pitch": "+0Hz"},
 }
+
+
+def speech_profile(voice, language):
+    if language == "en":
+        return "english_narrator" if voice == "narrator" else "english"
+    return voice
 
 
 class Speech:
@@ -33,7 +41,7 @@ class Speech:
     def remember(self, key, audio):
         self.cache[key] = audio
         self.cache.move_to_end(key)
-        if len(self.cache) > 32:
+        if len(self.cache) > 64:
             self.cache.popitem(last=False)
 
     async def synthesize(self, text, profile="original"):

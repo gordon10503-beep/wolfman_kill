@@ -10,12 +10,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import NARRATION, RuleError, new_game, private_view, public_view
-from .speech import PROFILES, Speech
+from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view
+from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 
 class CreateGame(BaseModel):
@@ -118,19 +118,22 @@ def create_app(database=None, preload_audio=False):
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, phase: str | None = Query(default=None, max_length=24),
-                    voice: Literal["original", "narrator"] = "original", credential=Depends(token)):
+                    voice: Literal["original", "narrator"] = "original",
+                    lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
         state = app.state.store.get(game_id, credential)
         cue = phase or state["phase"]
         if cue not in NARRATION:
             raise HTTPException(422, "未知的公開語音。")
         # Prefetch may name a future cue, but never send arbitrary/private text.
+        profile = speech_profile(voice, lang)
+        script = NARRATION_EN if lang == "en" else NARRATION
         try:
-            result = await asyncio.wait_for(app.state.speech.synthesize(NARRATION[cue], voice), 14)
+            result = await asyncio.wait_for(app.state.speech.synthesize(script[cue], profile), 14)
         except TimeoutError:
             result = None
         if result is None:
             raise HTTPException(503, "語音暫時不可用，請使用畫面字幕。")
-        return Response(result, media_type="audio/mpeg", headers={"X-Audio-Voice": PROFILES[voice]["voice"], "X-Audio-Cue": cue})
+        return Response(result, media_type="audio/mpeg", headers={"X-Audio-Voice": PROFILES[profile]["voice"], "X-Audio-Cue": cue, "Content-Language": "en-US" if lang == "en" else "zh-HK"})
 
     app.mount("/", StaticFiles(directory=ROOT / "frontend", html=True), name="frontend")
     return app

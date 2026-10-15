@@ -5,7 +5,7 @@ The web engine uses explicit house rules; Hong Kong tables may use different con
 | Situation | Web behavior |
 | --- | --- |
 | Setup | 5–16 players; at least one wolf; more good than wolves; at most one seer, witch, hunter. Strict integer counts/targets. |
-| Wolves | One collective living target, including a wolf. 空刀 allowed. |
+| Wolves | One collective living target, including a wolf. 空刀 is allowed by default; disable **允許狼人空刀** before dealing to require a target. Existing games without this setting retain the previous allowed behavior. |
 | Witch | One antidote and one poison per game, at most one per night. Self-save defaults off; acting when killed that night defaults on. Both configurable. |
 | No wolf kill | Antidote cannot be spent; poison remains available. |
 | Poison on wolf target | Allowed. Poison takes precedence, disabling hunter fire. Death recorded once. |

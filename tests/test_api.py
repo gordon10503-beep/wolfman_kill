@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.3.0"}
-    assert response.headers["x-moonfall-version"] == "1.3.0"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.4.0"}
+    assert response.headers["x-moonfall-version"] == "1.4.0"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -123,3 +123,23 @@ def test_audio_prefetch_is_fixed_public_text_and_validates_voice(client):
     assert client.get(path + '?phase=secret', headers=headers).status_code == 422
     assert client.get(path + '?voice=unknown', headers=headers).status_code == 422
     assert len(seen) == 1
+
+
+def test_english_audio_uses_english_script_and_voice(client):
+    from backend.engine import NARRATION_EN
+    g = create(client)
+    seen = []
+    async def synthesize(text, profile):
+        seen.append((text, profile))
+        return b"english-mp3"
+    client.app.state.speech.synthesize = synthesize
+    headers = {"Authorization": "Bearer " + g["host_token"]}
+    path = f'/api/games/{g["id"]}/audio'
+    for voice, profile, expected in (("original", "english", "en-US-JennyNeural"),
+                                     ("narrator", "english_narrator", "en-US-GuyNeural")):
+        response = client.get(path, params={"phase": "wolves", "lang": "en", "voice": voice}, headers=headers)
+        assert response.status_code == 200
+        assert response.headers["content-language"] == "en-US"
+        assert response.headers["x-audio-voice"] == expected
+        assert seen[-1] == (NARRATION_EN["wolves"], profile)
+    assert client.get(path + '?lang=other', headers=headers).status_code == 422

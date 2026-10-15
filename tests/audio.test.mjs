@@ -83,3 +83,16 @@ test('next public cue preloads and is reused after a phase transition',async()=>
   ctx.state.phase='witch';await narrator.speak();await Promise.all(narrator.pending.values());
   assert.equal(urls.filter(url=>url.includes('phase=witch')).length,1);
 });
+
+test('changing speech language uses a separate cache and returns to the Cantonese cache',async()=>{
+  const {ctx}=setup();const urls=[];
+  ctx.state.narration_en='Everyone, close your eyes.';
+  globalThis.fetch=async url=>{urls.push(url);return response();};
+  await narrator.speak();ctx.language='en';await narrator.speak();ctx.language='yue';await narrator.speak();
+  assert.equal(urls.length,2);assert.match(urls[0],/lang=yue/);assert.match(urls[1],/lang=en/);
+});
+test('English fallback uses translated text and an English voice',async()=>{
+  const {ctx,spoken}=setup();ctx.language='en';ctx.state.narration_en='Everyone, close your eyes.';
+  globalThis.fetch=async()=>({ok:false});globalThis.speechSynthesis.getVoices=()=>[{lang:'zh-HK'},{lang:'en-US'}];
+  await narrator.speak();assert.equal(spoken[0].lang,'en-US');assert.equal(spoken[0].text,ctx.state.narration_en);
+});

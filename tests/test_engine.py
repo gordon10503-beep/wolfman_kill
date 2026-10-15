@@ -34,6 +34,34 @@ def test_unknown_action_fields_cannot_silently_become_abstentions():
         act(game(), "wolves", {"targte": 3})
 
 
+def test_wolves_abstain_rule_enforced_and_old_games_remain_compatible():
+    g = game()
+    assert act(g, "wolves", {"target": None})["kill"] is None
+    g["rules"]["wolves_can_abstain"] = False
+    assert private_view(g)["can_abstain"] is False
+    for data in ({}, {"target": None}):
+        with pytest.raises(RuleError):
+            act(g, "wolves", data)
+    assert act(g, "wolves", {"target": 6})["kill"] == 6
+    assert g["phase"] == "wolves"
+    del g["rules"]["wolves_can_abstain"]
+    assert act(g, "wolves", {})["phase"] == "witch"
+
+
+def test_new_rule_validates_boolean_and_bilingual_prompts_cover_all_phases():
+    from backend.engine import NARRATION, NARRATION_EN, ROLES
+    counts = {r: ["wolf", "seer", "witch", "hunter", "villager", "villager"].count(r) for r in ROLES}
+    assert new_game(counts)["rules"]["wolves_can_abstain"] is True
+    with pytest.raises(RuleError):
+        new_game(counts, {"wolves_can_abstain": "false"})
+    assert NARRATION.keys() == NARRATION_EN.keys()
+    for phase in NARRATION:
+        g = game(phase=phase)
+        if phase == "hunter":
+            g["hunters"] = [5]
+        assert public_view(g)["narration_en"] == NARRATION_EN[phase]
+
+
 def test_reveal_each_seat_then_start():
     g = game(phase="reveal")
     for seat in range(1, 8):

@@ -55,6 +55,10 @@ The table follows the game clock: wolves/witch/seer phases use a moonlit forest 
 
 For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During role reveal, **跳過身份交接（DEBUG）** skips all remaining reveals and starts the first night without changing the assigned identities. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
 
+In **今晚的約定**, **允許狼人空刀** controls whether wolves may choose no target (on by default). Turn it off before starting a new game to require a living target every night; the server enforces this too. Existing games keep the earlier allow-abstain behavior.
+
+Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English selects translated public prompts and English neural voices (Jenny/Guy); Cantonese retains HiuMaan/WanLung. The language preference is saved per tab and can change during a game without changing roles or rules. The interface itself remains bilingual.
+
 ## What changed
 
 | Area | Implementation |
@@ -80,11 +84,13 @@ The **聲線** dropdown also offers `zh-HK-WanLungNeural` at `-5%` rate for a sl
 - **Outages:** synthesis is bounded to 12 seconds, repeated failures back off for 30 seconds, and cached clips remain usable. The server generates at most two clips concurrently and deduplicates identical requests.
 - **Voice quality:** local browser fallback is **off by default**, so the original voice cannot silently become a robotic system voice. Enable **允許本機備用語音（較機械）** if you prefer that fallback to captions during an outage. Status text identifies the actual source.
 
-Prime either full voice pack before a game (using your virtual environment's Python):
+Prime a full language/voice pack before a game (using your virtual environment's Python):
 
 ```bash
 python -m backend.prepare_audio
 python -m backend.prepare_audio --voice narrator
+python -m backend.prepare_audio --language en
+python -m backend.prepare_audio --language en --voice narrator
 ```
 
 Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only fixed public instructions are cached/sent to the provider; no identities, targets, or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults off per tab. **Enable voice on only one tab/device** to avoid multiple independent speakers.

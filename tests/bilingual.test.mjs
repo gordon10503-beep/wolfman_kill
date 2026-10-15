@@ -13,6 +13,7 @@ test('private prompts and debug details retain seat numbers and meaning',()=>{
   assert.equal(englishFor('你的狼人同伴：2、4 號。可以空刀，亦可選狼人。'),'Fellow wolves: seats 2, 4. You may skip the kill or choose a werewolf.');
   assert.equal(englishFor('本晚狼刀：3 · 毒藥目標：無 · 查驗：4 號（狼人）'),'Wolf target: seat 3 · Poison target: none · Investigation: seat 4 (Werewolf)');
   assert.equal(englishFor('↻ 重播公開旁白'),'Replay public narration');
+  assert.equal(englishFor('被獵人 9 號帶走'),'Shot by hunter 9');
 });
 test('daytime logs, ballots, timers and errors translate',()=>{
   assert.equal(englishFor('昨晚 1 號、3 號 出局。'),'Eliminated last night: seats 1, 3.');

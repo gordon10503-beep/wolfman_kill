@@ -179,6 +179,7 @@ export function englishFor(value) {
   const text = value.trim().replace(/^[↻↩↗＋]\s*/, '').replace(/\s*[↗→]$/, '').replace(/^\/\s*/, '');
   if (COPY[text]) return COPY[text];
   let m;
+  if ((m=text.match(/^被獵人 (\d+) 號帶走$/))) return `Shot by hunter ${m[1]}`;
   if ((m=text.match(/^現場結果：(\d+) 號出局。$/))) return `Counted result: seat ${m[1]} is eliminated.`;
   if ((m=text.match(/^平票：([\d、]+) 號進入加賽。$/))) return `Tie: seats ${list(m[1])} enter a runoff.`;
 

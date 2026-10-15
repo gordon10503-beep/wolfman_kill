@@ -16,8 +16,26 @@ export function roleLimit(role, funMode) {
 
 const ENGLISH_ROLES = {wolf:'Werewolf', seer:'Seer', witch:'Witch', hunter:'Hunter', villager:'Villager'};
 const ENGLISH_DEATHS = {wolf:'Killed at night', poison:'Poisoned', vote:'Voted out', hunter:'Shot by the hunter'};
+const CHINESE_DEATHS = {wolf:'夜晚出局', poison:'被毒殺', vote:'公投出局', hunter:'被獵人帶走'};
 
-export function englishSeatText(player, finished) {
+function hunterSeat(player, events) {
+  if (Number.isInteger(player.hunter_seat) && player.hunter_seat > 0) return player.hunter_seat;
+  // Older saved games recorded the shooter only in the chronicle.
+  for (const event of events) {
+    const shot = event.text.match(/^獵人 (\d+) 號開槍，(\d+) 號出局。$/);
+    if (shot && Number(shot[2]) === player.seat) return Number(shot[1]);
+  }
+  return null;
+}
+
+export function chineseDeathText(player, events = []) {
+  const hunter = player.cause === 'hunter' ? hunterSeat(player, events) : null;
+  return hunter ? `被獵人 ${hunter} 號帶走` : CHINESE_DEATHS[player.cause] || '已出局';
+}
+
+export function englishSeatText(player, finished, events = []) {
   if (!finished) return player.alive ? 'Alive · Role hidden' : 'Eliminated · Role hidden';
-  return `${ENGLISH_ROLES[player.role] || 'Unknown role'} · ${player.alive ? 'Alive' : ENGLISH_DEATHS[player.cause] || 'Eliminated'}`;
+  const hunter = player.cause === 'hunter' ? hunterSeat(player, events) : null;
+  const death = hunter ? `Shot by hunter ${hunter}` : ENGLISH_DEATHS[player.cause] || 'Eliminated';
+  return `${ENGLISH_ROLES[player.role] || 'Unknown role'} · ${player.alive ? 'Alive' : death}`;
 }

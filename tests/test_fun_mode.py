@@ -105,6 +105,20 @@ def test_all_hunter_chain_finishes_before_winner_even_at_parity():
     assert g['winner']=='draw' and not any(p['alive'] for p in g['players'])
 
 
+def test_hunter_sources_survive_a_chain_and_only_appear_in_the_public_recap():
+    g=make(('wolf','hunter','hunter','hunter','hunter'),phase='vote')
+    g=act(g,'vote_result',{'leaders':[2]})
+    for shooter,victim in ((2,3),(3,4),(4,5)):
+        g=act(g,'shoot',{'target':victim})
+        assert g['players'][victim-1]['hunter_seat']==shooter
+        assert all('hunter_seat' not in p for p in public_view(g)['players'])
+    g=act(g,'shoot',{'target':1})
+    recap=public_view(g)['players']
+    assert g['phase']=='finished'
+    assert {p['seat']:p['hunter_seat'] for p in recap if p['cause']=='hunter'}=={3:2,4:3,5:4,1:5}
+    assert 'hunter_seat' not in recap[1]  # Voted out, rather than shot.
+
+
 def test_counted_results_match_ballots_and_keep_runoff_rules():
     g=make(phase='vote')
     direct=act(g,'vote_result',{'leaders':[1]})

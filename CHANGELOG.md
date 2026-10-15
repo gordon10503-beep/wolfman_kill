@@ -7,6 +7,7 @@
 - Kept individual ballots and added counted results, including tied leaders and no-elimination outcomes.
 - Added fun mode with multiple special roles, independent witch potions and seer turns, and complete hunter chains before victory. Seers report Bad side / Good side.
 - Replayed cached narration for every new hunter in a chain; capped non-wolf fun-mode role controls at 15.
+- Recap cards identify the firing hunter by seat in Chinese and English, including older games with chronicle records.
 - Enabled witch self-save and host narration by default; audience narration remains off by default. Header controls are bilingual.
 
 ## 1.4.0 — 2026-10-15

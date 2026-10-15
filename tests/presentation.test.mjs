@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {themeForPhase, englishSeatText} from '../frontend/presentation.mjs';
+import {themeForPhase, englishSeatText, chineseDeathText} from '../frontend/presentation.mjs';
 
 test('private night actions use the night palette',()=>{
   for(const phase of ['wolves','witch','seer']) assert.equal(themeForPhase(phase),'night');
@@ -21,6 +21,27 @@ test('seat subtext explains the recap without leaking identities or death causes
   assert.equal(englishSeatText({role:'hunter',alive:true},true),'Hunter · Alive');
   assert.equal(englishSeatText({role:'villager',alive:false,cause:'vote'},true),'Villager · Voted out');
   assert.equal(englishSeatText({role:'witch',alive:false,cause:'hunter'},true),'Witch · Shot by the hunter');
+});
+
+test('recap deaths identify each shooter without exposing that information during play',()=>{
+  const victim={seat:1,role:'hunter',alive:false,cause:'hunter',hunter_seat:9};
+  assert.equal(chineseDeathText(victim),'被獵人 9 號帶走');
+  assert.equal(englishSeatText(victim,true),'Hunter · Shot by hunter 9');
+  assert.equal(englishSeatText(victim,false),'Eliminated · Role hidden');
+  assert.equal(chineseDeathText({...victim,seat:9,hunter_seat:12}),'被獵人 12 號帶走');
+  assert.equal(englishSeatText({...victim,seat:9,hunter_seat:12},true),'Hunter · Shot by hunter 12');
+  assert.equal(chineseDeathText({...victim,cause:'wolf'}),'夜晚出局');
+  assert.equal(englishSeatText({...victim,cause:'wolf'},true),'Hunter · Killed at night');
+});
+
+test('older recaps recover each hunter from the chronicle and safely handle missing history',()=>{
+  const victim={seat:1,role:'hunter',alive:false,cause:'hunter'};
+  const events=[{text:'獵人 12 號開槍，9 號出局。'},{text:'獵人 9 號開槍，1 號出局。'},{text:'獵人 1 號放棄開槍。'}];
+  assert.equal(chineseDeathText(victim,events),'被獵人 9 號帶走');
+  assert.equal(englishSeatText(victim,true,events),'Hunter · Shot by hunter 9');
+  assert.equal(englishSeatText({...victim,seat:9},true,events),'Hunter · Shot by hunter 12');
+  assert.equal(chineseDeathText(victim),'被獵人帶走');
+  assert.equal(englishSeatText(victim,true),'Hunter · Shot by the hunter');
 });
 
 test('each hunter in a chain receives narration, while repeated state polls stay silent',async()=>{

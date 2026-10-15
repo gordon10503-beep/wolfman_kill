@@ -274,6 +274,7 @@ def act(original, action, data):
         hunter = g["hunters"].pop(0)
         if seat is not None:
             kill(g, seat, "hunter")
+            player(g, seat)["hunter_seat"] = hunter
             event(g, f"獵人 {hunter} 號開槍，{seat} 號出局。")
         else:
             event(g, f"獵人 {hunter} 號放棄開槍。")

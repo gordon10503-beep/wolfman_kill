@@ -15,7 +15,7 @@ from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 
 
 class CreateGame(BaseModel):
@@ -34,8 +34,15 @@ class Action(BaseModel):
 def create_app(database=None, preload_audio=False):
     @asynccontextmanager
     async def lifespan(app):
-        app.state.store = Store(database or os.environ.get("WOLFMAN_DB", str(ROOT / "data" / "games.sqlite3")))
-        directory = os.environ.get("WOLFMAN_AUDIO_CACHE", str(Path(app.state.store.path).parent / "audio-cache"))
+        database_url = os.environ.get("DATABASE_URL") if database is None else None
+        if database_url:
+            from .postgres_store import PostgresStore
+            app.state.store = PostgresStore(database_url)
+            audio_root = ROOT / "data"
+        else:
+            app.state.store = Store(database or os.environ.get("WOLFMAN_DB", str(ROOT / "data" / "games.sqlite3")))
+            audio_root = Path(app.state.store.path).parent
+        directory = os.environ.get("WOLFMAN_AUDIO_CACHE", str(audio_root / "audio-cache"))
         app.state.speech = Speech(directory)
         warmup = asyncio.create_task(app.state.speech.warm(NARRATION.values())) if preload_audio else None
         try:

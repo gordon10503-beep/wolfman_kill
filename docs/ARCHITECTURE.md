@@ -18,7 +18,7 @@ Frontend/API share one origin with no Node build or external font/CDN requests. 
 
 ## Persistence and concurrency
 
-SQLite stores one JSON snapshot per game. `BEGIN IMMEDIATE` reserves the writer before reading. Every mutation includes the previous version; two tabs cannot commit the same action. The engine copies its input, so failed validation cannot partly mutate state. State survives restart; session storage retains credentials through same-tab reload. Closing/clearing the session loses credentials; no recovery/account system is included.
+SQLite stores one JSON snapshot per game locally. Setting `DATABASE_URL` selects PostgreSQL through `postgres_store.py`; it uses `SELECT … FOR UPDATE` and the same version/authentication checks. This keeps cloud snapshots outside ephemeral web-server storage. `BEGIN IMMEDIATE` reserves the writer before reading. Every mutation includes the previous version; two tabs cannot commit the same action. The engine copies its input, so failed validation cannot partly mutate state. State survives restart; session storage retains credentials through same-tab reload. Closing/clearing the session loses credentials; no recovery/account system is included.
 
 The default database is `data/games.sqlite3`, configurable through `WOLFMAN_DB`. Back up using SQLite's backup API or stop the server before copying. Data is ignored by Git/Docker. Operators manage retention. Use one Uvicorn worker; speech locks/cache are per process.
 
@@ -59,3 +59,7 @@ Raw schema: `/openapi.json`. Protected routes use `Authorization: Bearer <capabi
 Phase-specific actions: `ack`, `wolves`, `witch`, `inspect`, `dawn`, `shoot`, `vote`, `ballots`, `vote_result`, `inactive_pass`, `debug_skip_reveal`. `inactive_pass` is rejected for living actors and hunters. Fun mode stores private per-role cursors and per-witch potion inventory; public state never includes actor seats or inventory. Only a role-turn ordinal/count is public so players can follow the order; dead holders remain in that count. Rule violations return 409; schema errors 422; missing credentials 401; forbidden credentials 403; unknown game 404. Polling runs every three seconds while visible without a private dialog. After uncertain network failure, synchronize before retrying: a committed action cannot reuse its old version.
 
 Frontend visuals use CSS/SVG transforms and opacity for day/night transitions and animated scenery. The small host-only night-cover timer checks the private role context after 10 seconds without interaction, then submits a version-checked inactive pass only if the server confirms the role cannot act. Private action effects finish before submission/results, and cancelled dialogs do not commit an unfinished visual action.
+
+## Installable website
+
+The web manifest and icons support home-screen/desktop installation. The online-only service worker registers without caching requests, so private API responses and obsolete frontend code never enter a runtime cache. A supporting browser may offer an install prompt in the guide; iOS uses Safari’s Add to Home Screen. See [Deployment](DEPLOYMENT.md).

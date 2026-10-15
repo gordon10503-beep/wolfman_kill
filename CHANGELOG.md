@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0 — 2026-10-15
+
+- Added optional bilingual last-words turns: first-night casualties and voted-out players speak after hunter chains and before victory/next phase.
+- Skipped fun-mode witch/seer phases only when the role was absent from the original cast; dead holders retain cover turns.
+- Put counted-vote controls directly on the voting screen while preserving optional individual ballots.
+- Added PostgreSQL snapshot storage for cloud deployments, a Render Free configuration, and a Neon deployment guide.
+- Added installable web-app metadata, icons, online-only service worker, mobile touch targets and safe-area spacing. No private game responses are cached.
+
 ## 1.5.0 — 2026-10-15
 
 - Added sun/moon transitions, an animated daytime forest, private role action/card-flip effects, and a wolf crossfade without a moving rectangle.

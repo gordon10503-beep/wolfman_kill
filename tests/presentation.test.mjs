@@ -6,7 +6,7 @@ test('private night actions use the night palette',()=>{
   for(const phase of ['wolves','witch','seer']) assert.equal(themeForPhase(phase),'night');
 });
 test('dawn, hunter resolution, voting and recap all use daylight',()=>{
-  for(const phase of ['dawn','hunter','discussion','vote','runoff','finished']) assert.equal(themeForPhase(phase),'day');
+  for(const phase of ['dawn','hunter','last_words','discussion','vote','runoff','finished']) assert.equal(themeForPhase(phase),'day');
 });
 test('dealing and home retain the original lobby atmosphere',()=>{
   assert.equal(themeForPhase('reveal'),'lobby');
@@ -57,4 +57,12 @@ test('fun mode caps each non-wolf role at 15 and wolves at 7',async()=>{
   for(const role of ['seer','witch','hunter','villager'])assert.equal(roleLimit(role,true),15);
   assert.equal(roleLimit('wolf',true),7);
   assert.equal(roleLimit('seer',false),1);
+});
+
+test('each last-words speaker gets narration without replaying unchanged polls',async()=>{
+  const {narrationChanged}=await import('../frontend/presentation.mjs');
+  const first={phase:'last_words',day:1,last_words_seat:2};
+  assert.equal(narrationChanged({phase:'dawn',day:1},first),true);
+  assert.equal(narrationChanged(first,{...first,last_words_seat:6}),true);
+  assert.equal(narrationChanged(first,{...first}),false);
 });

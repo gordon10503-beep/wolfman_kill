@@ -59,6 +59,8 @@ def test_new_rule_validates_boolean_and_bilingual_prompts_cover_all_phases():
         g = game(phase=phase)
         if phase == "hunter":
             g["hunters"] = [5]
+        if phase == "last_words":
+            g["last_words_queue"] = [6]
         assert public_view(g)["narration_en"] == NARRATION_EN[phase]
 
 

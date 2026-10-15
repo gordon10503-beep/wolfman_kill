@@ -1,5 +1,9 @@
 /** Local, display-only translations. Never requests or publishes private data. */
 const COPY = {
+  '啟用遺言':'Enable last words', '遺言':'Last words', '最後的話':'Last words',
+  '請指定座位發表遺言。說完後由主持人確認，再繼續遊戲。':'The indicated player may give their last words. The host confirms when they finish, then the game continues.',
+  '遺言結束，繼續':'Last words finished · Continue', '逐票記錄（可選）':'Record individual ballots (optional)',
+  '請畫面指定的玩家發表遺言，其餘玩家請保持安靜。':'The player shown on screen may give their last words. Everyone else, please listen quietly.',
   '娛樂模式每種角色最多 15 位。':'Fun mode allows at most 15 players of any one role.',
   '娛樂模式':'Fun mode',
   '允許多位預言家、女巫及獵人；狼人仍須少於好人。':'Allow multiple seers, witches and hunters. Wolves must still be fewer than the good side.',
@@ -179,6 +183,7 @@ export function englishFor(value) {
   const text = value.trim().replace(/^[↻↩↗＋]\s*/, '').replace(/\s*[↗→]$/, '').replace(/^\/\s*/, '');
   if (COPY[text]) return COPY[text];
   let m;
+  if ((m=text.match(/^(\d+) 號遺言結束。$/))) return `Seat ${m[1]} has finished their last words.`;
   if ((m=text.match(/^被獵人 (\d+) 號帶走$/))) return `Shot by hunter ${m[1]}`;
   if ((m=text.match(/^現場結果：(\d+) 號出局。$/))) return `Counted result: seat ${m[1]} is eliminated.`;
   if ((m=text.match(/^平票：([\d、]+) 號進入加賽。$/))) return `Tie: seats ${list(m[1])} enter a runoff.`;

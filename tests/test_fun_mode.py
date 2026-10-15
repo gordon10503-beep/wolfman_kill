@@ -81,13 +81,10 @@ def test_inactive_pass_never_skips_a_live_actor_or_hunter():
     with pytest.raises(RuleError): act(g,'inactive_pass',{})
 
 
-def test_missing_roles_and_disabled_witch_keep_the_same_private_pass_path():
+def test_absent_fun_roles_skip_but_disabled_witch_keeps_the_private_pass_path():
     g=make(('wolf','hunter','hunter','hunter','hunter'))
     g=act(g,'wolves',{})
-    assert not private_view(g)['active']
-    g=act(g,'inactive_pass',{})
-    assert g['phase']=='seer' and not private_view(g)['active']
-    assert act(g,'inactive_pass',{})['phase']=='dawn'
+    assert g['phase']=='dawn'
     g=make();g['rules']['witch_acts_when_killed']=False
     g=act(g,'wolves',{'target':2})
     assert not private_view(g)['active']

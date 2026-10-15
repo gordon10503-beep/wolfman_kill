@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.5.0"}
-    assert response.headers["x-moonfall-version"] == "1.5.0"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.6.0"}
+    assert response.headers["x-moonfall-version"] == "1.6.0"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -204,3 +204,29 @@ def test_new_games_default_to_self_save_but_saved_rules_remain_explicit():
     old['phase']='wolves'
     from backend.engine import act
     assert act(old,'wolves',{})['rules']['witch_self_save'] is False
+
+
+def test_last_words_is_public_but_only_the_host_can_advance_it(client):
+    from backend.engine import act
+    g=new_game(COUNTS,{'last_words':True});g['phase']='vote'
+    victim=next(p['seat'] for p in g['players'] if p['role']=='villager')
+    g=act(g,'vote_result',{'leaders':[victim]})
+    game_id,host,viewer=client.app.state.store.create(g)
+    path=f'/api/games/{game_id}'
+    view=client.get(path,headers={'Authorization':'Bearer '+viewer}).json()
+    assert view['phase']=='last_words' and view['last_words_seat']==victim
+    assert all('role' not in p for p in view['players'])
+    body={'version':g['version'],'action':'last_words_done'}
+    assert client.post(path+'/actions',headers={'Authorization':'Bearer '+viewer},json=body).status_code==403
+    assert client.post(path+'/actions',headers={'Authorization':'Bearer '+host},json=body).json()['phase']=='wolves'
+    assert client.post(path+'/actions',headers={'Authorization':'Bearer '+host},json=body).status_code==409
+
+
+def test_install_manifest_icons_and_worker_are_served(client):
+    manifest=client.get('/manifest.webmanifest')
+    assert manifest.status_code==200 and manifest.json()['display']=='standalone'
+    for icon in manifest.json()['icons']:
+        response=client.get(icon['src'])
+        assert response.status_code==200 and response.headers['content-type']=='image/png'
+    assert client.get('/sw.js').status_code==200
+    assert 'no-store' in client.get('/sw.js').headers['cache-control']

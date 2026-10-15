@@ -22,4 +22,6 @@ test('daytime logs, ballots, timers and errors translate',()=>{
   assert.equal(englishFor('暫停計時'),'Pause timer');
   assert.ok(englishFor('每晚只可使用一瓶藥。請取消解藥或毒藥目標。'));
   assert.equal(englishFor('unknown custom text'),null);
+  assert.equal(englishFor('6 號遺言結束。'),'Seat 6 has finished their last words.');
+  for(const text of ['啟用遺言','最後的話','遺言結束，繼續 →','逐票記錄（可選） ↗'])assert.ok(englishFor(text),text);
 });

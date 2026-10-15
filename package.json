@@ -1,10 +1,10 @@
 {
   "name": "moonfall-wolfman-kill",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check frontend/app.js && node --check frontend/audio.mjs && node --check frontend/presentation.mjs && node --check frontend/bilingual.mjs && node --check frontend/forest.mjs && node --check frontend/transitions.mjs && node --check frontend/night-cover.mjs && node --check frontend/role-effects.mjs"
+    "check": "node --check frontend/app.js && node --check frontend/audio.mjs && node --check frontend/presentation.mjs && node --check frontend/bilingual.mjs && node --check frontend/forest.mjs && node --check frontend/transitions.mjs && node --check frontend/night-cover.mjs && node --check frontend/role-effects.mjs && node --check frontend/install.mjs && node --check frontend/sw.js"
   }
 }

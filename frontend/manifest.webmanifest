@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Moonfall · 狼人殺",
+  "short_name": "Moonfall",
+  "description": "Bilingual Werewolf game master · 廣東話及英語狼人殺主持",
+  "lang": "zh-HK",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1113",
+  "theme_color": "#0b1113",
+  "icons": [
+    {"src": "/assets/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/assets/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

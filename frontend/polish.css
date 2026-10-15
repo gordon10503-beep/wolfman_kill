@@ -139,6 +139,7 @@ dialog::backdrop { backdrop-filter: blur(6px); }
   .topbar.in-game { padding: 16px 18px; gap: 14px; }
   .topbar.in-game .top-actions { flex-basis: 100%; justify-content: center; }
   .topbar.in-game .session-tools { width: 100%; flex-direction: row; justify-content: center; }
+  .topbar .top-actions #help { display: inline-block; min-width: 36px; }
 }
 /* Prioritize the current seat over decorative space during role handoff. */
 .handoff-stage .phase-symbol { display: none; }
@@ -177,8 +178,19 @@ dialog::backdrop { backdrop-filter: blur(6px); }
 .save-target { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--gold); font-size: 10px; }
 .save-target strong { font: 32px var(--serif); }
 .quick-vote { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; }
-.quick-vote summary { cursor: pointer; color: var(--gold); font-size: 13px; }
+.quick-vote h3 { color: var(--gold); font-size: 17px; }
 .quick-vote p { font-size: 12px; }
+@media (pointer: coarse) {
+  .role-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .top-actions .icon-button, .timer-controls button, .target-grid span { min-height: 44px; }
+  .ballot-row select, .voice-settings select, .rule-line select, .rule-line input[type=number], .share-url { min-height: 44px; font-size: 16px; }
+  .stepper button { min-width: 36px; min-height: 44px; }
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+  body { padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .topbar { padding-top: max(16px, env(safe-area-inset-top)); }
+  .topbar.in-game { padding-top: max(20px, env(safe-area-inset-top)); }
+}
 .guide-launch { display: flex; gap: 9px; align-items: center; width: fit-content; margin-top: 14px; background-color: #0c191bd9; }
 .guide-launch > span { width: 20px; height: 20px; border: 1px solid var(--border); border-radius: 50%; display: grid; place-items: center; }
 .guide-dialog { width: min(760px,calc(100% - 32px)); }

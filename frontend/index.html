@@ -2,7 +2,11 @@
 <html lang="zh-HK">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/app-192.png">
   <meta name="theme-color" content="#0b1113">
   <meta name="description" content="Moonfall 狼人殺 — a Cantonese game companion for nights of secrets, suspicion, and survival.">
   <title>Moonfall · 狼人殺</title>
@@ -12,6 +16,7 @@
   <link rel="stylesheet" href="/themes.css">
   <link rel="stylesheet" href="/polish.css?v=phases2">
   <script src="/app.js" type="module"></script>
+  <script src="/install.mjs" type="module"></script>
   <script src="/forest.mjs?v=phases2" type="module"></script>
 </head>
 <body>
@@ -48,6 +53,11 @@
     <p>標準模式的預言家、女巫及獵人各最多一位。娛樂模式可增加這些角色，例如一狼配多位獵人；每位女巫有獨立藥水。開局狼人仍必須少於好人。<span class="english-subtext" lang="en">Standard mode allows at most one seer, witch and hunter. Fun mode allows more, such as one wolf with several hunters. Each witch has separate potions. Wolves must still be fewer than the good side at setup.</span></p>
     <div id="guide-privacy"></div>
     <p class="notice">觀眾請使用「觀眾畫面」，不要分享主持人的瀏覽器。交接前先關閉 DEBUG，避免公開全部身份。<span class="english-subtext" lang="en">Spectators should use the audience view, never the host browser. Turn DEBUG off before passing the device so all roles are not exposed.</span></p>
+    <h3>04 · 誰有遺言？<span class="english-subtext" lang="en">Who gets last words?</span></h3>
+    <p>可在開局規則啟用遺言。首夜出局者（包括狼刀、毒藥及獵人連鎖）及每次被票出局者有遺言。白天被獵人帶走者沒有；第二晚起夜間出局者也沒有。所有獵人開槍處理完後，依序發表遺言，主持人確認後才結算勝負或進入下一階段。<span class="english-subtext" lang="en">Enable last words in the house rules. First-night casualties (including wolf kills, poison and hunter chains) and every voted-out player get last words. Daytime hunter-shot victims and night casualties from night two onward do not. Resolve all hunter shots first, then take last words in order. The host confirms each speaker before victory or the next phase.</span></p>
+    <h3>05 · 安裝到裝置<span class="english-subtext" lang="en">Install on your device</span></h3>
+    <p>iPhone／iPad：在 Safari 開啟網站，按分享，選「加入主畫面」，並開啟「作為網頁 App 打開」。Android、Windows 及 Mac：使用支援安裝的瀏覽器，在網址列或選單選擇安裝。遊戲需要網絡；請先安裝，再於 App 內開局。<span class="english-subtext" lang="en">iPhone/iPad: open the site in Safari, tap Share → Add to Home Screen and enable Open as Web App. Android, Windows and Mac: use your browser’s install option in its address bar or menu. Play requires an internet connection. Install first, then create your game inside the app.</span></p>
+    <button class="secondary" id="install-app" hidden>安裝 Moonfall · Install Moonfall</button>
     <button class="primary" data-close="help-dialog">明白了，返回遊戲 · Got it, back to the game</button>
   </dialog>
   <div id="toast" role="status"></div>

@@ -148,6 +148,8 @@ Current checks and their limits are recorded in [Validation](docs/VALIDATION.md)
 
 ## Storage and hosting
 
+For a public link and an installable phone/desktop web app, follow [Free cloud deployment](docs/DEPLOYMENT.md). Render serves the website/backend; optional Neon/PostgreSQL storage through `DATABASE_URL` preserves cloud games. Local runs retain SQLite.
+
 Set `WOLFMAN_DB` to change `data/games.sqlite3`. The database contains plaintext roles and is excluded from Git/Docker build contexts. Protect host files and backups. Use one server worker; speech locks/caches are per process.
 
 This release serves a trusted, in-person table. Pushing to GitHub does not deploy a live website. Public hosting needs HTTPS, access controls, rate limits, and a configured reverse proxy. The documented server binds to loopback. Audience links use the same origin; another device requires a reachable, securely hosted server. Discussion timers are independent and advisory; only the host advances the game.
@@ -177,9 +179,11 @@ New games enable **witch self-save** by default. Saved games keep their original
 
 With the host page visible, an inactive witch/seer turn advances after **10 seconds without interaction**. Opening or using the private screen renews the interval. Living actors and hunter shots are never auto-skipped; the audience receives no inactivity status or automatic-pass log entry. Close DEBUG before passing the host device. Physical clicks and players’ timing still need cooperation.
 
-The voting dialog keeps individual ballots and adds **Counted the votes in person?**. Select one highest-vote seat to eliminate it, all tied leaders for a runoff, or no seats for no elimination. A second tie ends without elimination. The server validates targets and preserves hunter and victory resolution.
+The voting screen shows **Votes counted in person** directly, with individual ballots in an optional dialog. Select one highest-vote seat to eliminate it, all tied leaders for a runoff, or no seats for no elimination. A second tie ends without elimination. The server validates targets and preserves hunter and victory resolution.
 
 Day/night boundaries animate the setting sun or moon and rising counterpart. The daytime panorama has moving clouds, sunlight and trees. Private actions send a flask, magnifier or role symbol to the target card, flip it 360°, then show the result or advance. Cancelling the screen cancels an unfinished effect. The motion toggle skips these effects when paused. The wolf transition uses soft haze and a page crossfade instead of a sliding rectangular backdrop.
+
+Enable **遺言 / Last words** in house rules to give every first-night casualty and voted-out player a speaking turn. Daytime hunter-shot victims and deaths from night two onward get none. Hunters resolve first, then the host confirms each speaker before victory or the next phase. It is off by default; older games keep their original flow. Fun mode skips witch/seer roles absent from the cast; eliminated holders still get cover turns.
 
 ## License
 

@@ -13,6 +13,7 @@ NARRATION = {
     "seer": "女巫請閉眼。預言家請睜眼，選擇查驗的玩家。",
     "dawn": "預言家請閉眼。天亮了，所有玩家請睜眼。",
     "hunter": "獵人請決定是否開槍。",
+    "last_words": "請畫面指定的玩家發表遺言，其餘玩家請保持安靜。",
     "discussion": "現在開始日間討論。請各位玩家依次發言。",
     "vote": "現在開始投票。請投出你懷疑是狼人的玩家，亦可以棄權。",
     "runoff": "本輪平票。請在平票玩家之間再投一次。",
@@ -25,6 +26,7 @@ NARRATION_EN = {
     "seer": "Witch, close your eyes. Seer, open your eyes and choose a player to investigate.",
     "dawn": "Seer, close your eyes. Morning has arrived. Everyone, open your eyes.",
     "hunter": "Hunter, decide whether to take your final shot.",
+    "last_words": "The player shown on screen may give their last words. Everyone else, please listen quietly.",
     "discussion": "The daytime discussion begins. Please speak in seat order and listen carefully.",
     "vote": "Voting begins. Choose the player you suspect is a werewolf. You may vote for yourself or abstain.",
     "runoff": "The vote is tied. Vote once more, choosing only from the tied players.",
@@ -48,7 +50,7 @@ def new_game(counts, rules=None):
     require(5 <= total <= 16, "每局需要 5–16 位玩家。")
     require(0 < counts["wolf"] < total - counts["wolf"], "至少一位狼人，而且開局狼人必須少於好人。")
     options = {"witch_self_save": True, "witch_acts_when_killed": True,
-               "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True, "fun_mode": False}
+               "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True, "fun_mode": False, "last_words": False}
     if rules:
         require(set(rules) <= set(options), "未知規則。")
         options.update(rules)
@@ -128,11 +130,13 @@ def check_winner(g):
     return bool(winner)
 
 
-def kill(g, seat, cause):
+def kill(g, seat, cause, night=False):
     p = player(g, seat)
     if not p["alive"]:
         return
     p.update(alive=False, cause=cause)
+    if g["rules"].get("last_words", False) and (cause == "vote" or (night and g["day"] == 1)):
+        g.setdefault("last_words_queue", []).append(seat)
     if p["role"] == "hunter" and cause != "poison":
         g["hunters"].append(seat)
 
@@ -142,6 +146,9 @@ def settle(g, next_phase):
     g["after_hunter"] = next_phase
     if g["hunters"]:
         g["phase"] = "hunter"
+    elif g.get("last_words_queue"):
+        g["after_last_words"] = next_phase
+        g["phase"] = "last_words"
     elif not check_winner(g):
         g["phase"] = next_phase
         if next_phase == "wolves":
@@ -181,6 +188,7 @@ def public_view(g):
     result = {k: deepcopy(g[k]) for k in keys}
     result["players"] = [{k: v for k, v in p.items() if k in ("seat", "alive") or g["phase"] == "finished"} for p in g["players"]]
     result["hunter"] = g["hunters"][0] if g["phase"] == "hunter" else None
+    result["last_words_seat"] = g["last_words_queue"][0] if g["phase"] == "last_words" else None
     total = sum(p["role"] == g["phase"] for p in g["players"]) if g["phase"] in ("witch", "seer") else 0
     # Role counts/turn ordinals are public; actor seats and availability are not.
     result["role_turn"] = {"number": g.get(g["phase"] + "_cursor", 0) + 1, "total": total} if total > 1 else None
@@ -210,7 +218,7 @@ def act(original, action, data):
     fields = {"ack": set(), "wolves": {"target"}, "witch": {"save", "poison"},
               "inspect": {"target"}, "dawn": set(), "shoot": {"target"},
               "vote": set(), "ballots": {"ballots"}, "debug_skip_reveal": set(),
-              "vote_result": {"leaders"}, "inactive_pass": set()}
+              "vote_result": {"leaders"}, "inactive_pass": set(), "last_words_done": set()}
     require(action in fields, "未知行動。")
     require(isinstance(data, dict) and set(data) <= fields[action], "未知行動參數。")
     if phase in ("witch", "seer") and action == "inactive_pass":
@@ -265,7 +273,7 @@ def act(original, action, data):
         poisons = set(g.get("poisons", [])) | ({g["poison"]} if g["poison"] is not None else set())
         deaths = sorted(poisons | ({g["kill"]} if g["kill"] is not None else set()))
         for seat in deaths:
-            kill(g, seat, "poison" if seat in poisons else "wolf")
+            kill(g, seat, "poison" if seat in poisons else "wolf", night=True)
         event(g, "昨晚 " + "、".join(f"{s} 號" for s in deaths) + " 出局。" if deaths else "昨晚是平安夜。")
         settle(g, "discussion")
     elif phase == "hunter" and action == "shoot":
@@ -273,12 +281,16 @@ def act(original, action, data):
         target(g, seat)
         hunter = g["hunters"].pop(0)
         if seat is not None:
-            kill(g, seat, "hunter")
+            kill(g, seat, "hunter", night=g["after_hunter"] == "discussion")
             player(g, seat)["hunter_seat"] = hunter
             event(g, f"獵人 {hunter} 號開槍，{seat} 號出局。")
         else:
             event(g, f"獵人 {hunter} 號放棄開槍。")
         settle(g, g["after_hunter"])
+    elif phase == "last_words" and action == "last_words_done":
+        seat = g["last_words_queue"].pop(0)
+        event(g, f"{seat} 號遺言結束。")
+        settle(g, g["after_last_words"])
     elif phase == "discussion" and action == "vote":
         g["phase"] = "vote"
     elif phase in ("vote", "runoff") and action == "ballots":
@@ -302,5 +314,9 @@ def act(original, action, data):
         resolve_vote(g, sorted(leaders))
     else:
         raise RuleError("此行動不適用於目前階段。")
+    # A role absent from the original fun-mode cast has no cover turn to protect.
+    # Keep turns for eliminated holders; skipping those would reveal their status.
+    while g["rules"].get("fun_mode", False) and g["phase"] in ("witch", "seer") and not any(p["role"] == g["phase"] for p in g["players"]):
+        g["phase"] = "seer" if g["phase"] == "witch" else "dawn"
     g["version"] += 1
     return g

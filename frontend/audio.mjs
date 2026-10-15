@@ -1,6 +1,6 @@
 /** Playback is exclusive; public audio blobs and in-flight loads are reusable. */
 const NEXT = {reveal:['wolves'], wolves:['witch'], witch:['seer'], seer:['dawn'],
-  dawn:['discussion'], hunter:['discussion','wolves'], discussion:['vote'],
+  dawn:['discussion','last_words'], hunter:['discussion','wolves','last_words'], last_words:['discussion','wolves'], discussion:['vote'],
   vote:['wolves','runoff'], runoff:['wolves']};
 const VOICES = {original:'原版廣東話神經女聲', narrator:'廣東話神經男聲'};
 const ENGLISH_VOICES = {original:'English neural female', narrator:'English neural male'};

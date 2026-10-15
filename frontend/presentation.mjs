@@ -1,13 +1,14 @@
 /** Dawn already announces eyes open; hunter actions resolve in public daylight. */
 export function themeForPhase(phase) {
   if (['wolves', 'witch', 'seer'].includes(phase)) return 'night';
-  if (['dawn', 'hunter', 'discussion', 'vote', 'runoff', 'finished'].includes(phase)) return 'day';
+  if (['dawn', 'hunter', 'last_words', 'discussion', 'vote', 'runoff', 'finished'].includes(phase)) return 'day';
   return 'lobby';
 }
 
 export function narrationChanged(previous, next) {
   return !previous || previous.phase !== next.phase || previous.day !== next.day ||
-    (next.phase === 'hunter' && previous.hunter !== next.hunter);
+    (next.phase === 'hunter' && previous.hunter !== next.hunter) ||
+    (next.phase === 'last_words' && previous.last_words_seat !== next.last_words_seat);
 }
 
 export function roleLimit(role, funMode) {

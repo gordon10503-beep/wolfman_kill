@@ -5,6 +5,15 @@ export function themeForPhase(phase) {
   return 'lobby';
 }
 
+export function narrationChanged(previous, next) {
+  return !previous || previous.phase !== next.phase || previous.day !== next.day ||
+    (next.phase === 'hunter' && previous.hunter !== next.hunter);
+}
+
+export function roleLimit(role, funMode) {
+  return funMode ? (role === 'wolf' ? 7 : 15) : ['wolf','villager'].includes(role) ? 12 : 1;
+}
+
 const ENGLISH_ROLES = {wolf:'Werewolf', seer:'Seer', witch:'Witch', hunter:'Hunter', villager:'Villager'};
 const ENGLISH_DEATHS = {wolf:'Killed at night', poison:'Poisoned', vote:'Voted out', hunter:'Shot by the hunter'};
 

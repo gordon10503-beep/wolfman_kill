@@ -1,5 +1,23 @@
 /** Local, display-only translations. Never requests or publishes private data. */
 const COPY = {
+  '娛樂模式每種角色最多 15 位。':'Fun mode allows at most 15 players of any one role.',
+  '娛樂模式':'Fun mode',
+  '允許多位預言家、女巫及獵人；狼人仍須少於好人。':'Allow multiple seers, witches and hunters. Wolves must still be fewer than the good side.',
+  '同角色按座位順序逐一操作，每位女巫有獨立藥水。':'Players sharing a role act privately in seat order. Each witch has her own potions.',
+  '壞人陣營':'Bad side', '好人陣營':'Good side',
+  '維持夜間掩護操作':'Keep up the night-time cover',
+  '本回合不能使用能力。請照常選擇座位及按確認，避免點擊聲洩漏資訊。若沒有人操作，10 秒後自動繼續。':'You cannot use a power this turn. Choose a seat and confirm as usual to conceal clicking sounds. With no input, the turn continues automatically after 10 seconds.',
+  '完成掩護操作':'Finish cover action',
+  '已在現場點票？直接輸入結果':'Counted the votes in person? Enter the result',
+  '選擇最高票玩家；平票請選全部最高票座位。不選代表無人出局。':'Select the highest-vote player, or all tied leaders. Leave all seats unselected for no elimination.',
+  '不選擇座位＝無人出局。':'No selection means no elimination.',
+  '再次平票：無人出局。':'Another tie: no elimination.',
+  '確認現場點票結果':'Confirm counted result',
+  '主持人已輸入現場點票結果。':'The host entered the votes counted in person.',
+  '仍有可行動角色，請完成私人行動。':'This role can still act. Complete the private action.',
+  '請選擇最高票座位。':'Choose the highest-vote seats.',
+  '最高票座位不可重複。':'Highest-vote seats must not be repeated.',
+
   '請參閱字幕':'Please read the captions',
   'players at the table · 自動儲存進度':'Progress is saved automatically',
   '今晚的約定':'Tonight’s house rules',
@@ -153,7 +171,7 @@ const COPY = {
   '畫面已過時，已重新同步。請確認目前階段後再操作。':'This view was outdated and has been synchronized. Check the current phase before trying again.'
 };
 
-const roles = {狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
+const roles = {壞人陣營:'Bad side',好人陣營:'Good side',狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
 const list = value => value.replace(/、/g, ', ');
 const available = value => value === '無' ? 'none' : `seat ${value}`;
 
@@ -161,6 +179,9 @@ export function englishFor(value) {
   const text = value.trim().replace(/^[↻↩↗＋]\s*/, '').replace(/\s*[↗→]$/, '').replace(/^\/\s*/, '');
   if (COPY[text]) return COPY[text];
   let m;
+  if ((m=text.match(/^現場結果：(\d+) 號出局。$/))) return `Counted result: seat ${m[1]} is eliminated.`;
+  if ((m=text.match(/^平票：([\d、]+) 號進入加賽。$/))) return `Tie: seats ${list(m[1])} enter a runoff.`;
+
   if ((m=text.match(/^(\d+) 人局$/))) return `${m[1]} players`;
   if ((m=text.match(/^第 (\d+) (晚|輪)$/))) return `${m[2]==='晚'?'Night':'Round'} ${m[1]}`;
   if ((m=text.match(/^(\d+) 號玩家投給$/))) return `Seat ${m[1]} votes for`;
@@ -179,7 +200,7 @@ export function englishFor(value) {
   if ((m=text.match(/^獵人 (\d+) 號開槍，(\d+) 號出局。$/))) return `Hunter ${m[1]} shoots. Seat ${m[2]} is eliminated.`;
   if ((m=text.match(/^獵人 (\d+) 號放棄開槍。$/))) return `Hunter ${m[1]} declines the shot.`;
   if ((m=text.match(/^解藥：(已使用|未使用) · 毒藥：(已使用|未使用)$/))) return `Antidote: ${m[1]==='已使用'?'used':'available'} · Poison: ${m[2]==='已使用'?'used':'available'}`;
-  if ((m=text.match(/^本晚狼刀：(\d+|無) · 毒藥目標：(\d+|無)(?: · 查驗：(\d+) 號（(狼人|好人)）)?$/))) return `Wolf target: ${available(m[1])} · Poison target: ${available(m[2])}${m[3]?` · Investigation: seat ${m[3]} (${roles[m[4]]})`:''}`;
+  if ((m=text.match(/^本晚狼刀：(\d+|無) · 毒藥目標：(\d+|無)(?: · 查驗：(\d+) 號（(狼人|好人|壞人陣營|好人陣營)）)?$/))) return `Wolf target: ${available(m[1])} · Poison target: ${available(m[2])}${m[3]?` · Investigation: seat ${m[3]} (${roles[m[4]]})`:''}`;
   if ((m=text.match(/^DEBUG · (.+)$/))) return `DEBUG · ${englishFor(m[1]) || m[1]}`;
   if ((m=text.match(/^正在播放 · (.+) · 重播無需下載$/))) return `Playing · ${englishFor(m[1]) || m[1]} · No download needed for replay`;
   if ((m=text.match(/^正在播放 · 本機備用(英語|廣東話)（並非原版神經聲線）$/))) return `Playing · Local ${m[1]==='英語'?'English':'Cantonese'} fallback (not the original neural voice)`;

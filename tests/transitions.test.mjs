@@ -26,7 +26,7 @@ function stubGlobal(t,name,value) {
 }
 
 function fakePage(t) {
-  const app={inert:false};
+  const app={inert:false,classList:{add(){},remove(){}}};
   const overlays=[];
   const page={hidden:false,querySelector:()=>app,createElement:()=>({setAttribute(){},append(){},remove(){this.removed=true;}}),body:{append:node=>overlays.push(node)}};
   stubGlobal(t,'document',page);
@@ -59,4 +59,14 @@ test('a render failure cannot leave the page blocked by the transition',async t=
   await rejected;
   assert.equal(app.inert,false);
   assert.equal(overlays[0].removed,true);
+});
+
+test('sun and moon transitions follow phase palettes without replaying inside a phase',async()=>{
+  const {skyChange}=await import('../frontend/transitions.mjs');
+  assert.equal(skyChange('seer','dawn'),'day');
+  assert.equal(skyChange('vote','wolves'),'night');
+  assert.equal(skyChange('hunter','wolves'),'night');
+  assert.equal(skyChange('witch','seer'),null);
+  assert.equal(skyChange(undefined,'wolves'),null);
+  assert.equal(skyChange('reveal','wolves'),null);
 });

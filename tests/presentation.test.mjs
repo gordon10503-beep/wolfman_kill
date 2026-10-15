@@ -22,3 +22,18 @@ test('seat subtext explains the recap without leaking identities or death causes
   assert.equal(englishSeatText({role:'villager',alive:false,cause:'vote'},true),'Villager · Voted out');
   assert.equal(englishSeatText({role:'witch',alive:false,cause:'hunter'},true),'Witch · Shot by the hunter');
 });
+
+test('each hunter in a chain receives narration, while repeated state polls stay silent',async()=>{
+  const {narrationChanged}=await import('../frontend/presentation.mjs');
+  const first={phase:'hunter',day:1,hunter:7};
+  assert.equal(narrationChanged({phase:'dawn',day:1,hunter:null},first),true);
+  assert.equal(narrationChanged(first,{...first,hunter:11}),true);
+  assert.equal(narrationChanged({...first,hunter:11},{...first,hunter:9}),true);
+  assert.equal(narrationChanged(first,{...first}),false);
+});
+test('fun mode caps each non-wolf role at 15 and wolves at 7',async()=>{
+  const {roleLimit}=await import('../frontend/presentation.mjs');
+  for(const role of ['seer','witch','hunter','villager'])assert.equal(roleLimit(role,true),15);
+  assert.equal(roleLimit('wolf',true),7);
+  assert.equal(roleLimit('seer',false),1);
+});

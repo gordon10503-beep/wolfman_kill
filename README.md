@@ -38,7 +38,7 @@ Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)**. Stop with `Ctrl+C`.
 
 1. Choose a 6-, 9-, or 12-player preset, or adjust the cast for 5–16 players. Agree on house rules.
 2. Pass the device around. Each player explicitly reveals their random identity, then hides it.
-3. Enable **Voice on** on one device. Public Cantonese prompts guide the night; secrets stay silent.
+3. Narration starts **on** in the host tab. Keep only one device speaking. Public Cantonese prompts guide the night; secrets stay silent.
 4. Wolves, witch, and seer use private handoff screens. Deaths remain hidden until dawn.
 5. Discuss with the pauseable timer, then record every living player's ballot. Ties trigger one runoff.
 6. Resolve the hunter's shot before calculating victory. At the end, reveal the cast and death causes.
@@ -93,7 +93,7 @@ python -m backend.prepare_audio --language en
 python -m backend.prepare_audio --language en --voice narrator
 ```
 
-Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only fixed public instructions are cached/sent to the provider; no identities, targets, or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults off per tab. **Enable voice on only one tab/device** to avoid multiple independent speakers.
+Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only fixed public instructions are cached/sent to the provider; no identities, targets, or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults on for the host and off for audience views; explicit mute choices are saved per tab. **Keep only one tab/device speaking** to avoid multiple independent speakers. A browser may require a click on Replay before allowing its first audio.
 
 ## Tests and development
 
@@ -132,6 +132,10 @@ frontend/
   style.css     responsive moonlit design
   app.js        table, handoffs, ballots, timer, audience mode
   audio.mjs     single cancellable audio owner
+  forest.mjs    animated scenery and motion control
+  transitions.mjs wolf and sun/moon transitions
+  role-effects.mjs private reminders and target effects
+  night-cover.mjs host-only inactive-turn timer
   assets/       SVG artwork and generated night forest
 tests/          rules, API, speech, and audio tests
 docs/           architecture, rules review, terminal guide
@@ -159,12 +163,24 @@ python wolfman_kill.py --debug --skip-confirm
 
 The terminal version uses physical role-card registration and moderator-entered elimination results. See the [original terminal guide](docs/LEGACY.md). `pygame` is not needed by the web app.
 
+## Appearance and motion
+
+The lobby and role-handoff forest use staggered star twinkles, a slow moon drift, and gentle tree sway. A small module loads the existing SVG once and mounts its layers in the page so animation works under the page’s content security policy. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. Forest motion is on by default. The bilingual switch beside LOCAL TABLE lets players explicitly enable or pause it and remembers that choice per tab. The sky is anchored at the top so stars remain visible instead of being cropped away. Mobile dialogs omit backdrop blur. Day and night keep their own palettes.
+
+The animation switch sits next to **LOCAL TABLE** and the debug control. Role handoff displays the current seat as a large number. A brief wolf silhouette sweeps from right to left when starting a new game and after the final role confirmation (including debug skip). The page changes under the sweep; pausing motion skips the transition immediately.
+
+## Guide, fun mode, and faster hosting
+
+Use **? 玩法指南 · How to play** on the homepage or the header’s **?** button for bilingual rules, role abilities and the app-specific privacy reminder. The reminder also appears on the homepage and special-role reveal cards: eliminated role holders should keep opening their private screen and making the usual cover clicks at night. Cover clicks cannot use powers.
+
+New games enable **witch self-save** by default. Saved games keep their original rules. **Fun mode / 娛樂模式** allows up to 15 of each non-wolf role within the 5–16 player limit; wolves must still start fewer than the good side. Role holders act privately in seat order, including cover turns for eliminated holders. Each witch has her own antidote and poison. Witches see the original wolf target, so an earlier witch’s save is not revealed to the next witch; potions resolve together at dawn and poison still prevents a hunter shot. Each seer sees only their own **Bad side / Good side** result. All eligible hunter shots resolve before victory, including long hunter chains. Each new hunter turn replays the cached final-shot prompt; repeated polls do not replay it.
+
+With the host page visible, an inactive witch/seer turn advances after **10 seconds without interaction**. Opening or using the private screen renews the interval. Living actors and hunter shots are never auto-skipped; the audience receives no inactivity status or automatic-pass log entry. Close DEBUG before passing the host device. Physical clicks and players’ timing still need cooperation.
+
+The voting dialog keeps individual ballots and adds **Counted the votes in person?**. Select one highest-vote seat to eliminate it, all tied leaders for a runoff, or no seats for no elimination. A second tie ends without elimination. The server validates targets and preserves hunter and victory resolution.
+
+Day/night boundaries animate the setting sun or moon and rising counterpart. The daytime panorama has moving clouds, sunlight and trees. Private actions send a flask, magnifier or role symbol to the target card, flip it 360°, then show the result or advance. Cancelling the screen cancels an unfinished effect. The motion toggle skips these effects when paused. The wolf transition uses soft haze and a page crossfade instead of a sliding rectangular backdrop.
+
 ## License
 
 No license has been selected. Add an explicit license before inviting redistribution under particular terms.
-
-### Appearance and motion
-
-The lobby and role-handoff forest use staggered star twinkles, a slow moon drift, and gentle tree sway. A small module loads the existing SVG once and mounts its layers in the page so animation works under the page’s content security policy. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. Forest motion is on by default. The bilingual switch in the banner lets players explicitly enable or pause it and remembers that choice per tab. The sky is anchored at the top so stars remain visible instead of being cropped away. Mobile dialogs omit backdrop blur. Day and night keep their own palettes.
-
-The animation switch sits next to **LOCAL TABLE** and the debug control. Role handoff displays the current seat as a large number. A brief wolf silhouette sweeps from right to left when starting a new game and after the final role confirmation (including debug skip). The page changes under the sweep; pausing motion skips the transition immediately.

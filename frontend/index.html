@@ -10,20 +10,46 @@
   <link rel="icon" href="/assets/moon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/themes.css">
-  <link rel="stylesheet" href="/polish.css?v=handoff1">
+  <link rel="stylesheet" href="/polish.css?v=phases2">
   <script src="/app.js" type="module"></script>
-  <script src="/forest.mjs?v=handoff1" type="module"></script>
+  <script src="/forest.mjs?v=phases2" type="module"></script>
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
   <header class="topbar">
     <a class="brand" href="/" aria-label="Moonfall home"><img src="/assets/moon.svg" alt=""><span>MOONFALL<small>狼人殺 · THE NIGHT IS LISTENING</small></span></a>
-    <div class="top-actions"><span class="local-badge"><i></i> LOCAL TABLE</span><button id="motion" class="icon-button" aria-pressed="true">動畫開啟 · Motion on</button><button id="debug" class="icon-button" aria-pressed="false" hidden>DEBUG off</button><button id="sound" class="icon-button" aria-pressed="false" title="Toggle narration">◖ Voice off</button><button id="help" class="icon-button" aria-label="Game rules">?</button></div>
+    <div class="top-actions"><span class="local-badge"><i></i> 本地遊戲 · LOCAL TABLE</span><button id="motion" class="icon-button" aria-pressed="true">動畫開啟 · Motion on</button><button id="debug" class="icon-button" aria-pressed="false" hidden>除錯關閉 · DEBUG off</button><button id="sound" class="icon-button" aria-pressed="true" title="切換語音 / Toggle narration">◖ 語音開啟 · Voice on</button><button id="help" class="icon-button" aria-label="玩法指南 / How to play">?</button></div>
   </header>
   <main id="app" aria-live="polite"></main>
   <footer><span>HONG KONG AFTER DARK</span><span>A game of instinct. A night of secrets.</span><span>月落之前，誰可信任？</span></footer>
   <dialog id="private-dialog" aria-label="私人角色操作 / Private role actions"></dialog>
-  <dialog id="help-dialog"><button class="close" data-close="help-dialog" aria-label="Close rules">×</button><p class="eyebrow">THE HOUSE RULES</p><h2>入夜前，先講清規矩。</h2><p>狼人每晚共同選一個目標，是否可以空刀依開局設定。預言家每晚查驗一人，不能查自己。女巫全局各有一瓶解藥及毒藥，每晚最多用一瓶；預設不能自救，被刀當晚仍可行動。</p><p>獵人被刀、投票或槍殺可開槍，被毒不能開槍。所有死亡及獵人行動完成後，才判定勝負。狼人全滅則好人勝；預設狼人數目不少於好人則狼人勝。雙方同時全滅為平局。</p><p>每位存活玩家一票，可棄權、可以自投。平票者加賽一次，再平票或全體棄權則無人出局。</p><p class="notice">這是同場遊戲的主持工具。私人畫面只交給指定角色查看。觀眾請使用「觀眾畫面」，不要分享主持人的瀏覽器。</p></dialog>
+  <dialog id="help-dialog" class="guide-dialog" aria-label="玩法指南 / How to play">
+    <button class="close" data-close="help-dialog" aria-label="關閉指南 / Close guide">×</button>
+    <p class="eyebrow">YOUR FIRST NIGHT IN THE VILLAGE</p>
+    <h2>狼人殺，怎樣玩？<span class="english-subtext" lang="en">How to play Werewolf</span></h2>
+    <p>這是同場遊戲的主持工具：一部裝置交接操作，大家在現實中閉眼、發言及投票。<span class="english-subtext" lang="en">This app hosts an in-person game. Pass one device between players while everyone closes their eyes, discusses and votes in real life.</span></p>
+    <h3>01 · 遊戲流程<span class="english-subtext" lang="en">The game flow</span></h3>
+    <ol class="guide-flow">
+      <li>設定 5–16 位玩家及房規，開始後按大號碼依次私下查看身份，再按確認交給下一位。<span class="english-subtext" lang="en">Choose 5–16 players and agree on house rules. Follow the large seat number, privately reveal your role, then confirm and pass the device.</span></li>
+      <li>夜晚跟隨主持語音閉眼。被叫到的角色才可單獨看私人畫面；同角色有多人時，按座位順序輪流操作。<span class="english-subtext" lang="en">At night, follow the narration and close your eyes. Only the called role views the private screen. Multiple holders of a role act one at a time in seat order.</span></li>
+      <li>天亮公布死亡，處理獵人的最後一槍，再輪流發言、找出壞人。<span class="english-subtext" lang="en">At dawn, announce deaths and resolve any hunter shots, then discuss and look for the bad side.</span></li>
+      <li>每位存活玩家一票，可投自己或棄權。平票只加賽一次，再平票或全體棄權則無人出局。現場已點票可使用「直接輸入結果」，平票時選全部最高票玩家。<span class="english-subtext" lang="en">Each living player has one vote and may vote for themselves or abstain. Hold one runoff for a tie; another tie or all abstentions means no elimination. If votes were counted in person, use the counted-result option and select every tied leader.</span></li>
+      <li>所有狼人出局則好人勝；預設狼人數目不少於好人則狼人勝。獵人連鎖行動全部完成後才結算，雙方全滅為平局。<span class="english-subtext" lang="en">The good side wins when all wolves are eliminated. By default, wolves win at parity with the good side. Resolve every hunter shot before checking victory. Both sides eliminated means a draw.</span></li>
+    </ol>
+    <h3>02 · 每個角色的能力<span class="english-subtext" lang="en">What each role does</span></h3>
+    <div class="guide-roles">
+      <article><h4>狼人 · Werewolf</h4><p>壞人陣營。每晚共同選一位存活目標，可選狼人；是否能空刀由房規決定。白天隱藏身份並影響投票。<span class="english-subtext" lang="en">Bad side. Together choose a living target each night, including a wolf if desired. Skipping the kill depends on the house rule. Hide your role and influence daytime votes.</span></p></article>
+      <article><h4>預言家 · Seer</h4><p>好人陣營。每晚查驗另一位存活玩家，只會知道「壞人陣營」或「好人陣營」，不會知道確切角色。結果只在私人畫面顯示。<span class="english-subtext" lang="en">Good side. Investigate another living player each night. Learn only “Bad side” or “Good side,” never their exact role. Results stay private.</span></p></article>
+      <article><h4>女巫 · Witch</h4><p>好人陣營。每位女巫全局各有一瓶解藥及毒藥，每晚最多用一瓶。解藥救狼刀目標；毒藥可選任意存活玩家。能否自救、被刀當晚能否行動，由房規決定。<span class="english-subtext" lang="en">Good side. Each witch has one antidote and one poison for the game and may use at most one per night. Save the wolves’ target or poison any living player. Self-saving and acting when attacked depend on the house rules.</span></p></article>
+      <article><h4>獵人 · Hunter</h4><p>好人陣營。被狼人、投票或另一位獵人帶走時，可帶走一位存活玩家，也可放棄；被毒殺不能開槍。最後一槍不會自動略過。<span class="english-subtext" lang="en">Good side. After a wolf kill, vote or hunter shot, shoot one living player or decline. Poison prevents your shot. Your final decision is never skipped automatically.</span></p></article>
+      <article><h4>平民 · Villager</h4><p>好人陣營。沒有夜間能力；聆聽討論、分析線索，並用白天的一票找出狼人。<span class="english-subtext" lang="en">Good side. You have no night power. Listen, evaluate clues and use your daytime vote to find the wolves.</span></p></article>
+    </div>
+    <h3>03 · 房規及娛樂模式<span class="english-subtext" lang="en">House rules and fun mode</span></h3>
+    <p>標準模式的預言家、女巫及獵人各最多一位。娛樂模式可增加這些角色，例如一狼配多位獵人；每位女巫有獨立藥水。開局狼人仍必須少於好人。<span class="english-subtext" lang="en">Standard mode allows at most one seer, witch and hunter. Fun mode allows more, such as one wolf with several hunters. Each witch has separate potions. Wolves must still be fewer than the good side at setup.</span></p>
+    <div id="guide-privacy"></div>
+    <p class="notice">觀眾請使用「觀眾畫面」，不要分享主持人的瀏覽器。交接前先關閉 DEBUG，避免公開全部身份。<span class="english-subtext" lang="en">Spectators should use the audience view, never the host browser. Turn DEBUG off before passing the device so all roles are not exposed.</span></p>
+    <button class="primary" data-close="help-dialog">明白了，返回遊戲 · Got it, back to the game</button>
+  </dialog>
   <div id="toast" role="status"></div>
 </body>
 </html>

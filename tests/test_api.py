@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.4.0"}
-    assert response.headers["x-moonfall-version"] == "1.4.0"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.5.0"}
+    assert response.headers["x-moonfall-version"] == "1.5.0"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -163,3 +163,44 @@ def test_forest_animation_style_is_narrowly_allowed(client):
     assert "'unsafe-inline'" not in policy
     assert 'prefers-reduced-motion:reduce' in style
     assert 'sha256-' not in client.get('/').headers['content-security-policy']
+
+def test_fun_mode_actions_are_host_only_and_do_not_publish_private_actor_state(client):
+    roles=['wolf','witch','witch','seer','seer','hunter','hunter','villager']
+    g=new_game({r:roles.count(r) for r in COUNTS},{'fun_mode':True})
+    for p,role in zip(g['players'],roles): p['role']=role
+    g['phase']='witch';g['players'][1]['alive']=False
+    game_id,host_token,viewer_token=client.app.state.store.create(g)
+    path=f'/api/games/{game_id}'
+    host={'Authorization':'Bearer '+host_token};viewer={'Authorization':'Bearer '+viewer_token}
+    assert client.get(path+'/private',headers=viewer).status_code==403
+    assert client.post(path+'/actions',headers=viewer,json={'version':0,'action':'inactive_pass'}).status_code==403
+    assert client.get(path+'/private',headers=host).json()['actor_seat']==2
+    response=client.post(path+'/actions',headers=host,json={'version':0,'action':'inactive_pass'})
+    assert response.status_code==200
+    public=response.json()
+    assert not {'actor_seat','witch_cursor','witch_potions','inspection'} & public.keys()
+    assert all('role' not in p for p in public['players'])
+    assert client.get(path+'/private',headers=host).json()['actor_seat']==3
+    assert client.post(path+'/actions',headers=host,json={'version':1,'action':'inactive_pass'}).status_code==409
+    assert set(client.get(path+'/debug',headers=host).json()['potions']['by_seat'])=={'2','3'}
+
+
+def test_counted_vote_result_rejects_audience_and_preserves_host_validation(client):
+    g=new_game(COUNTS);g['phase']='vote'
+    game_id,host_token,viewer_token=client.app.state.store.create(g)
+    path=f'/api/games/{game_id}/actions'
+    body={'version':0,'action':'vote_result','data':{'leaders':[]}}
+    assert client.post(path,headers={'Authorization':'Bearer '+viewer_token},json=body).status_code==403
+    response=client.post(path,headers={'Authorization':'Bearer '+host_token},json=body)
+    assert response.status_code==200 and response.json()['phase']=='wolves'
+    assert client.post(path,headers={'Authorization':'Bearer '+host_token},json=body).status_code==409
+
+def test_new_games_default_to_self_save_but_saved_rules_remain_explicit():
+    roles=['wolf','witch','seer','hunter','villager']
+    counts={r:roles.count(r) for r in COUNTS}
+    assert new_game(counts)['rules']['witch_self_save'] is True
+    old=new_game(counts,{'witch_self_save':False})
+    assert old['rules']['witch_self_save'] is False
+    old['phase']='wolves'
+    from backend.engine import act
+    assert act(old,'wolves',{})['rules']['witch_self_save'] is False

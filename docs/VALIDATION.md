@@ -1,7 +1,7 @@
 # Validation — 2026-10-15
 
-- Python 3.14: 42 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
-- Node 24: 23 frontend tests passed (audio replay, late responses, mute races, Cantonese/text fallback, night/day/dawn/hunter theme selection, bilingual rules and dynamic prompts, recap translations and identity privacy). JavaScript syntax checks passed.
+- Python 3.14: 60 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
+- Node 24: 33 frontend tests passed (audio replay, late responses, mute races, Cantonese/text fallback, night/day/dawn/hunter theme selection, bilingual rules and dynamic prompts, recap translations and identity privacy). JavaScript syntax checks passed.
 - Browser: complete 6-player game through role dealing, two nights, witch/seer actions, dawn, discussion timer, ballots, village victory, and full recap. Audience mode and URL credential removal verified. No console errors in the inspected session.
 - Responsive checks: 1280px desktop and 390px mobile widths, without horizontal document overflow. `preview.png` captures the desktop setup.
 - Version 1.1 browser checks: night-to-dawn palette transition, 「返回」without submission, host debug identity sheet, debug persistence through reload, restoring normal timer when debug is off, skipping discussion directly to voting, and audience mode with no debug toggle/panel. `day-preview.png` and `night-preview.png` capture both palettes. No browser console errors observed.
@@ -30,3 +30,8 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 
 - Handoff upgrade: browser checked the top-bar motion switch and seat 1 → 2 after a private acknowledgment. Transition tests cover new-game/final-handoff triggers, immediate rendering with motion paused, midpoint swap, and cleanup even when rendering fails.
 - Final-handoff browser pass: all nine private confirmations completed in a separate QA game; wolf phase appeared, no transition overlay remained, and the main view was no longer inert. Phone viewport checked at 375 CSS pixels with no horizontal overflow. Wolf and wipe edges use gradient masks with a brief exit fade.
+
+- Version 1.5: browser-tested a 10-player fun game with two witches, two seers, and two hunters over three nights. Verified separate potion inventories/results, role action animations, cancellation before inspection, counted eliminations, a hunter shot, sun/moon transitions and animated daytime SVG layers. A dead witch auto-passed to the living witch without skipping the latter. New guide/default settings and mobile layout checked separately.
+
+- Current defaults: fresh host page shows bilingual DEBUG/Voice controls with narration on and self-save checked. Muting survives reload; audience defaults remain silent. The bilingual guide and shared privacy notice were checked on the homepage and in the modal, including 375px viewport overflow checks.
+- Hunter narration now treats a new queued hunter seat as a new cue even when the phase stays `hunter`; repeated polls stay silent and the existing audio cache handles replay. Fun-mode role controls cap non-wolves at 15 and wolves at 7.

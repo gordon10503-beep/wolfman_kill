@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 — 2026-10-15
+
+- Added sun/moon transitions, an animated daytime forest, private role action/card-flip effects, and a wolf crossfade without a moving rectangle.
+- Added a bilingual homepage guide and shared keep-clicking privacy reminders; inactive witch/seer turns auto-pass after 10 seconds of inactivity without skipping living roles or hunter shots.
+- Kept individual ballots and added counted results, including tied leaders and no-elimination outcomes.
+- Added fun mode with multiple special roles, independent witch potions and seer turns, and complete hunter chains before victory. Seers report Bad side / Good side.
+- Replayed cached narration for every new hunter in a chain; capped non-wolf fun-mode role controls at 15.
+- Enabled witch self-save and host narration by default; audience narration remains off by default. Header controls are bilingual.
+
 ## 1.4.0 — 2026-10-15
 
 - Cantonese defaults to the original female voice; English defaults to the male voice. Manual overrides are remembered separately per language.

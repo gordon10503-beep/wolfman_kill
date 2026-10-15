@@ -10,12 +10,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view
+from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions
 from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 
 class CreateGame(BaseModel):
@@ -116,9 +116,12 @@ def create_app(database=None, preload_audio=False):
     @app.get("/api/games/{game_id}/debug")
     def debug(game_id: str, credential=Depends(token)):
         state = app.state.store.get(game_id, credential, host_only=True)
+        potions = {"save_used": state["save_used"], "poison_used": state["poison_used"]}
+        if state["rules"].get("fun_mode"):
+            potions["by_seat"] = {str(p["seat"]): witch_potions(state,p["seat"]) for p in state["players"] if p["role"] == "witch"}
         return {"version": state["version"], "phase": state["phase"], "players": state["players"],
-                "potions": {"save_used": state["save_used"], "poison_used": state["poison_used"]},
-                "night": {"kill": state["kill"], "poison": state["poison"], "inspection": state["inspection"]}}
+                "potions": potions,
+                "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]}}
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, phase: str | None = Query(default=None, max_length=24),

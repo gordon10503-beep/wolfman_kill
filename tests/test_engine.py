@@ -109,9 +109,11 @@ def test_poison_overrides_wolf_death_and_prevents_hunter_shot():
     assert not g["hunters"] and g["phase"] == "discussion"
 
 
-def test_witch_may_act_on_death_but_not_self_save_by_default():
+def test_witch_may_act_and_self_save_by_default_but_both_can_be_disabled():
     g = act(game(), "wolves", {"target": 3})
-    assert private_view(g)["active"]
+    assert private_view(g)["active"] and private_view(g)["can_save"]
+    assert act(g, "witch", {"save": True})["kill"] is None
+    g["rules"]["witch_self_save"] = False
     with pytest.raises(RuleError):
         act(g, "witch", {"save": True})
     assert act(g, "witch", {"poison": 1})["poison_used"]
@@ -142,7 +144,7 @@ def test_seer_cannot_self_inspect_repeat_or_skip_result():
         with pytest.raises(RuleError):
             act(g, action, data)
     g = act(g, "inspect", {"target": 1})
-    assert private_view(g)["inspection"] == {"seat": 1, "alignment": "wolf"}
+    assert private_view(g)["inspection"] == {"seat": 1, "alignment": "bad"}
     with pytest.raises(RuleError):
         act(g, "inspect", {"target": 2})
     assert act(g, "ack", {})["phase"] == "dawn"

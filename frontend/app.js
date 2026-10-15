@@ -13,9 +13,12 @@ let counts = {...presets[9]}, state = null, session = null, busy = false, voice 
 let timerInterval, toastTimeout;
 let debugEnabled = sessionStorage.getItem('moonfall-debug') === 'true';
 let debugRequest = 0;
-let voiceProfile = sessionStorage.getItem('moonfall-voice') || 'original';
-if(!['original','narrator'].includes(voiceProfile)) voiceProfile='original';
 let speechLanguage = sessionStorage.getItem('moonfall-speech-language') === 'en' ? 'en' : 'yue';
+function preferredVoice(language) {
+  const saved = sessionStorage.getItem(`moonfall-voice-${language}`);
+  return ['original','narrator'].includes(saved) ? saved : language==='en' ? 'narrator' : 'original';
+}
+let voiceProfile = preferredVoice(speechLanguage);
 let allowFallback = sessionStorage.getItem('moonfall-voice-fallback') === 'true';
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -95,7 +98,7 @@ function setup() {
   app.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;counts[r]=Math.min(['wolf','villager'].includes(r)?12:1,Math.max(0,counts[r]+Number(b.dataset.delta)));preserveRules(setup);});
   $('#create').onclick = createGame;
   $('#speech-language').value=speechLanguage;
-  $('#speech-language').onchange=()=>{speechLanguage=$('#speech-language').value;sessionStorage.setItem('moonfall-speech-language',speechLanguage);};
+  $('#speech-language').onchange=()=>{speechLanguage=$('#speech-language').value;voiceProfile=preferredVoice(speechLanguage);sessionStorage.setItem('moonfall-speech-language',speechLanguage);};
   try {
     const saved=JSON.parse(sessionStorage.getItem('moonfall-session'));
     if(saved?.id){
@@ -149,11 +152,11 @@ function renderGame() {
     $('#stage-action').after(skip);
   }
   $('#speech-language').value=speechLanguage;
-  $('#speech-language').onchange=()=>{speechLanguage=$('#speech-language').value;sessionStorage.setItem('moonfall-speech-language',speechLanguage);narrator.stop();renderGame();loadDebug();if(voice)narrator.speak();};
+  $('#speech-language').onchange=()=>{speechLanguage=$('#speech-language').value;voiceProfile=preferredVoice(speechLanguage);sessionStorage.setItem('moonfall-speech-language',speechLanguage);narrator.stop();renderGame();loadDebug();if(voice)narrator.speak();};
   if(speechLanguage==='en') { $('#voice-profile').options[0].textContent='English female'; $('#voice-profile').options[1].textContent='English male (slower)'; }
   $('#voice-profile').value=voiceProfile;
   $('#voice-fallback').checked=allowFallback;
-  $('#voice-profile').onchange=()=>{voiceProfile=$('#voice-profile').value;sessionStorage.setItem('moonfall-voice',voiceProfile);narrator.stop();if(voice)narrator.speak();};
+  $('#voice-profile').onchange=()=>{voiceProfile=$('#voice-profile').value;sessionStorage.setItem(`moonfall-voice-${speechLanguage}`,voiceProfile);narrator.stop();if(voice)narrator.speak();};
   $('#voice-fallback').onchange=()=>{allowFallback=$('#voice-fallback').checked;sessionStorage.setItem('moonfall-voice-fallback',String(allowFallback));narrator.stop();if(voice)narrator.speak();};
   $('#replay').onclick=()=>{voice=true;updateVoice();narrator.speak();};
   $('#audience')?.addEventListener('click',()=>{

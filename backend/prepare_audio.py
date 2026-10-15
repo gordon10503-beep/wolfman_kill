@@ -8,7 +8,7 @@ from .engine import NARRATION, NARRATION_EN
 from .speech import Speech, speech_profile
 
 
-async def prepare(voice, language="yue"):
+async def prepare(voice=None, language="yue"):
     root = Path(__file__).resolve().parent.parent
     database = Path(os.environ.get("WOLFMAN_DB", str(root / "data" / "games.sqlite3")))
     directory = Path(os.environ.get("WOLFMAN_AUDIO_CACHE", str(database.parent / "audio-cache")))
@@ -25,7 +25,7 @@ async def prepare(voice, language="yue"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--voice", choices=["original", "narrator"], default="original")
+    parser.add_argument("--voice", choices=["original", "narrator"], default=None)
     parser.add_argument("--language", choices=["yue", "en"], default="yue")
     args = parser.parse_args()
     raise SystemExit(0 if asyncio.run(prepare(args.voice, args.language)) else 1)

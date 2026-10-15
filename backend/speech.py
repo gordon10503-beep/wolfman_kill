@@ -18,6 +18,7 @@ PROFILES = {
 
 
 def speech_profile(voice, language):
+    voice = voice or ("narrator" if language == "en" else "original")
     if language == "en":
         return "english_narrator" if voice == "narrator" else "english"
     return voice

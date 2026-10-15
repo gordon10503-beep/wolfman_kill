@@ -2,6 +2,8 @@
 
 ## 1.4.0 — 2026-10-15
 
+- Cantonese defaults to the original female voice; English defaults to the male voice. Manual overrides are remembered separately per language.
+
 - Added 「允許狼人空刀」 to setup, enabled by default. Disabling it requires wolves to pick a living target in both the UI and backend; older games retain their existing behavior.
 - Added Cantonese/English speech selection in setup and during play, with translated narration, matching female/male neural voices, and separate replay caches. The selection persists in the tab.
 - Extended the audio preparation CLI with `--language en` and language-appropriate local fallback.

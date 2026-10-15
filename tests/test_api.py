@@ -143,3 +143,7 @@ def test_english_audio_uses_english_script_and_voice(client):
         assert response.headers["x-audio-voice"] == expected
         assert seen[-1] == (NARRATION_EN["wolves"], profile)
     assert client.get(path + '?lang=other', headers=headers).status_code == 422
+    response = client.get(path + '?phase=wolves&lang=en', headers=headers)
+    assert response.headers["x-audio-voice"] == "en-US-GuyNeural"
+    response = client.get(path + '?phase=wolves', headers=headers)
+    assert response.headers["x-audio-voice"] == "zh-HK-HiuMaanNeural"

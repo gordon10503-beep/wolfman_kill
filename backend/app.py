@@ -118,7 +118,7 @@ def create_app(database=None, preload_audio=False):
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, phase: str | None = Query(default=None, max_length=24),
-                    voice: Literal["original", "narrator"] = "original",
+                    voice: Literal["original", "narrator"] | None = None,
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
         state = app.state.store.get(game_id, credential)
         cue = phase or state["phase"]

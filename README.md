@@ -4,9 +4,15 @@
 
 A full-stack, Bilingual-friendly companion for in-person Werewolf. A mysterious moonlit interface replaces terminal prompts, while a Python backend handles rules, private actions, saved games, and narration. The original terminal interface remains available.
 
+**[▶ Play online · 免下載直接玩](https://moonfall-wolfman.onrender.com/)**
+
+Open the link on your phone or computer—no download, Python, or setup required. 在手機或電腦開啟連結即可遊玩，無需下載或安裝。The free host may take about a minute to wake after inactivity. 免費伺服器閒置後，首次開啟可能需等約一分鐘。
+
+Choose your house rules **before starting a new game**. To use both witch potions in one night, set **女巫每晚用藥 / Witch potions per night → 無限制 / No limit**. Each potion is still single-use per game. Existing games keep their original settings. 如要同晚使用雙藥，請在新局開局前選「無限制」；每種藥全局仍限一次，舊局設定不變。
+
 ![Moonfall interface](docs/preview.png)
 
-## Start the web app
+## Run locally (optional)
 
 Python **3.13 or 3.14** recommended. No frontend build or npm install is needed.
 

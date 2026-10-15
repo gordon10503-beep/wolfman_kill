@@ -20,15 +20,15 @@
 .forest-scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
 .hero.has-forest-scene:before { z-index: -1; }
 .forest-scene .star-field circle { stroke: #d4e1d4; stroke-width: .7; }
-.forest-scene .star-field { animation: forest-twinkle 3.2s ease-in-out infinite alternate; }
-.forest-scene .stars-b { animation-duration: 4.4s; animation-delay: -2.1s; }
-.forest-scene .stars-c { animation-duration: 3.8s; animation-delay: -1.2s; }
+.forest-scene .star-field { animation: forest-twinkle 1.2s ease-in-out infinite alternate; }
+.forest-scene .stars-b { animation-duration: 1.7s; animation-delay: -.8s; }
+.forest-scene .stars-c { animation-duration: 1.45s; animation-delay: -.5s; }
 .forest-scene .moon { animation: forest-moon 6s ease-in-out infinite alternate; }
-.forest-scene .trees-back { transform-origin: 700px 700px; animation: forest-sway 5s ease-in-out infinite alternate; }
-.forest-scene .trees-front { transform-origin: 700px 700px; animation: forest-sway 7s ease-in-out -3s infinite alternate-reverse; }
+.forest-scene .trees-back { transform-origin: 700px 700px; animation: forest-sway 2.8s ease-in-out infinite alternate; }
+.forest-scene .trees-front { transform-origin: 700px 700px; animation: forest-sway 3.8s ease-in-out -1.5s infinite alternate-reverse; }
 @keyframes forest-twinkle { from { opacity: .12; } to { opacity: 1; } }
 @keyframes forest-moon { from { transform: translateY(3px); } to { transform: translateY(-15px); } }
-@keyframes forest-sway { from { transform: rotate(-.85deg); } to { transform: rotate(.85deg); } }
+@keyframes forest-sway { from { transform: rotate(-1.8deg); } to { transform: rotate(1.8deg); } }
 .forest-scene.forest-motion-off .star-field, .forest-scene.forest-motion-off .moon,
 .forest-scene.forest-motion-off .trees-back, .forest-scene.forest-motion-off .trees-front { animation-play-state: paused; }
 .forest-motion-control { position: absolute; z-index: 2; top: 15px; right: 15px; background: #0a161dd9; color: #d1ded4; font-size: 10px; letter-spacing: .3px; }

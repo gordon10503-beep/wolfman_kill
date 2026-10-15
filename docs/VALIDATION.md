@@ -25,3 +25,5 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Animation visibility fix: confirmed moving moon/tree transform values and changing star opacity inside the actual homepage DOM, plus exactly one forest after changing the player preset. The illustration now mounts as SVG elements with external CSS rather than relying on an animated CSS background image.
 
 - Motion visibility follow-up: brighter, larger stars and top-aligned sky; increased moon travel and tree sway. Browser checked the bilingual motion switch, paused computed animation state, and persistence after changing a player preset. Explicit enable overrides the system reduced-motion default for this tab only.
+
+- Requested animation tuning: motion on by default (explicit pause remains remembered per tab); tree sway increased to ±1.8° over 2.8/3.8-second half-cycles; star twinkle half-cycles reduced to 1.2–1.7 seconds.

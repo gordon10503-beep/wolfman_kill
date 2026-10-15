@@ -124,11 +124,24 @@ dialog::backdrop { backdrop-filter: blur(6px); }
   dialog::backdrop { backdrop-filter: none; }
 }
 
+/* Keep the game title centered independently of host controls. */
+.topbar.in-game { height: auto; min-height: 100px; padding: 20px 32px; flex-wrap: wrap; gap: 18px; }
+.topbar.in-game .brand { flex-shrink: 0; }
+.topbar.in-game .top-actions { flex: 1 1 600px; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.session-tools { align-items: center; }
+.session-tools .icon-button { white-space: nowrap; }
+.session-tools .english-subtext { font-size: 10px; margin-top: 3px; }
+.session-header { justify-content: center; text-align: center; }
+.session-header h1 > .english-subtext { display: inline; margin-left: 10px; }
+.session-header h1 > .muted { display: block; }
+.session-header h1 > .muted .english-subtext { display: inline; margin-left: 6px; }
+@media (max-width: 720px) {
+  .topbar.in-game { padding: 16px 18px; gap: 14px; }
+  .topbar.in-game .top-actions { flex-basis: 100%; justify-content: center; }
+  .topbar.in-game .session-tools { width: 100%; flex-direction: row; justify-content: center; }
+}
 /* Prioritize the current seat over decorative space during role handoff. */
 .handoff-stage .phase-symbol { display: none; }
-.handoff-header h1 > .english-subtext { display: inline; margin-left: 10px; }
-.handoff-header h1 > .muted { display: block; }
-.handoff-header h1 > .muted .english-subtext { display: inline; margin-left: 6px; }
 [data-theme="lobby"] .game-hero { height: 75px; gap: 6px; }
 
 /* Daylight layers stay in the same small SVG as the static fallback. */

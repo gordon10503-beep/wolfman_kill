@@ -1,6 +1,6 @@
 # Validation — 2026-10-15
 
-- Python 3.14: 41 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
+- Python 3.14: 42 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
 - Node 24: 19 frontend tests passed (audio replay, late responses, mute races, Cantonese/text fallback, night/day/dawn/hunter theme selection, bilingual rules and dynamic prompts, recap translations and identity privacy). JavaScript syntax checks passed.
 - Browser: complete 6-player game through role dealing, two nights, witch/seer actions, dawn, discussion timer, ballots, village victory, and full recap. Audience mode and URL credential removal verified. No console errors in the inspected session.
 - Responsive checks: 1280px desktop and 390px mobile widths, without horizontal document overflow. `preview.png` captures the desktop setup.
@@ -19,3 +19,5 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Version 1.4: verified 空刀 disabled survives changing the setup preset and removes the abstain radio option. English female narration played translated instructions; switching back to Cantonese restored the original neural voice. All English female/male prompts generated successfully and were cached (40 clips across both languages and genders). Added rule enforcement, legacy-game compatibility, translated-prompt coverage, language/voice API validation, language-separated cache, and matching local-fallback tests. No browser console errors observed.
 
 - Bilingual UI browser pass: setup rules, role reveal, wolf target/pass choices, witch potion instructions, seer result, debug roster, daytime events, and all-player voting checked in a separate QA game. Existing user games were not advanced.
+
+- Forest polish: browser-confirmed SVG animation styles run under a resource-specific CSP hash. Added a regression check for the exact style hash and reduced-motion rule. Glass-like highlights use static gradients and shadows, with no per-card backdrop blur.

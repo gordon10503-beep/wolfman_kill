@@ -1,0 +1,87 @@
+/* Glass-inspired surfaces: static reflections avoid per-card backdrop blurs. */
+:root {
+  --glass-sheen: #ffffff0c;
+  --glass-edge: #d5eee522;
+  --glass-shadow: #00000030;
+}
+:root[data-theme="day"] {
+  --glass-sheen: #ffffffa6;
+  --glass-edge: #ffffffd9;
+  --glass-shadow: #304a3214;
+}
+.hero, .game-hero { border-radius: 26px; }
+.hero {
+  border-color: #c2ded72c;
+  box-shadow: inset 0 1px #e7fff322, 0 20px 60px #0003;
+}
+.hero:before { border-radius: inherit; }
+.panel, .table-panel, .narration, .winner-banner, .debug-panel, .viewer-note {
+  border-radius: 22px;
+  box-shadow: inset 0 1px var(--glass-edge), 0 12px 32px var(--glass-shadow);
+  background-image: linear-gradient(135deg, var(--glass-sheen), transparent 45%);
+}
+/* Keep palette-specific fills while adding a soft reflection above them. */
+[data-theme] .panel, [data-theme] .table-panel {
+  background: linear-gradient(135deg, var(--glass-sheen), transparent 45%),
+    linear-gradient(150deg, var(--panel), var(--bg));
+}
+.role-card, .seat {
+  border-radius: 18px;
+  box-shadow: inset 0 1px var(--glass-edge), 0 5px 16px var(--glass-shadow);
+}
+.role-card {
+  background-image: linear-gradient(145deg, #d5eee50b, transparent 60%);
+}
+.role-card:first-child {
+  background-image: linear-gradient(145deg, #c7a17c1c, transparent 70%);
+}
+.presets, .progress {
+  border-radius: 17px;
+  padding: 5px;
+  gap: 3px;
+  box-shadow: inset 0 1px var(--glass-edge), 0 5px 18px var(--glass-shadow);
+}
+.progress { background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.progress > span { border: 0; border-radius: 12px; }
+[data-theme] .progress .current {
+  box-shadow: inset 0 1px var(--glass-edge), 0 2px 8px var(--glass-shadow);
+}
+.preset, .icon-button, .primary, .secondary, .danger, .share-link {
+  border-radius: 12px;
+}
+.primary, .danger {
+  box-shadow: inset 0 1px #ffffff45, 0 4px 12px #0002;
+}
+.secondary, .icon-button {
+  background-image: linear-gradient(145deg, #ffffff08, transparent 65%);
+  box-shadow: inset 0 1px var(--glass-edge);
+}
+.stepper button { border-radius: 8px; }
+.rule-line select, .rule-line input[type="number"], .voice-settings select,
+.ballot-row select, .share-url { border-radius: 10px; }
+.hero-chip { border-radius: 100px; box-shadow: inset 0 1px #ffffff14; }
+.notice { border-radius: 0 12px 12px 0; }
+.debug-roster > div { border-radius: 12px; }
+.target-grid label > span {
+  border-radius: 12px;
+  box-shadow: inset 0 1px var(--glass-edge);
+}
+.target-grid .english-subtext { box-shadow: none; }
+dialog {
+  border-radius: 24px;
+  box-shadow: inset 0 1px var(--glass-edge), 0 28px 90px #0008;
+}
+dialog::backdrop { backdrop-filter: blur(6px); }
+#toast { border-radius: 16px; box-shadow: inset 0 1px var(--glass-edge), 0 10px 30px #0003; }
+@media (hover: hover) and (pointer: fine) {
+  .role-card:hover { border-color: #a1b9aa80; }
+  .icon-button:hover, .secondary:hover { background-color: var(--glass-sheen); }
+}
+@media (max-width: 720px) {
+  .hero, .game-hero { border-radius: 20px; }
+  .panel, .table-panel, .narration { border-radius: 18px; }
+  .role-card, .seat { border-radius: 13px; }
+  .progress { padding: 3px; gap: 1px; }
+  .progress > span { border-radius: 9px; }
+  dialog::backdrop { backdrop-filter: none; }
+}

@@ -162,3 +162,7 @@ The terminal version uses physical role-card registration and moderator-entered 
 ## License
 
 No license has been selected. Add an explicit license before inviting redistribution under particular terms.
+
+### Appearance and motion
+
+The lobby forest uses staggered star twinkles, a slow moon drift, and subtle tree sway in the existing SVG. Rounded panels use static glass-like highlights and shadows; no animation library, canvas, or JavaScript animation loop is needed. The SVG respects `prefers-reduced-motion`, and mobile dialogs omit backdrop blur. Day and night keep their own palettes.

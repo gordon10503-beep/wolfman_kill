@@ -147,3 +147,19 @@ def test_english_audio_uses_english_script_and_voice(client):
     assert response.headers["x-audio-voice"] == "en-US-GuyNeural"
     response = client.get(path + '?phase=wolves', headers=headers)
     assert response.headers["x-audio-voice"] == "zh-HK-HiuMaanNeural"
+
+def test_forest_animation_style_is_narrowly_allowed(client):
+    import base64
+    import hashlib
+    import xml.etree.ElementTree as ET
+
+    response = client.get('/assets/forest.svg')
+    assert response.status_code == 200
+    svg = ET.fromstring(response.text)
+    style = svg.find('{http://www.w3.org/2000/svg}style').text
+    digest = base64.b64encode(hashlib.sha256(style.encode()).digest()).decode()
+    policy = response.headers['content-security-policy']
+    assert f"'sha256-{digest}'" in policy
+    assert "'unsafe-inline'" not in policy
+    assert 'prefers-reduced-motion:reduce' in style
+    assert 'sha256-' not in client.get('/').headers['content-security-policy']

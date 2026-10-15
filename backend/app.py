@@ -73,6 +73,10 @@ def create_app(database=None, preload_audio=False):
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Moonfall-Version"] = VERSION
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+        # Allow only the shipped SVG animation style, without enabling inline styles elsewhere.
+        if request.url.path == "/assets/forest.svg":
+            response.headers["Content-Security-Policy"] = response.headers["Content-Security-Policy"].replace(
+                "style-src 'self'", "style-src 'self' 'sha256-2bHWQKsHk0UdNI3L3wnc5pq60w9QdmfbznC8sJCksgc='")
         return response
 
     @app.exception_handler(RuleError)

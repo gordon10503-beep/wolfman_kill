@@ -8,7 +8,7 @@ A full-stack, Bilingual-friendly companion for in-person Werewolf. A mysterious 
 
 Open the link on your phone or computer—no download, Python, or setup required. 在手機或電腦開啟連結即可遊玩，無需下載或安裝。The free host may take about a minute to wake after inactivity. 免費伺服器閒置後，首次開啟可能需等約一分鐘。
 
-Choose your house rules **before starting a new game**. To use both witch potions in one night, set **女巫每晚用藥 / Witch potions per night → 無限制 / No limit**. Each potion is still single-use per game. Existing games keep their original settings. 如要同晚使用雙藥，請在新局開局前選「無限制」；每種藥全局仍限一次，舊局設定不變。
+Choose your house rules **before starting a new game**. To use both witch potions in one night, turn off **女巫每晚限用一瓶藥 / Limit witch to one potion per night**. Each potion is still single-use per game. Existing games keep their original settings. 如要同晚使用雙藥，請在新局開局前關閉「女巫每晚限用一瓶藥」；每種藥全局仍限一次，舊局設定不變。
 
 ![Moonfall interface](docs/preview.png)
 
@@ -181,7 +181,7 @@ The animation switch sits next to **LOCAL TABLE** and the debug control. Role ha
 
 Use **? 玩法指南 · How to play** on the homepage or the header’s **?** button for bilingual rules, role abilities and the app-specific privacy reminder. The reminder also appears on the homepage and special-role reveal cards: eliminated role holders should keep opening their private screen and making the usual cover clicks at night. Cover clicks cannot use powers.
 
-New games enable **witch self-save** by default. Saved games keep their original rules. **Fun mode / 娛樂模式** allows up to 15 of each non-wolf role within the 5–16 player limit; wolves must still start fewer than the good side. Role holders act privately in seat order, including cover turns for eliminated holders. Each witch has her own antidote and poison. **Witch potions per night** defaults to one; **No limit** allows both in one night, while each potion remains single-use per game. Witches see the original wolf target, so an earlier witch’s save is not revealed to the next witch; potions resolve together at dawn and poison still prevents a hunter shot. Each seer sees only their own **Bad side / Good side** result. All eligible hunter shots resolve before victory, including long hunter chains. Each new hunter turn replays the cached final-shot prompt; repeated polls do not replay it.
+New games enable **witch self-save** by default. Saved games keep their original rules. **Fun mode / 娛樂模式** allows up to 15 of each non-wolf role within the 5–16 player limit; wolves must still start fewer than the good side. Role holders act privately in seat order, including cover turns for eliminated holders. Each witch has her own antidote and poison. **Limit witch to one potion per night** is on by default; switching it off allows both in one night, while each potion remains single-use per game. Witches see the original wolf target, so an earlier witch’s save is not revealed to the next witch; potions resolve together at dawn and poison still prevents a hunter shot. Each seer sees only their own **Bad side / Good side** result. All eligible hunter shots resolve before victory, including long hunter chains. Each new hunter turn replays the cached final-shot prompt; repeated polls do not replay it.
 
 With the host page visible, an inactive witch/seer turn advances after **10 seconds without interaction**. Opening or using the private screen renews the interval. Living actors and hunter shots are never auto-skipped; the audience receives no inactivity status or automatic-pass log entry. Close DEBUG before passing the host device. Physical clicks and players’ timing still need cooperation.
 

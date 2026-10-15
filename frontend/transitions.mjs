@@ -23,8 +23,8 @@ export async function skySweep(render, destination) {
   label.textContent = destination === 'night' ? '夜幕降臨 · NIGHT FALLS' : '晨光已至 · DAY BREAKS';
   overlay.append(label); document.body.append(overlay); app.inert = true;
   try {
-    await new Promise(resolve => setTimeout(resolve, 600)); render();
-    await new Promise(resolve => setTimeout(resolve, 700));
+    await new Promise(resolve => setTimeout(resolve, 900)); render();
+    await new Promise(resolve => setTimeout(resolve, 1100));
   } finally { overlay.remove(); app.inert = wasInert; }
 }
 
@@ -50,9 +50,9 @@ export async function wolfSweep(render) {
   app.inert = true;
   document.body.append(overlay);
   try {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 750));
     render();
-    await new Promise(resolve => setTimeout(resolve, 700));
+    await new Promise(resolve => setTimeout(resolve, 1050));
   } finally {
     overlay.remove();
     app.classList.remove('wolf-page-changing');

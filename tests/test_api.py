@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.6.1"}
-    assert response.headers["x-moonfall-version"] == "1.6.1"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.6.2"}
+    assert response.headers["x-moonfall-version"] == "1.6.2"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -199,6 +199,8 @@ def test_new_games_default_to_self_save_but_saved_rules_remain_explicit():
     roles=['wolf','witch','seer','hunter','villager']
     counts={r:roles.count(r) for r in COUNTS}
     assert new_game(counts)['rules']['witch_self_save'] is True
+    assert new_game(counts)['rules']['last_words'] is True
+    assert new_game(counts,{'last_words':False})['rules']['last_words'] is False
     old=new_game(counts,{'witch_self_save':False})
     assert old['rules']['witch_self_save'] is False
     old['phase']='wolves'

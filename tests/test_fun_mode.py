@@ -4,7 +4,7 @@ from backend.engine import ALIGNMENTS, ROLES, RuleError, act, new_game, private_
 
 
 def make(roles=('wolf','witch','witch','seer','seer','hunter','hunter','villager'), phase='wolves'):
-    g=new_game({r:roles.count(r) for r in ROLES},{'fun_mode':True})
+    g=new_game({r:roles.count(r) for r in ROLES},{'fun_mode':True,'last_words':False})
     for p,role in zip(g['players'],roles): p['role']=role
     g['phase']=phase
     return g

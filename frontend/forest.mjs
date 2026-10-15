@@ -8,7 +8,7 @@ function updateMotion() {
   app.querySelectorAll('.forest-scene').forEach(scene => scene.classList.toggle('forest-motion-off', !enabled));
   document.querySelectorAll('#motion').forEach(button => {
     button.setAttribute('aria-pressed', String(enabled));
-    button.textContent = enabled ? '動畫開啟 · Motion on' : '啟用動畫 · Enable motion';
+    button.textContent = enabled ? '動畫開啟 · Motion on' : '動畫關閉 · Motion off';
     button.title = enabled ? '暫停動畫 / Pause animation' : '播放動畫 / Play animation';
   });
 }

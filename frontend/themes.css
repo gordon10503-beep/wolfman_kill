@@ -79,7 +79,8 @@ body { background: var(--bg); transition: background-color .65s, color .65s; }
 .debug-roster > div { padding: 10px; border: 1px solid var(--border); }
 .debug-roster strong { display: block; font-size: 12px; font-weight: 500; }
 .debug-roster span { display: block; font-size: 10px; color: var(--muted); margin-top: 5px; }
-#debug[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); }
+.top-actions .icon-button[aria-pressed="true"] { color: var(--gold); border-color: var(--gold); background-color: color-mix(in srgb, var(--gold) 14%, transparent); }
+.top-actions .icon-button[aria-pressed="false"] { color: var(--muted); border-color: var(--border); background-color: transparent; }
 @media (max-width: 480px) {
   .topbar { padding: 0 14px; }
   .brand { gap: 8px; }

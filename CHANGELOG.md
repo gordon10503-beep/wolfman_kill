@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.2 — 2026-10-15
+
+- Unified Motion/DEBUG/Voice highlights and on/off wording; active buttons alone use the gold highlight. Host actions follow LOCAL TABLE in the header.
+- Moved speech language to the top of house rules, aligned supporting text left, and enabled last words by default for new games. Existing saved rules remain unchanged.
+- Slowed the wolf crossing to 1.8 seconds and sun/moon transitions to 2 seconds, keeping page swaps and cleanup synchronized.
+
 ## 1.6.1 — 2026-10-15
 
 - Added a bilingual one-potion/no-nightly-limit witch house rule. Both potions may be used together when allowed, including separate effects; each remains single-use per game. Legacy games retain one potion per night.

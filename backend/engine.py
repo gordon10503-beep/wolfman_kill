@@ -50,7 +50,7 @@ def new_game(counts, rules=None):
     require(5 <= total <= 16, "每局需要 5–16 位玩家。")
     require(0 < counts["wolf"] < total - counts["wolf"], "至少一位狼人，而且開局狼人必須少於好人。")
     options = {"witch_self_save": True, "witch_acts_when_killed": True, "witch_one_potion_per_night": True,
-               "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True, "fun_mode": False, "last_words": False}
+               "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True, "fun_mode": False, "last_words": True}
     if rules:
         require(set(rules) <= set(options), "未知規則。")
         options.update(rules)

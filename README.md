@@ -189,7 +189,7 @@ The voting screen shows **Votes counted in person** directly, with individual ba
 
 Day/night boundaries animate the setting sun or moon and rising counterpart. The daytime panorama has moving clouds, sunlight and trees. Private actions send a flask, magnifier or role symbol to the target card, flip it 360°, then show the result or advance. Cancelling the screen cancels an unfinished effect. The motion toggle skips these effects when paused. The wolf transition uses soft haze and a page crossfade instead of a sliding rectangular backdrop.
 
-Enable **遺言 / Last words** in house rules to give every first-night casualty and voted-out player a speaking turn. Daytime hunter-shot victims and deaths from night two onward get none. Hunters resolve first, then the host confirms each speaker before victory or the next phase. It is off by default; older games keep their original flow. Fun mode skips witch/seer roles absent from the cast; eliminated holders still get cover turns.
+Enable **遺言 / Last words** in house rules to give every first-night casualty and voted-out player a speaking turn. Daytime hunter-shot victims and deaths from night two onward get none. Hunters resolve first, then the host confirms each speaker before victory or the next phase. It is on by default for new games; existing games keep their saved setting. Fun mode skips witch/seer roles absent from the cast; eliminated holders still get cover turns.
 
 ## License
 

@@ -41,11 +41,11 @@ test('screen changes under the curtain and controls unlock after the sweep',asyn
   const completion=wolfSweep(()=>renders++);
   assert.equal(app.inert,true);
   assert.equal(renders,0);
-  t.mock.timers.tick(500);
+  t.mock.timers.tick(750);
   await Promise.resolve();
   assert.equal(renders,1);
   assert.equal(app.inert,true);
-  t.mock.timers.tick(700);
+  t.mock.timers.tick(1050);
   await completion;
   assert.equal(app.inert,false);
   assert.equal(overlays[0].removed,true);
@@ -55,7 +55,7 @@ test('a render failure cannot leave the page blocked by the transition',async t=
   const {app,overlays}=fakePage(t);
   const completion=wolfSweep(()=>{throw new Error('render failed');});
   const rejected=assert.rejects(completion,/render failed/);
-  t.mock.timers.tick(500);
+  t.mock.timers.tick(750);
   await rejected;
   assert.equal(app.inert,false);
   assert.equal(overlays[0].removed,true);

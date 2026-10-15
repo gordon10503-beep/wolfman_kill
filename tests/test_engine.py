@@ -6,7 +6,7 @@ from backend.engine import RuleError, act, new_game, private_view, public_view
 
 
 def game(roles=("wolf", "wolf", "witch", "seer", "hunter", "villager", "villager"), phase="wolves"):
-    g = new_game({r: roles.count(r) for r in ("wolf", "seer", "witch", "hunter", "villager")})
+    g = new_game({r: roles.count(r) for r in ("wolf", "seer", "witch", "hunter", "villager")}, {"last_words": False})
     for p, role in zip(g["players"], roles):
         p["role"] = role
     g["phase"] = phase

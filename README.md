@@ -45,6 +45,14 @@ Use **觀眾畫面** for a read-only public table in another window. The host br
 
 Every action saves to SQLite. Reloading the same tab resumes the game; the home page offers a resume button for its existing session. **Keep the host tab open:** credentials live in session storage; closing/clearing it can lose host access. There is no account recovery.
 
+The table follows the game clock: wolves/witch/seer phases use a restrained blood-red night palette; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
+
+| Morning | Night |
+| --- | --- |
+| ![Bright morning table](docs/day-preview.png) | ![Blood-red night table](docs/night-preview.png) |
+
+For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
+
 ## What changed
 
 | Area | Implementation |

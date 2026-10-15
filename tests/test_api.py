@@ -50,6 +50,23 @@ def test_validation_and_same_origin(client):
     assert client.get("/api/health").json() == {"status": "ok"}
 
 
+def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
+    g = create(client)
+    path = "/api/games/" + g["id"]
+    host = {"Authorization": "Bearer " + g["host_token"]}
+    viewer = {"Authorization": "Bearer " + g["viewer_token"]}
+    before = client.get(path, headers=viewer).json()
+    assert client.get(path + "/debug").status_code == 401
+    assert client.get(path + "/debug", headers=viewer).status_code == 403
+    assert client.get(path + "/debug", headers={"Authorization": "Bearer wrong"}).status_code == 403
+    debug = client.get(path + "/debug", headers=host).json()
+    assert len(debug["players"]) == sum(COUNTS.values())
+    assert all("role" in p for p in debug["players"])
+    assert debug["potions"] == {"save_used": False, "poison_used": False}
+    assert client.get(path, headers=viewer).json() == before
+    assert all("role" not in p for p in before["players"])
+
+
 def test_two_tabs_only_one_action_commits(tmp_path):
     store = Store(tmp_path / "concurrent.db")
     game_id, host, _ = store.create(new_game(COUNTS))

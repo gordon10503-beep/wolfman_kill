@@ -36,7 +36,7 @@ def create_app(database=None):
         app.state.speech = Speech()
         yield
 
-    app = FastAPI(title="Moonfall · 狼人殺", version="1.0.0", lifespan=lifespan, docs_url=None, redoc_url=None)
+    app = FastAPI(title="Moonfall · 狼人殺", version="1.1.0", lifespan=lifespan, docs_url=None, redoc_url=None)
     auth = HTTPBearer(auto_error=False)
 
     def token(credentials: HTTPAuthorizationCredentials | None = Depends(auth)):
@@ -97,6 +97,13 @@ def create_app(database=None):
     @app.post("/api/games/{game_id}/actions")
     def action(game_id: str, body: Action, credential=Depends(token)):
         return public_view(app.state.store.update(game_id, credential, body.version, body.action, body.data))
+
+    @app.get("/api/games/{game_id}/debug")
+    def debug(game_id: str, credential=Depends(token)):
+        state = app.state.store.get(game_id, credential, host_only=True)
+        return {"version": state["version"], "phase": state["phase"], "players": state["players"],
+                "potions": {"save_used": state["save_used"], "poison_used": state["poison_used"]},
+                "night": {"kill": state["kill"], "poison": state["poison"], "inspection": state["inspection"]}}
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, credential=Depends(token)):

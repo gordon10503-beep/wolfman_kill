@@ -46,6 +46,7 @@ Raw schema: `/openapi.json`. Protected routes use `Authorization: Bearer <capabi
 | POST | `/api/games` | None; local setup |
 | GET | `/api/games/{id}` | Host/viewer; public state |
 | GET | `/api/games/{id}/private` | Host; active role context |
+| GET | `/api/games/{id}/debug` | Host only; identity sheet, potion inventory, pending night actions |
 | POST | `/api/games/{id}/actions` | Host; `{version, action, data}` |
 | GET | `/api/games/{id}/audio` | Host/viewer; public MP3 or 503 |
 

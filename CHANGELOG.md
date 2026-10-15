@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 — 2026-10-15
+
+- Shortened the private-screen back button to 「返回」.
+- Added bright morning and subtle blood-red night themes driven by the current game phase, including audience views.
+- Added a persistent host DEBUG toggle with all identities, potion/night-action diagnostics, and a discussion skip. Debug data uses a separate host-only endpoint.
+
 ## 1.0.0 — 2026-10-15
 
 - Added Moonfall: responsive, moonlit forest web interface with English/Traditional Chinese copy.

@@ -96,3 +96,5 @@ body { background: var(--bg); transition: background-color .65s, color .65s; }
 [data-theme="night"] .phase-symbol { color: #b07663; }
 [data-theme="night"] .progress .current { box-shadow: inset 0 -2px #9d5549; }
 @media(max-width:720px) { [data-theme="night"] .game-hero { height: 235px; padding: 20px; text-align: center; font-size: 16px; background-position: 62% center; } }
+
+.voice-settings{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0;color:var(--muted);font-size:11px}.voice-settings select{padding:7px;background:var(--panel);border:1px solid var(--border);border-radius:3px;color:var(--text);max-width:100%}.voice-fallback{display:flex;align-items:center;gap:6px}.voice-fallback input{accent-color:var(--gold)}

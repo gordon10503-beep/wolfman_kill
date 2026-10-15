@@ -13,6 +13,9 @@ let counts = {...presets[9]}, state = null, session = null, busy = false, voice 
 let timerInterval, toastTimeout;
 let debugEnabled = sessionStorage.getItem('moonfall-debug') === 'true';
 let debugRequest = 0;
+let voiceProfile = sessionStorage.getItem('moonfall-voice') || 'original';
+if(!['original','narrator'].includes(voiceProfile)) voiceProfile='original';
+let allowFallback = sessionStorage.getItem('moonfall-voice-fallback') === 'true';
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   $('meta[name="theme-color"]').content = {lobby:'#0b1113',day:'#edf3eb',night:'#0a1116'}[theme];
@@ -43,7 +46,7 @@ async function loadDebug() {
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(message) { $('#toast').textContent = message; $('#toast').classList.add('show'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => $('#toast').classList.remove('show'), 5000); }
 
-const narrator = new Narrator({context:()=>({enabled:voice,state,session}),status:text=>{const el=$('#voice-status');if(el)el.textContent=text;}});
+const narrator = new Narrator({context:()=>({enabled:voice,state,session,profile:voiceProfile,allowFallback}),status:text=>{const el=$('#voice-status');if(el)el.textContent=text;}});
 async function api(path, options = {}) {
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15000);
   try {
@@ -128,7 +131,7 @@ function renderGame() {
   <div class="game-hero"><span>${night?'The woods are quiet. Too quiet.':'A new light. The same secrets.'}</span><small>${night?'血月之下，請閉上眼睛。':'晨光已至，請睜開眼睛。'}</small></div>
   ${debug?'<section id="debug-panel" class="debug-panel" aria-label="DEBUG 主持人身份表"></section>':''}
   <div class="game-grid"><section><div class="table-panel"><div class="table-top"><p class="eyebrow">THE VILLAGE <span class="muted">/ 座位</span></p><span class="live-count"><i></i>${living} / ${state.players.length} 存活</span></div><div class="village">${state.players.map(pl=>`<article class="seat ${!pl.alive?'dead':''} ${pl.role==='wolf'?'revealed-wolf':''}"><div class="avatar">${p==='finished'?symbols[pl.role]:'♙'}</div><strong>SEAT ${String(pl.seat).padStart(2,'0')} · ${pl.seat} 號</strong><small>${p==='finished'?labels[pl.role]+' · '+(pl.alive?'存活':causes[pl.cause]):pl.alive?'身份未公開':'已出局'}</small></article>`).join('')}</div></div>
-  <div class="narration"><span class="sigil">◖</span><div><span class="micro">THE NARRATOR · 語音主持</span><p>${escape(state.narration)}</p><small id="voice-status">${voice?'語音已啟用':'語音關閉 · 可按右上角啟用'}</small></div></div>
+  <div class="narration"><span class="sigil">◖</span><div><span class="micro">THE NARRATOR · 語音主持</span><p>${escape(state.narration)}</p><div class="voice-settings"><label for="voice-profile">聲線</label><select id="voice-profile"><option value="original">原版廣東話女聲</option><option value="narrator">廣東話男聲（較慢）</option></select><label class="voice-fallback"><input id="voice-fallback" type="checkbox">允許本機備用語音（較機械）</label></div><small id="voice-status">${voice?'語音已啟用':'語音關閉 · 可按右上角啟用'}</small></div></div>
   <section class="chronicle"><h3>Day & night chronicle <span class="muted">日夜紀錄</span></h3>${[...state.events].reverse().map(e=>`<div class="event"><time>ROUND ${String(e.day).padStart(2,'0')}</time><span>${escape(e.text)}</span></div>`).join('')}</section></section>
   <aside class="panel stage-panel"><p class="eyebrow">${p==='finished'?'THE EPILOGUE':night?'THE NIGHT RITUAL':'THE NEXT CHAPTER'}</p><div class="phase-symbol" aria-hidden="true">${({reveal:'✧',wolves:'☾',witch:'⚗',seer:'✧',dawn:'☼',hunter:'⌖',discussion:'☼',vote:'⚖',runoff:'⚖',finished:'☾'})[p]}</div><h2>${names[p]}</h2><p class="muted">${descriptions[p]}</p>${p==='reveal'?`<p class="notice">現在輪到 ${state.reveal_seat} 號玩家。其他人請移開視線。</p>`:''}${p==='hunter'?`<p class="notice">獵人：${state.hunter} 號</p>`:''}${p==='runoff'?`<p class="notice">平票座位：${state.runoff.join('、')} 號</p>`:''}
   ${p==='discussion'?(debug?'<p class="notice">DEBUG：略過討論倒數，可直接進入投票。</p>':'<div class="timer" id="timer">01:30</div><div class="timer-controls"><button class="icon-button" id="timer-toggle">開始計時</button><button class="icon-button" id="timer-reset">重設</button></div>'):''}
@@ -142,6 +145,10 @@ function renderGame() {
     skip.onclick = () => action('debug_skip_reveal');
     $('#stage-action').after(skip);
   }
+  $('#voice-profile').value=voiceProfile;
+  $('#voice-fallback').checked=allowFallback;
+  $('#voice-profile').onchange=()=>{voiceProfile=$('#voice-profile').value;sessionStorage.setItem('moonfall-voice',voiceProfile);narrator.stop();if(voice)narrator.speak();};
+  $('#voice-fallback').onchange=()=>{allowFallback=$('#voice-fallback').checked;sessionStorage.setItem('moonfall-voice-fallback',String(allowFallback));narrator.stop();if(voice)narrator.speak();};
   $('#replay').onclick=()=>{voice=true;updateVoice();narrator.speak();};
   $('#audience')?.addEventListener('click',()=>{
     const url=`${location.origin}/#watch=${session.id}&key=${session.viewerToken}`;
@@ -238,7 +245,7 @@ $('#debug').onclick=()=>{
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).close());
 privateDialog.addEventListener('cancel',()=>{privateDialog.replaceChildren();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){closePrivate();narrator.stop();}else if(session)refresh();});
-window.addEventListener('pagehide',()=>narrator.stop());
+window.addEventListener('pagehide',()=>narrator.dispose());
 async function boot() {
   const hash=new URLSearchParams(location.hash.slice(1));
   if(hash.has('watch') && hash.has('key')) {

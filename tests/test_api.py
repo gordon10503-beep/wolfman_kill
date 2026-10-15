@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.2.1"}
-    assert response.headers["x-moonfall-version"] == "1.2.1"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.3.0"}
+    assert response.headers["x-moonfall-version"] == "1.3.0"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -98,9 +98,28 @@ def test_two_tabs_only_one_action_commits(tmp_path):
 
 def test_unavailable_speech_does_not_break_game(client):
     g = create(client)
-    async def unavailable(text):
+    async def unavailable(text, profile):
         return None
     client.app.state.speech.synthesize = unavailable
     headers = {"Authorization": "Bearer " + g["host_token"]}
     assert client.get(f'/api/games/{g["id"]}/audio', headers=headers).status_code == 503
     assert client.get(f'/api/games/{g["id"]}', headers=headers).status_code == 200
+
+
+def test_audio_prefetch_is_fixed_public_text_and_validates_voice(client):
+    from backend.engine import NARRATION
+    g = create(client)
+    seen = []
+    async def synthesize(text, profile):
+        seen.append((text, profile))
+        return b"fake-mp3"
+    client.app.state.speech.synthesize = synthesize
+    headers = {"Authorization": "Bearer " + g["viewer_token"]}
+    path = f'/api/games/{g["id"]}/audio'
+    response = client.get(path + '?phase=witch&voice=narrator', headers=headers)
+    assert response.status_code == 200 and response.content == b"fake-mp3"
+    assert seen == [(NARRATION["witch"], "narrator")]
+    assert response.headers["x-audio-voice"] == "zh-HK-WanLungNeural"
+    assert client.get(path + '?phase=secret', headers=headers).status_code == 422
+    assert client.get(path + '?voice=unknown', headers=headers).status_code == 422
+    assert len(seen) == 1

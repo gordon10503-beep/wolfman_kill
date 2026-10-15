@@ -70,9 +70,24 @@ The original script could declare victory before a dying hunter acted and accept
 
 ## Audio reliability
 
-Edge TTS uses `zh-HK-HiuMaanNeural` and requires internet access. The server retries once with bounded timeouts and caches public prompts. The browser cancels earlier playback on replay, phase change, mute, private handoff, or hiding the tab. Late responses cannot start old audio.
+The default is **the same Microsoft neural voice as the original terminal script**: `zh-HK-HiuMaanNeural`, original rate `+0%`. The library is now `edge-tts==7.3.1`; the earlier 7.2.8 installation returned 403 in our live check and fell back to a less natural local browser voice. Upgrading restored real neural MP3 output.
 
-On failure, an installed Cantonese browser voice is used if available; otherwise captions keep the game playable. External TTS availability cannot be guaranteed. Sound starts only after a click and defaults off. **Enable voice on only one tab/device** to avoid multiple independent speakers. The web server does not play through pygame.
+The **聲線** dropdown also offers `zh-HK-WanLungNeural` at `-5%` rate for a slower male delivery. These are voice choices, not guaranteed acting/emotion styles. Edge TTS supports voice/rate/pitch adjustments, but not arbitrary expressive SSML ([library documentation](https://github.com/rany2/edge-tts)). Microsoft lists both Cantonese neural voices in [its language support](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts).
+
+- **Replay:** reuses an in-memory browser audio blob, without another download or synthesis. Rapid clicks share one pending load; only the latest requested playback starts.
+- **Upcoming phases:** prefetch their fixed public prompts while the current clip is ready.
+- **Server cache:** atomic MP3 files in `data/audio-cache/` survive reloads/restarts; memory hits bypass generation. The server warms all original-voice prompts in the background at startup. A cold install still needs internet/time to generate clips once.
+- **Outages:** synthesis is bounded to 12 seconds, repeated failures back off for 30 seconds, and cached clips remain usable. The server generates at most two clips concurrently and deduplicates identical requests.
+- **Voice quality:** local browser fallback is **off by default**, so the original voice cannot silently become a robotic system voice. Enable **允許本機備用語音（較機械）** if you prefer that fallback to captions during an outage. Status text identifies the actual source.
+
+Prime either full voice pack before a game (using your virtual environment's Python):
+
+```bash
+python -m backend.prepare_audio
+python -m backend.prepare_audio --voice narrator
+```
+
+Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only fixed public instructions are cached/sent to the provider; no identities, targets, or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults off per tab. **Enable voice on only one tab/device** to avoid multiple independent speakers.
 
 ## Tests and development
 

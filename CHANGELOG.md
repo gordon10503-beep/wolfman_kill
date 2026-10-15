@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 — 2026-10-15
+
+- Upgraded edge-tts to 7.3.1, resolving the reproduced provider 403 and restoring the original HiuMaan neural voice.
+- Added browser blob caching, in-flight download sharing, future-cue prefetch, and replay without further HTTP requests.
+- Added persistent server MP3 caching, startup warmup, concurrent synthesis deduplication, bounded provider concurrency, and outage backoff. Added a CLI to prepare either voice pack before a game.
+- Added a Cantonese male voice option. Kept the original female voice/rate as default; made robotic local fallback opt-in with explicit source labels.
+
 ## 1.2.1 — 2026-10-15
 
 - Added a host DEBUG button to skip all remaining role reveals and enter the first night, preserving the assigned identities. Available only during role reveal; audience credentials cannot invoke it.

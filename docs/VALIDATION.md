@@ -1,15 +1,17 @@
 # Validation — 2026-10-15
 
-- Python 3.14: 31 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
-- Node 24: 8 frontend tests passed (audio replay, late responses, mute races, Cantonese/text fallback, night/day/dawn/hunter theme selection). JavaScript syntax checks passed.
+- Python 3.14: 38 pytest cases passed (rules including self-votes in normal/runoff ballots, API/auth, host-only debug privacy, concurrency, restart persistence, speech failure/cache, terminal hunter regression).
+- Node 24: 13 frontend tests passed (audio replay, late responses, mute races, Cantonese/text fallback, night/day/dawn/hunter theme selection). JavaScript syntax checks passed.
 - Browser: complete 6-player game through role dealing, two nights, witch/seer actions, dawn, discussion timer, ballots, village victory, and full recap. Audience mode and URL credential removal verified. No console errors in the inspected session.
 - Responsive checks: 1280px desktop and 390px mobile widths, without horizontal document overflow. `preview.png` captures the desktop setup.
 - Version 1.1 browser checks: night-to-dawn palette transition, 「返回」without submission, host debug identity sheet, debug persistence through reload, restoring normal timer when debug is off, skipping discussion directly to voting, and audience mode with no debug toggle/panel. `day-preview.png` and `night-preview.png` capture both palettes. No browser console errors observed.
 - Version 1.2: diagnosed the active port 8000 server as an older 1.0 process without the debug route. Restarted it with the new autoreloading launcher and verified `/api/health` reports 1.2.0, DEBUG shows all identities, and a player can select their own seat and be eliminated by that self-vote. The chronicle contains both dawn and vote events. The updated `night-preview.png` shows the natural forest backdrop. No browser console errors observed.
-- Real Edge TTS request: service unavailable here (HTTP 503 after about 7.5 seconds). The failure stayed within its time budget; game state remained available. Automated fallback tests pass; physical speaker output has not been listened to.
+- Historical initial-release Edge TTS request: service unavailable here (HTTP 503 after about 7.5 seconds). The failure stayed within its time budget; game state remained available. Automated fallback tests pass; physical speaker output has not been listened to.
 - Docker is not installed on the development machine, so the supplied image has not been built locally.
 - GitHub Actions is configured for Python 3.13/3.14 and Node 22. Local results do not imply the hosted workflow has completed.
 
 The FastAPI/Starlette test client emits upstream deprecation warnings in this environment; no project test failures resulted.
 
 - Version 1.2.1: browser verified the role-reveal skip is hidden in normal mode and jumps straight to the first night in DEBUG. Backend tests cover partial reveals, preservation of the deal, phase restrictions, audience denial, and duplicate submissions.
+
+- Version 1.3: reproduced provider 403 with edge-tts 7.2.8. Upgraded to 7.3.1 and successfully generated all ten fixed prompts for both HiuMaan and WanLung (20 MP3s). Live cached wolf-clip requests measured about 6–17 ms, versus an initial uncached synthesis check around 6.2 seconds. These are local observations, not a latency guarantee. Browser verification exercised original neural playback, rapid replay, male voice selection, and mute, with no console errors. Frontend tests assert zero additional HTTP requests on replay, in-flight deduplication, future-cue prefetch reuse, and explicit local fallback. Backend tests cover disk persistence across new Speech instances, concurrent deduplication, cancellation isolation, outage backoff, and public-cue/voice validation. Physical voice quality has not been independently listened to or rated.

@@ -32,9 +32,13 @@ This local release has no internet-facing rate limiter or account service. Befor
 
 ## Speech and timer
 
-Only fixed public prompts go to Edge TTS. Two attempts use 8-second timeouts, an 18-second total request budget, a synthesis lock, and a 16-entry cache. Failure returns 503 without changing state. Service availability cannot be guaranteed.
+Only the fixed `NARRATION` dictionary can reach Edge TTS. The audio endpoint accepts a whitelisted public `phase` for prefetch and a whitelisted `voice` profile (`original` or `narrator`). It never accepts free text. Profile settings match the original HiuMaan voice exactly by default; optional WanLung runs slightly slower.
 
-`audio.mjs` owns HTML audio and system speech. Replay, phase changes, mute, private handoff, and tab hiding cancel earlier work. Generation counters discard late responses; object URLs are released; stalled playback has a watchdog. Only an installed Cantonese voice is a fallback; otherwise captions remain. Sound requires a click and starts off per tab. Enable it on one device.
+`Speech` hashes text, voice, rate, pitch, and cache revision. It checks memory and disk before awaiting network slots, so a cached clip never waits behind unrelated synthesis. MP3 files are atomically replaced with unique temporary filenames. Identical concurrent requests share a task; cancelling a listener does not cancel synthesis for others. A two-slot semaphore bounds provider concurrency, generation has a 12-second deadline, and failures open a 30-second backoff. Application shutdown cancels pending work. The live app warms original prompts asynchronously using one slot at startup, leaving capacity for live audio; the test factory disables network warmup by default. `backend.prepare_audio` can prime either pack ahead of time. Cache files live under the database directory's `audio-cache/`, overridden by `WOLFMAN_AUDIO_CACHE`, and are excluded from Git.
+
+The browser independently caches up to 24 public blobs by cue/profile, deduplicates pending requests, prefetches upcoming cues, and briefly caches failures. Replay creates a playback object from the existing blob with zero audio HTTP requests. `stop()` cancels playback and system speech but lets useful pending downloads finish; generation guards prevent stale playback. `dispose()` also aborts requests and releases caches on page exit. Temporary playback URLs are revoked. Profile changes cancel the previous voice before playing the new one. A watchdog stops stalled playback.
+
+Browser speech is opt-in and explicitly identified as a local fallback; it must have a Cantonese voice. Network failure otherwise leaves captions, without silently replacing the original neural voice. Sound requires a click and starts off per tab. Enable it on one device. External service availability remains outside the application's control; prepared clips remain usable offline.
 
 The advisory discussion timer is local per tab. A session-storage deadline supports reload, pause, and reset. Audience timers are independent. It never advances the server; host submissions control progress.
 
@@ -50,6 +54,6 @@ Raw schema: `/openapi.json`. Protected routes use `Authorization: Bearer <capabi
 | GET | `/api/games/{id}/private` | Host; active role context |
 | GET | `/api/games/{id}/debug` | Host only; identity sheet, potion inventory, pending night actions |
 | POST | `/api/games/{id}/actions` | Host; `{version, action, data}` |
-| GET | `/api/games/{id}/audio` | Host/viewer; public MP3 or 503 |
+| GET | `/api/games/{id}/audio` | Host/viewer; public MP3 or 503; optional `phase` and `voice` |
 
 Phase-specific actions: `ack`, `wolves`, `witch`, `inspect`, `dawn`, `shoot`, `vote`, `ballots`, `debug_skip_reveal`. Rule violations return 409; schema errors 422; missing credentials 401; forbidden credentials 403; unknown game 404. Polling runs every three seconds while visible without a private dialog. After uncertain network failure, synchronize before retrying: a committed action cannot reuse its old version.

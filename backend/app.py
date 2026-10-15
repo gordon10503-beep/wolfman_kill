@@ -1,20 +1,21 @@
+import asyncio
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import RuleError, new_game, private_view, public_view
-from .speech import Speech
+from .engine import NARRATION, RuleError, new_game, private_view, public_view
+from .speech import PROFILES, Speech
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 
 
 class CreateGame(BaseModel):
@@ -30,12 +31,20 @@ class Action(BaseModel):
     data: dict[str, Any] = Field(default_factory=dict)
 
 
-def create_app(database=None):
+def create_app(database=None, preload_audio=False):
     @asynccontextmanager
     async def lifespan(app):
         app.state.store = Store(database or os.environ.get("WOLFMAN_DB", str(ROOT / "data" / "games.sqlite3")))
-        app.state.speech = Speech()
-        yield
+        directory = os.environ.get("WOLFMAN_AUDIO_CACHE", str(Path(app.state.store.path).parent / "audio-cache"))
+        app.state.speech = Speech(directory)
+        warmup = asyncio.create_task(app.state.speech.warm(NARRATION.values())) if preload_audio else None
+        try:
+            yield
+        finally:
+            if warmup:
+                warmup.cancel()
+                await asyncio.gather(warmup, return_exceptions=True)
+            await app.state.speech.close()
 
     app = FastAPI(title="Moonfall · 狼人殺", version=VERSION, lifespan=lifespan, docs_url=None, redoc_url=None)
     auth = HTTPBearer(auto_error=False)
@@ -108,20 +117,23 @@ def create_app(database=None):
                 "night": {"kill": state["kill"], "poison": state["poison"], "inspection": state["inspection"]}}
 
     @app.get("/api/games/{game_id}/audio")
-    async def audio(game_id: str, credential=Depends(token)):
+    async def audio(game_id: str, phase: str | None = Query(default=None, max_length=24),
+                    voice: Literal["original", "narrator"] = "original", credential=Depends(token)):
         state = app.state.store.get(game_id, credential)
-        # Only fixed public prompts can reach the online speech provider.
-        import asyncio
+        cue = phase or state["phase"]
+        if cue not in NARRATION:
+            raise HTTPException(422, "未知的公開語音。")
+        # Prefetch may name a future cue, but never send arbitrary/private text.
         try:
-            result = await asyncio.wait_for(app.state.speech.synthesize(public_view(state)["narration"]), 18)
+            result = await asyncio.wait_for(app.state.speech.synthesize(NARRATION[cue], voice), 14)
         except TimeoutError:
             result = None
         if result is None:
             raise HTTPException(503, "語音暫時不可用，請使用畫面字幕。")
-        return Response(result, media_type="audio/mpeg")
+        return Response(result, media_type="audio/mpeg", headers={"X-Audio-Voice": PROFILES[voice]["voice"], "X-Audio-Cue": cue})
 
     app.mount("/", StaticFiles(directory=ROOT / "frontend", html=True), name="frontend")
     return app
 
 
-app = create_app()
+app = create_app(preload_audio=True)

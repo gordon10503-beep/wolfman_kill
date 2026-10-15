@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+r"""
 狼人殺語音 MC 程式 v18
 
 ==================== 安裝及虛擬環境 ====================
@@ -602,6 +602,12 @@ def configure_role_quota() -> dict:
         if quota["狼人"] == 0:
             print("[驗證失敗] 本局至少要有一位狼人。")
             continue
+        if quota["狼人"] >= total - quota["狼人"]:
+            print("[驗證失敗] 開局狼人數目必須少於好人。")
+            continue
+        if any(quota[role] > 1 for role in ("預言家", "女巫", "獵人")):
+            print("[驗證失敗] 預言家、女巫及獵人各最多一位。")
+            continue
 
         print(f"[驗證成功] 共 {total} 人。")
         return {"total": total, "quota": quota}
@@ -893,9 +899,6 @@ def resolve_night_deaths(game: GameState, killed_seat: str, poisoned_seat: str) 
 def day_phase(game: GameState, killed_seat: str, poisoned_seat: str) -> bool:
     newly_dead = resolve_night_deaths(game, killed_seat, poisoned_seat)
 
-    if check_win_condition(game):
-        return True
-
     clear_screen_for_privacy()
     announce_then_confirm(
         "天亮了，所有玩家請睜眼。",
@@ -911,13 +914,15 @@ def day_phase(game: GameState, killed_seat: str, poisoned_seat: str) -> bool:
         for player in newly_dead:
             if player.role == "獵人":
                 hunter_shot(game, player, player.death_cause)
-                if check_win_condition(game):
-                    return True
     else:
         announce_then_confirm(
             "昨晚是平安夜，沒有玩家死亡。",
             prompt="按 Enter 繼續。",
         )
+
+    # Resolve death-triggered actions before checking parity.
+    if check_win_condition(game):
+        return True
 
     announce_then_confirm(
         f"現在請按座位順序依次發言。討論時間共 {DISCUSSION_SECONDS} 秒，發言結束後進行投票。",

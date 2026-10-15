@@ -1,0 +1,10 @@
+{
+  "name": "moonfall-wolfman-kill",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/audio.test.mjs",
+    "check": "node --check frontend/app.js && node --check frontend/audio.mjs"
+  }
+}

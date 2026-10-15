@@ -57,7 +57,7 @@ For testing, toggle **DEBUG on** in the host header. It shows all seat identitie
 
 In **今晚的約定**, **允許狼人空刀** controls whether wolves may choose no target (on by default). Turn it off before starting a new game to require a living target every night; the server enforces this too. Existing games keep the earlier allow-abstain behavior.
 
-Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English defaults to the male Guy voice; Cantonese defaults to the original female HiuMaan voice. Both languages offer a manual female/male selector and remember overrides separately per language. English uses translated public prompts. The language preference is saved per tab and can change during a game without changing roles or rules. The interface itself remains bilingual.
+Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English defaults to the male Guy voice; Cantonese defaults to the original female HiuMaan voice. Both languages offer a manual female/male selector and remember overrides separately per language. English uses translated public prompts. The language preference is saved per tab and can change during a game without changing roles or rules. Chinese labels have English subtext across setup rules and instructions, private role screens, voting, timers, debug details, public events, errors, and the endgame seat recap. Private translations stay inside the private dialog; roles and death causes remain hidden in the public seat cards until the game ends.
 
 ## What changed
 

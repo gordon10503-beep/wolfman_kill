@@ -100,3 +100,8 @@ body { background: var(--bg); transition: background-color .65s, color .65s; }
 .voice-settings{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0;color:var(--muted);font-size:11px}.voice-settings select{padding:7px;background:var(--panel);border:1px solid var(--border);border-radius:3px;color:var(--text);max-width:100%}.voice-fallback{display:flex;align-items:center;gap:6px}.voice-fallback input{accent-color:var(--gold)}
 
 .rule-line select{max-width:170px;padding:7px;background:#0b1214;border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:11px}
+
+.table-top{gap:12px;flex-wrap:wrap}.live-count .count-en{font-size:10px;margin-left:3px}.seat .seat-english{font-size:10px;line-height:1.6;letter-spacing:.15px;margin-top:4px}
+.english-subtext{display:block;font-family:'Segoe UI',sans-serif;font-size:11px;line-height:1.5;letter-spacing:0;font-weight:400;opacity:.78;margin-top:5px}.bilingual-label{min-width:0}.rule-line{gap:16px}.rule-line>input,.rule-line>select{flex-shrink:0}button .english-subtext{font-size:10px}.progress .english-subtext{display:block;flex:none;padding:0;border:0;font-size:9px;letter-spacing:0;color:inherit}.target-grid .english-subtext{display:block;border:0;padding:0;background:none;font-size:10px}.private-role .english-subtext{font-size:16px;letter-spacing:1px}#private-dialog .english-subtext{white-space:normal}
+.progress>span{min-width:0}.progress .english-subtext{overflow-wrap:anywhere}
+.setup-note span.english-subtext{font-size:11px;color:inherit}

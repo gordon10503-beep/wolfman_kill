@@ -27,6 +27,14 @@ test('replay uses the cached blob with zero additional requests and no overlap',
   assert.equal(clips.length,2);assert.equal(clips[0].playing,false);assert.equal(clips[1].playing,true);
   assert.equal(requests,1);
 });
+test('room audio supplies its main-device lease and stays silent when disabled',async()=>{
+  const {ctx,clips}=setup();ctx.session.speaker='main-device-id';const headers=[];
+  globalThis.fetch=async(url,options)=>{headers.push(options.headers);return response();};
+  await narrator.speak();
+  assert.equal(headers[0]['X-Moonfall-Speaker'],'main-device-id');
+  ctx.enabled=false;narrator.stop();await narrator.speak();
+  assert.equal(headers.length,1);assert.equal(clips[0].playing,false);
+});
 test('a late fetch from the previous phase can never start playback',async()=>{
   const {clips,ctx}=setup();let resolveOld;
   globalThis.fetch=()=>new Promise(resolve=>{resolveOld=resolve;});

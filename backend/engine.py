@@ -184,6 +184,7 @@ def private_view(g):
 
 
 def public_view(g):
+    from .rooms import public_room
     keys = ("version", "phase", "day", "rules", "reveal_seat", "runoff", "winner", "events")
     result = {k: deepcopy(g[k]) for k in keys}
     result["players"] = [{k: v for k, v in p.items() if k in ("seat", "alive") or g["phase"] == "finished"} for p in g["players"]]
@@ -194,6 +195,7 @@ def public_view(g):
     result["role_turn"] = {"number": g.get(g["phase"] + "_cursor", 0) + 1, "total": total} if total > 1 else None
     result["narration"] = NARRATION[g["phase"]]
     result["narration_en"] = NARRATION_EN[g["phase"]]
+    result["room"] = public_room(g)
     return result
 
 

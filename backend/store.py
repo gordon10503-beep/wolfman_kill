@@ -21,6 +21,25 @@ class Store:
     def connect(self):
         return sqlite3.connect(self.path, timeout=10)
 
+    def read_record(self, game_id):
+        with closing(self.connect()) as db:
+            row = db.execute("SELECT host, viewer, state FROM games WHERE id=?", (game_id,)).fetchone()
+        if row is None:
+            raise LookupError("找不到遊戲。 / Game not found.")
+        return json.loads(row[2]), row[0], row[1]
+
+    def mutate(self, game_id, operation):
+        """Run a room operation and its authorization under the same write lock."""
+        with closing(self.connect()) as db, db:
+            db.execute("BEGIN IMMEDIATE")
+            row = db.execute("SELECT host, viewer, state FROM games WHERE id=?", (game_id,)).fetchone()
+            if row is None:
+                raise LookupError("找不到遊戲。 / Game not found.")
+            state = json.loads(row[2])
+            result = operation(state, row[0], row[1])
+            db.execute("UPDATE games SET state=? WHERE id=?", (json.dumps(state), game_id))
+            return result
+
     @staticmethod
     def digest(token):
         return hashlib.sha256(token.encode()).hexdigest()
@@ -53,6 +72,7 @@ class Store:
             state = json.loads(row[1])
             if state["version"] != version:
                 raise RuleError("畫面已過時，已重新同步。請確認目前階段後再操作。")
-            updated = act(state, action, data)
+            from .rooms import host_action
+            updated = host_action(state, action, data)
             db.execute("UPDATE games SET state=? WHERE id=?", (json.dumps(updated), game_id))
             return updated

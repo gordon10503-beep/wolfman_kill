@@ -4,9 +4,12 @@ import {shouldSweep, wolfSweep, skyChange, skySweep} from './transitions.mjs';
 import {bilingualize, setBilingualText} from './bilingual.mjs';
 import {Narrator} from './audio.mjs';
 import {themeForPhase, englishSeatText, chineseDeathText, narrationChanged, roleLimit} from './presentation.mjs';
+import {RoomHost, startPlayer} from './rooms.mjs';
+import {roleCard} from './role-cards.mjs';
 const $ = (q, root = document) => root.querySelector(q);
 const app = $('#app');
 const privateDialog = $('#private-dialog');
+const playerPage = new URLSearchParams(location.hash.slice(1)).has('join') || new URLSearchParams(location.hash.slice(1)).has('player');
 const labels = {wolf:'狼人',seer:'預言家',witch:'女巫',hunter:'獵人',villager:'平民'};
 const symbols = Object.fromEntries(Object.keys(labels).map(role=>[role,`<svg viewBox="0 0 48 48" aria-hidden="true"><use href="/assets/roles.svg#${role}"></use></svg>`]));
 const names = {reveal:'身份交接',wolves:'狼人行動',witch:'女巫行動',seer:'預言家查驗',dawn:'等待天亮',hunter:'獵人的最後一槍',last_words:'最後的話',discussion:'白天討論',vote:'村莊公投',runoff:'平票加賽',finished:'月落，真相浮現'};
@@ -16,6 +19,19 @@ let counts = {...presets[9]}, state = null, session = null, busy = false, voice 
 let timerInterval, toastTimeout;
 let debugEnabled = sessionStorage.getItem('moonfall-debug') === 'true';
 let debugRequest = 0;
+const speakerId=crypto.randomUUID?.() || Array.from(crypto.getRandomValues(new Uint8Array(24)),n=>n.toString(16).padStart(2,'0')).join('');
+let mainSpeaker=true,speakerBusy=false;
+async function claimSpeaker(next=state) {
+  if(!session || session.viewer || playerPage || next?.room?.mode!=='multi'){mainSpeaker=true;return;}
+  if(speakerBusy)return;speakerBusy=true;
+  try{
+    session.speaker=speakerId;
+    const result=await api(`/api/games/${session.id}/speaker`,{method:'POST',body:JSON.stringify({device:speakerId})});
+    mainSpeaker=result.main;
+  }catch{mainSpeaker=false;}
+  finally{speakerBusy=false;}
+  if(!mainSpeaker){narrator.stop();const el=$('#voice-status');if(el)el.textContent='另一主裝置負責旁白 · Another main device is narrating';}
+}
 let speechLanguage = sessionStorage.getItem('moonfall-speech-language') === 'en' ? 'en' : 'yue';
 function preferredVoice(language) {
   const saved = sessionStorage.getItem(`moonfall-voice-${language}`);
@@ -54,7 +70,8 @@ async function loadDebug() {
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(message) { setBilingualText($('#toast'), message); $('#toast').classList.add('show'); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => $('#toast').classList.remove('show'), 5000); }
 
-const narrator = new Narrator({context:()=>({enabled:voice,state,session,profile:voiceProfile,language:speechLanguage,allowFallback}),status:text=>{const el=$('#voice-status');if(el)setBilingualText(el,text);}});
+const narrator = new Narrator({context:()=>({enabled:voice && mainSpeaker && !(session?.viewer && state?.room?.mode==='multi') && !playerPage,state,session,profile:voiceProfile,language:speechLanguage,allowFallback}),status:text=>{const el=$('#voice-status');if(el)setBilingualText(el,text);}});
+const roomHost = new RoomHost({api,session:()=>session,refresh:()=>refresh(),dialog:$('#room-dialog')});
 async function api(path, options = {}) {
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15000);
   try {
@@ -80,6 +97,7 @@ const coverTimer = new NightCoverTimer({
   pass:()=>action('inactive_pass'), onError:error=>toast(error.message)
 });
 async function setState(next, starting = false) {
+  await claimSpeaker(next);
   const changed = narrationChanged(state,next);
   const sweep = shouldSweep(state?.phase, next.phase, starting);
   const sky = skyChange(state?.phase, next.phase);
@@ -122,8 +140,8 @@ function setup() {
   $('.topbar').classList.remove('in-game');
   app.innerHTML = `<section class="hero"><div class="hero-content"><p class="eyebrow">A SOCIAL DEDUCTION RITUAL</p><h1>When the moon rises,<br><em>trust no one.</em></h1><p class="zh">天黑請閉眼，故事即將開始。</p><p class="lede">Gather your friends. Keep your secrets.<br>Your Cantonese game master takes care of the night.</p><span class="hero-chip"><i></i> 5–16 PLAYERS <span> / </span> ONE SHARED NIGHT</span><button class="icon-button guide-launch" id="learn-game" type="button"><span aria-hidden="true">?</span> 玩法指南 · How to play</button></div><span class="hero-mark">Somewhere in the village, a wolf is waiting.</span></section>
   <div class="section-heading"><div><h2><span class="number">01 /</span> Assemble the village <span class="muted">集結村莊</span></h2><p>Choose your cast. Every seat has a secret to keep.</p></div><div class="presets">${[6,9,12].map(n=>`<button class="preset ${JSON.stringify(counts)===JSON.stringify(presets[n])?'active':''}" data-preset="${n}">${n} 人局</button>`).join('')}</div></div>
-  <div class="setup-grid"><section><div class="role-grid">${Object.keys(labels).map(r=>`<article class="role-card"><span class="role-icon" aria-hidden="true">${symbols[r]}</span><h3>${labels[r]}</h3><small>${r}</small><div class="stepper"><button data-role="${r}" data-delta="-1" aria-label="減少${labels[r]} / Fewer ${r}">−</button><output aria-label="${labels[r]}人數 / ${r} count">${counts[r]}</output><button data-role="${r}" data-delta="1" aria-label="增加${labels[r]} / More ${r}">+</button></div></article>`).join('')}</div><div class="setup-note"><span>☾</span><span>身份由系統隨機分配，每人私下查看自己的身份。<br>一部裝置，主持全場。另設安全的觀眾畫面。</span></div>${privacyReminder()}<div class="steps"><div class="step"><span class="n">I.</span><div><strong>Take your seat · 入座</strong><p>設定角色，集結你的村莊。</p></div></div><div class="step"><span class="n">II.</span><div><strong>Keep your secret · 守密</strong><p>輪流揭開只屬於你的身份。</p></div></div><div class="step"><span class="n">III.</span><div><strong>Survive the night · 生存</strong><p>跟隨語音，尋找藏身的狼人。</p></div></div></div></section>
-  <aside class="panel house-rules"><p class="eyebrow">YOUR TABLE, YOUR RULES</p><h3>今晚的約定</h3><p class="muted">Settle the rules before the first night.</p><label class="rule-line">語音語言<select id="speech-language"><option value="yue">廣東話 Cantonese</option><option value="en">English 英語</option></select></label><label class="rule-line">娛樂模式<input id="fun-mode" type="checkbox"></label><p class="fineprint">允許多位預言家、女巫及獵人；狼人仍須少於好人。</p><p class="fineprint">同角色按座位順序逐一操作，每位女巫有獨立藥水。</p><label class="rule-line">啟用遺言<input id="last-words" type="checkbox" checked></label><p class="fineprint">首夜死亡及白天被票出局者有遺言；白天被技能帶走及第二晚起死亡者沒有。<span class="english-subtext" lang="en">First-night casualties and voted-out players get last words. Daytime skill victims and deaths from night two onward do not.</span></p><label class="rule-line">允許狼人空刀<input id="wolf-abstain" type="checkbox" checked></label><label class="rule-line">女巫每晚限用一瓶藥<input id="potion-limit" type="checkbox" checked></label><p class="fineprint">關閉後可同晚使用雙藥；每種藥全局仍限一次。<span class="english-subtext" lang="en">Turn off to use both potions on the same night. Each potion remains single-use per game.</span></p><label class="rule-line">女巫可以自救<input id="self-save" type="checkbox" checked></label><label class="rule-line">女巫被刀當晚可行動<input id="witch-acts" type="checkbox" checked></label><label class="rule-line">狼人達到平票人數即勝<input id="parity" type="checkbox" checked></label><label class="rule-line">討論時間（秒）<input id="duration" type="number" min="15" max="600" value="90"></label><button class="primary start-button" id="create"><span>Begin the night · 開始遊戲</span><span>↗</span></button><p class="fineprint"><span id="total">${Object.values(counts).reduce((a,b)=>a+b,0)}</span> players at the table · 自動儲存進度</p><p id="setup-error" class="action-error" role="alert"></p></aside></div>`;
+  <div class="setup-grid"><section><div class="role-grid">${Object.keys(labels).map(r=>`<article class="role-card"><svg class="cast-art" viewBox="0 0 260 270" aria-hidden="true"><use href="/assets/character-cards.svg#${r}"></use></svg><h3>${labels[r]}</h3><small>${r}</small><div class="stepper"><button data-role="${r}" data-delta="-1" aria-label="減少${labels[r]} / Fewer ${r}">−</button><output aria-label="${labels[r]}人數 / ${r} count">${counts[r]}</output><button data-role="${r}" data-delta="1" aria-label="增加${labels[r]} / More ${r}">+</button></div></article>`).join('')}</div><div class="setup-note"><span>☾</span><span>身份由系統隨機分配，每人私下查看自己的身份。<br>一部裝置，主持全場。另設安全的觀眾畫面。</span></div>${privacyReminder()}<div class="steps"><div class="step"><span class="n">I.</span><div><strong>Take your seat · 入座</strong><p>設定角色，集結你的村莊。</p></div></div><div class="step"><span class="n">II.</span><div><strong>Keep your secret · 守密</strong><p>輪流揭開只屬於你的身份。</p></div></div><div class="step"><span class="n">III.</span><div><strong>Survive the night · 生存</strong><p>跟隨語音，尋找藏身的狼人。</p></div></div></div></section>
+  <aside class="panel house-rules"><p class="eyebrow">YOUR TABLE, YOUR RULES</p><h3>今晚的約定</h3><p class="muted">Settle the rules before the first night.</p><label class="rule-line">語音語言<select id="speech-language"><option value="yue">廣東話 Cantonese</option><option value="en">English 英語</option></select></label><label class="rule-line"><span>各用手機<span class="english-subtext" lang="en">Multi-device room</span></span><input id="multi-device" type="checkbox"></label><label class="rule-line">娛樂模式<input id="fun-mode" type="checkbox"></label><p class="fineprint">允許多位預言家、女巫及獵人；狼人仍須少於好人。</p><p class="fineprint">同角色按座位順序逐一操作，每位女巫有獨立藥水。</p><label class="rule-line">啟用遺言<input id="last-words" type="checkbox" checked></label><p class="fineprint">首夜死亡及白天被票出局者有遺言；白天被技能帶走及第二晚起死亡者沒有。<span class="english-subtext" lang="en">First-night casualties and voted-out players get last words. Daytime skill victims and deaths from night two onward do not.</span></p><label class="rule-line">允許狼人空刀<input id="wolf-abstain" type="checkbox" checked></label><label class="rule-line">女巫每晚限用一瓶藥<input id="potion-limit" type="checkbox" checked></label><p class="fineprint">關閉後可同晚使用雙藥；每種藥全局仍限一次。<span class="english-subtext" lang="en">Turn off to use both potions on the same night. Each potion remains single-use per game.</span></p><label class="rule-line">女巫可以自救<input id="self-save" type="checkbox" checked></label><label class="rule-line">女巫被刀當晚可行動<input id="witch-acts" type="checkbox" checked></label><label class="rule-line">狼人達到平票人數即勝<input id="parity" type="checkbox" checked></label><label class="rule-line">討論時間（秒）<input id="duration" type="number" min="15" max="600" value="90"></label><button class="primary start-button" id="create"><span>Begin the night · 開始遊戲</span><span>↗</span></button><p class="fineprint"><span id="total">${Object.values(counts).reduce((a,b)=>a+b,0)}</span> players at the table · 自動儲存進度</p><p id="setup-error" class="action-error" role="alert"></p></aside></div>`;
   app.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{counts={...presets[b.dataset.preset]}; preserveRules(setup);});
   app.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{const r=b.dataset.role;counts[r]=Math.min(roleLimit(r,$('#fun-mode').checked),Math.max(0,counts[r]+Number(b.dataset.delta)));preserveRules(setup);});
   $('#create').onclick = createGame;
@@ -141,7 +159,7 @@ function setup() {
   bilingualize(app);
 }
 function preserveRules(render) {
-  const values = ['fun-mode','last-words','potion-limit','wolf-abstain','self-save','witch-acts','parity','duration'].map(id=>[id,$('#'+id).type==='checkbox'?$('#'+id).checked:$('#'+id).value]);
+  const values = ['multi-device','fun-mode','last-words','potion-limit','wolf-abstain','self-save','witch-acts','parity','duration'].map(id=>[id,$('#'+id).type==='checkbox'?$('#'+id).checked:$('#'+id).value]);
   render(); values.forEach(([id,v])=>{if($('#'+id).type==='checkbox')$('#'+id).checked=v;else $('#'+id).value=v;});
 }
 async function createGame() {
@@ -149,7 +167,7 @@ async function createGame() {
   busy = true; $('#create').disabled = true;
   const rules = {witch_one_potion_per_night:$('#potion-limit').checked,last_words:$('#last-words').checked,fun_mode:$('#fun-mode').checked,wolves_can_abstain:$('#wolf-abstain').checked,witch_self_save:$('#self-save').checked,witch_acts_when_killed:$('#witch-acts').checked,parity_wins:$('#parity').checked,discussion_seconds:Number($('#duration').value)};
   try {
-    const result = await api('/api/games',{method:'POST',body:JSON.stringify({counts,rules})});
+    const result = await api('/api/games',{method:'POST',body:JSON.stringify({counts,rules,mode:$('#multi-device').checked?'multi':'single'})});
     session = {id:result.id,token:result.host_token,viewerToken:result.viewer_token,viewer:false};
     sessionStorage.setItem('moonfall-session',JSON.stringify(session));
     history.replaceState(null,'',`/#game=${session.id}`); await setState(result.state, true);
@@ -160,6 +178,10 @@ function renderGame() {
   clearInterval(timerInterval);
   const p = state.phase, night = themeForPhase(p) === 'night';
   const debug = debugEnabled && !session.viewer;
+  const multi = state.room?.mode==='multi';
+  if(multi && session.viewer){voice=false;narrator.stop();}
+  $('#sound').hidden=multi && session.viewer;
+  $('.local-badge').textContent=multi?'連線房間 · CONNECTED TABLE':'本地遊戲 · LOCAL TABLE';
   applyTheme(themeForPhase(p)); updateDebugButton();
   const stages = [['reveal','身份'],['wolves','狼人'],['witch','女巫'],['seer','預言家'],['dawn','天亮'],['discussion','討論'],['vote','投票']];
   if(p==='last_words')stages.splice(5,0,['last_words','遺言']);
@@ -207,9 +229,21 @@ function renderGame() {
     privateDialog.innerHTML='<p class="eyebrow">ANOTHER NIGHT</p><h2>開一局新遊戲？</h2><p>目前遊戲會保留在伺服器，但這個分頁將開始新局。要保留舊局的操作權，請先保留目前分頁。</p><div class="button-row"><button class="secondary" id="cancel-new">繼續本局</button><button class="primary" id="confirm-new">開新局</button></div>';
     showPrivate();$('#cancel-new').onclick=closePrivate;$('#confirm-new').onclick=()=>{closePrivate();narrator.stop();session=null;state=null;sessionStorage.removeItem('moonfall-session');history.replaceState(null,'','/');setup();};
   });
-  if(p==='discussion' && !debug) initTimer();
+  if(p==='discussion' && !debug && !session.viewer) initTimer();
   if(p==='discussion' && debug) $('#stage-action').textContent = '跳過討論（DEBUG） →';
   bindCountedVote();
+  if(!session.viewer){
+    const control=document.createElement('button');control.className='icon-button';control.id='room-manage';control.textContent='房間／切換裝置 · Room / devices';control.onclick=()=>roomHost.open();$('#session-tools').prepend(control);
+    if(multi){
+      const panel=document.createElement('section');panel.className='room-panel';panel.innerHTML=`<h2>各用手機 · Multi device</h2><p class="room-status">已批准 ${state.room.connected} / ${state.players.length} 位玩家 · Players approved${p==='reveal'?` · 已準備 ${state.room.ready} / ${state.players.length} Ready`:''}${['vote','runoff'].includes(p)?` · 已投票 ${state.room.votes_received} / ${living} Votes received`:''}</p><p class="room-status">主裝置播放旁白及推進公開階段。玩家在自己手機操作。<span class="english-subtext" lang="en">This main device narrates and controls public phases. Players act on their own phones.</span></p><button class="secondary" id="room-lobby">邀請／批准玩家 · Invite / approve players</button>`;
+      $('.session-header').after(panel);$('#room-lobby').onclick=()=>roomHost.open();
+      if(['reveal','wolves','witch','seer','hunter','vote','runoff'].includes(p)){
+        $('#stage-action')?.remove();$('.quick-vote')?.remove();$('.handoff-stage .handoff-seat')?.remove();$('.handoff-stage .notice')?.remove();
+        $('.stage-panel > .muted').innerHTML='等待玩家手機操作。<span class="english-subtext" lang="en">Waiting for the players’ devices.</span>';
+      }
+      $('#replay').hidden=false;
+    }
+  } else if(multi){$('#replay').hidden=true;$('.voice-settings').hidden=true;}
   bilingualize(app);
 }
 function targetChoices(seats, optional=true) {
@@ -231,7 +265,7 @@ async function openPrivate() {
 function renderPrivate(info) {
   const phase=state.phase;
   let content='';
-  if(phase==='reveal') content=`<p class="private-seat">SEAT ${String(info.seat).padStart(2,'0')} · ${info.seat} 號</p><div class="private-icon">${symbols[info.role]}</div><div class="private-role">${labels[info.role]}</div><p class="private-seat">${info.role==='wolf'?'你藏身於村莊之中。與同伴一起活到最後。':'守護村莊，找出藏在你們之間的狼人。'}</p>${roleTip(info.role)}<button class="primary" id="ack">記住了 · 收起並交給下一位</button>`;
+  if(phase==='reveal') content=`${roleCard(info.role,info.seat)}<p class="private-seat">${info.role==='wolf'?'你藏身於村莊之中。與同伴一起活到最後。':'守護村莊，找出藏在你們之間的狼人。'}</p>${roleTip(info.role)}<button class="primary" id="ack">記住了 · 收起並交給下一位</button>`;
   if(phase==='wolves') content=`<h2>今晚，誰將消失？</h2><p>你的狼人同伴：${info.wolves.join('、')} 號。${info.can_abstain?'可以空刀，亦可選狼人。':'本局不允許空刀，必須選擇一位存活玩家。'}</p><form id="private-form">${targetChoices(info.targets,info.can_abstain)}<button class="primary">鎖定目標 · 收起畫面</button></form>`;
   if(phase==='witch') content=`<h2>女巫的抉擇</h2>${info.active?`<p class="notice">${info.kill?`今晚被刀：${info.kill} 號`:'今晚沒有狼人擊殺目標。'}</p><p>${state.rules.witch_one_potion_per_night===false?'本局可同晚使用解藥及毒藥，各限全局一次。解藥只能救狼人目標；毒藥可選任意存活玩家。':'每晚最多用一瓶。解藥只能救狼人目標；毒藥可選任意存活玩家。'}</p>`:'<p class="notice">本晚沒有可行動的女巫，請維持相同交接流程。</p>'}<form id="private-form">${info.can_save?`<label class="check-label"><input type="checkbox" name="save">使用解藥，救回今晚被刀玩家</label><div class="save-target" data-seat="${info.kill}"><span>解藥目標 · ANTIDOTE TARGET</span><strong>${info.kill}</strong></div>`:'<p class="muted">本晚解藥不可用。</p>'}${info.can_poison?`<p class="micro">毒藥目標（可放棄）</p>${targetChoices(info.targets)}`:'<p class="muted">本晚毒藥不可用。</p>'}<p class="dialog-error" id="private-error" role="alert"></p><button class="primary">確認用藥決定 · 收起畫面</button></form>`;
   if(phase==='seer') {
@@ -323,6 +357,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){closePriva
 window.addEventListener('pagehide',()=>narrator.dispose());
 async function boot() {
   const hash=new URLSearchParams(location.hash.slice(1));
+  if(hash.has('join') || hash.has('player')) {narrator.stop();await startPlayer(hash);return;}
   if(hash.has('watch') && hash.has('key')) {
     session={id:hash.get('watch'),token:hash.get('key'),viewer:true};
     sessionStorage.setItem('moonfall-viewer',JSON.stringify(session));
@@ -338,8 +373,9 @@ async function boot() {
     catch(e){app.innerHTML=`<section class="empty"><p class="eyebrow">THE VILLAGE IS OUT OF REACH</p><h1>暫時未能連上村莊。</h1><p class="muted">${escape(e.message)}</p><button class="primary" id="retry">重新連線</button><p><a href="/">返回首頁</a></p></section>`;bilingualize(app);$('#retry').onclick=boot;}
   }else setup();
 }
-setInterval(()=>{if(session && !document.hidden && !busy && !privateDialog.open)refresh();},3000);
-window.addEventListener('hashchange',()=>{closePrivate();narrator.stop();state=null;boot();});
+setInterval(()=>{if(!playerPage && session && !document.hidden && !busy && !privateDialog.open)refresh();},3000);
+setInterval(()=>{if(!document.hidden)claimSpeaker();},5000);
+window.addEventListener('hashchange',()=>{closePrivate();narrator.stop();state=null;const hash=new URLSearchParams(location.hash.slice(1));if(playerPage||hash.has('join')||hash.has('player'))location.reload();else boot();});
 $('#guide-privacy').innerHTML=privacyReminder();
 bilingualize(document.body);
 boot();

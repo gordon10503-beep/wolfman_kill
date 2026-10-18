@@ -13,15 +13,17 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt
 from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions
 from .speech import PROFILES, Speech, speech_profile
 from .store import Store
+from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.6.2"
+VERSION = "1.7.0"
 
 
 class CreateGame(BaseModel):
     model_config = ConfigDict(extra="forbid")
     counts: dict[str, StrictInt]
     rules: dict[str, Any] = Field(default_factory=dict)
+    mode: Literal["single", "multi"] = "single"
 
 
 class Action(BaseModel):
@@ -29,6 +31,31 @@ class Action(BaseModel):
     version: StrictInt = Field(ge=0)
     action: str = Field(max_length=24)
     data: dict[str, Any] = Field(default_factory=dict)
+
+
+class JoinRoom(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    invite: str = Field(min_length=20, max_length=100)
+    seat: StrictInt = Field(ge=1, le=16)
+    name: str = Field(default="", max_length=32)
+
+
+class RoomCommand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    command: Literal["mode", "invite", "approve", "revoke"]
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+class PlayerAction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    turn_key: str = Field(max_length=300)
+    action: str = Field(max_length=24)
+    data: dict[str, Any] = Field(default_factory=dict)
+
+
+class Speaker(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    device: str = Field(min_length=20, max_length=64)
 
 
 def create_app(database=None, preload_audio=False):
@@ -105,6 +132,7 @@ def create_app(database=None, preload_audio=False):
     @app.post("/api/games", status_code=201)
     def create(body: CreateGame):
         state = new_game(body.counts, body.rules)
+        rooms.network(state)["mode"] = body.mode
         game_id, host, viewer = app.state.store.create(state)
         return {"id": game_id, "host_token": host, "viewer_token": viewer, "state": public_view(state)}
 
@@ -120,6 +148,42 @@ def create_app(database=None, preload_audio=False):
     def action(game_id: str, body: Action, credential=Depends(token)):
         return public_view(app.state.store.update(game_id, credential, body.version, body.action, body.data))
 
+    @app.get("/api/games/{game_id}/room")
+    def room_view(game_id: str, credential=Depends(token)):
+        return rooms.host_view(app.state.store.get(game_id, credential, host_only=True))
+
+    @app.post("/api/games/{game_id}/room")
+    def room_command(game_id: str, body: RoomCommand, credential=Depends(token)):
+        def operation(g, host, viewer):
+            rooms.authorize(credential, host)
+            return rooms.host_operation(g, body.command, body.data)
+        return app.state.store.mutate(game_id, operation)
+
+    @app.post("/api/games/{game_id}/join", status_code=201)
+    def join_room(game_id: str, body: JoinRoom):
+        return app.state.store.mutate(game_id, lambda g, *_: rooms.join(g, body.invite, body.seat, body.name))
+
+    @app.post("/api/games/{game_id}/speaker")
+    def speaker(game_id: str, body: Speaker, credential=Depends(token)):
+        def operation(g, host, viewer):
+            rooms.authorize(credential, host)
+            return rooms.claim_speaker(g, body.device)
+        return app.state.store.mutate(game_id, operation)
+
+    @app.get("/api/games/{game_id}/player")
+    def player_state(game_id: str, credential=Depends(token)):
+        g, _, _ = app.state.store.read_record(game_id)
+        return rooms.player_view(g, credential)
+
+    @app.get("/api/games/{game_id}/player/private")
+    def player_private(game_id: str, credential=Depends(token)):
+        g, _, _ = app.state.store.read_record(game_id)
+        return rooms.player_view(g, credential, True)
+
+    @app.post("/api/games/{game_id}/player/actions")
+    def player_act(game_id: str, body: PlayerAction, credential=Depends(token)):
+        return app.state.store.mutate(game_id, lambda g, *_: rooms.player_action(g, credential, body.turn_key, body.action, body.data))
+
     @app.get("/api/games/{game_id}/debug")
     def debug(game_id: str, credential=Depends(token)):
         state = app.state.store.get(game_id, credential, host_only=True)
@@ -131,10 +195,14 @@ def create_app(database=None, preload_audio=False):
                 "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]}}
 
     @app.get("/api/games/{game_id}/audio")
-    async def audio(game_id: str, phase: str | None = Query(default=None, max_length=24),
+    async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),
                     voice: Literal["original", "narrator"] | None = None,
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
         state = app.state.store.get(game_id, credential)
+        if rooms.mode(state) == "multi":
+            app.state.store.get(game_id, credential, host_only=True)
+            if not rooms.owns_speaker(state, request.headers.get("X-Moonfall-Speaker")):
+                raise HTTPException(403, "只有主裝置可以播放語音。 / Only the main device may narrate.")
         cue = phase or state["phase"]
         if cue not in NARRATION:
             raise HTTPException(422, "未知的公開語音。")

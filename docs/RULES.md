@@ -34,3 +34,10 @@ The terminal version retains physical role-card registration, pygame, and a mode
 This is an in-person trusted-host tool. Remote accounts, secret phone ballots, sheriff, guard, lovers, role stealing, and 屠邊 rules are not implemented. Repeated peaceful nights can continue indefinitely; there is no arbitrary automatic draw. Composition/rules cannot change after dealing.
 
 Host credentials can access the active role's private screen. Concealment is a shared-device courtesy, not protection against a malicious host or developer tools. Share only the audience view. Its API excludes roles, exact death causes, wolf targets, inspections, and potion inventory during play. Only roles and causes are added at recap. Players must still avoid leaking information through timing or behavior.
+
+
+## Multi-device rooms (1.7)
+
+The same game rules apply in both modes. Each phone receives one host-approved seat pass. Reveal readiness is simultaneous. Wolves submit private choices and must reach unanimity among living wolves. Daytime ballots remain secret until every living seat submits, then resolve using the normal tally/runoff rules. Players may change unresolved votes; a final submission locks the result by advancing the turn. Only the current witch, seer or queued hunter may act. Dead holders retain cover turns, with the existing main-device inactive timer. Public phase control and narration remain with the main device.
+
+Switching mode retains game state but clears unresolved phone ballots and wolf choices. An approved player's own role remains private; other roles are revealed only at game end. The trusted host retains DEBUG. Revoke an old phone before approving a replacement for its seat. Multiple rooms never share passes, roles, action queues or narrator leases.

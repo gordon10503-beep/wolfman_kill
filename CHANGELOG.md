@@ -1,3 +1,10 @@
+# Version 1.7.0 — 2026-10-19
+
+- Switch between shared-device play and private multi-device rooms without restarting. Host-approved seat requests, revocable player passes and reconnect support.
+- Seat-scoped role reveal, witch/seer/hunter actions, wolf consensus and simultaneous private ballots. Only the main host device narrates, protected by a renewable narrator lease.
+- Detailed vector character cards: blue/gold for good roles and crimson/gold for wolves. Bilingual room guide and mobile controls.
+- Isolated room records and atomic writes for SQLite/PostgreSQL; no new hosting provider or account is required.
+
 # Changelog
 
 ## 1.6.2 — 2026-10-15

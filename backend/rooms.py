@@ -1,0 +1,199 @@
+"""Seat-scoped room access. No player ever receives the host/viewer pass."""
+import hashlib
+import hmac
+import secrets
+import time
+from .engine import act, alive, player, private_view, public_view, require, target, turn_actor
+
+
+def digest(value):
+    return hashlib.sha256(value.encode()).hexdigest()
+
+
+def authorize(token, expected):
+    if not hmac.compare_digest(digest(token), expected):
+        raise PermissionError("無效的通行證。 / Invalid pass.")
+
+
+def claim_speaker(g, device):
+    n = network(g)
+    owns = n.get("speaker") == device or n.get("speaker_until", 0) <= time.time()
+    if owns:
+        n["speaker"], n["speaker_until"] = device, time.time() + 20
+    return {"main": owns}
+
+
+def owns_speaker(g, device):
+    n = network(g)
+    return bool(device and n.get("speaker") == device and n.get("speaker_until", 0) > time.time())
+
+
+def network(g):
+    return g.setdefault("network", {"mode": "single", "epoch": 0, "members": {}, "ready": [], "ballots": {}, "wolf_votes": {}})
+
+
+def mode(g):
+    return g.get("network", {}).get("mode", "single")
+
+
+def turn_key(g):
+    n = network(g)
+    return f'{n["epoch"]}:{g["day"]}:{g["phase"]}:{g.get("witch_cursor",0)}:{g.get("seer_cursor",0)}:{g.get("hunters",[])}:{g.get("inspection")}'
+
+
+def public_room(g):
+    n = g.get("network", {})
+    # Nighttime completion never names the acting seat or reveals availability.
+    return {"mode": mode(g), "connected": sum(m["approved"] for m in n.get("members", {}).values()),
+            "ready": len(n.get("ready", [])) if g["phase"] == "reveal" else None,
+            "votes_received": len(n.get("ballots", {})) if g["phase"] in ("vote", "runoff") else None}
+
+
+def member(g, token):
+    m = network(g)["members"].get(digest(token))
+    if m is None:
+        raise PermissionError("玩家通行證已失效，請重新加入。 / Player pass revoked. Please rejoin.")
+    return m
+
+
+def replace_state(g, updated):
+    g.clear()
+    g.update(updated)
+
+
+def clear_round_inputs(g, previous_key):
+    if turn_key(g) != previous_key:
+        network(g)["ballots"] = {}
+        network(g)["wolf_votes"] = {}
+
+
+def host_action(g, action, data):
+    if mode(g) == "multi":
+        # Main device controls public pacing; seat devices control private powers.
+        require(action in ("dawn", "vote", "last_words_done", "inactive_pass", "debug_skip_reveal"),
+                "此模式請由玩家手機操作，或先切回單機。 / Use the player's device or switch to single device.")
+    previous = turn_key(g)
+    updated = act(g, action, data)
+    clear_round_inputs(updated, previous)
+    return updated
+
+
+def host_operation(g, command, data):
+    n = network(g)
+    if command == "mode":
+        require(set(data) == {"mode"} and data["mode"] in ("single", "multi"), "無效模式。 / Invalid mode.")
+        if n["mode"] != data["mode"]:
+            n["mode"] = data["mode"]
+            n["epoch"] += 1
+            n["ballots"], n["wolf_votes"] = {}, {}
+            # Roles already checked on the shared device remain acknowledged.
+            if g["phase"] == "reveal":
+                n["ready"] = sorted(set(n["ready"]) | set(range(1, g["reveal_seat"])))
+    elif command == "invite":
+        require(not data, "無效參數。 / Invalid fields.")
+        invite = secrets.token_urlsafe(32)
+        n["invite_hash"] = digest(invite)
+        g["version"] += 1
+        return {"invite": invite, "seats": len(g["players"])}
+    elif command in ("approve", "revoke"):
+        require(set(data) == {"id"}, "無效參數。 / Invalid fields.")
+        entry = next(((key, m) for key, m in n["members"].items() if m["id"] == data["id"]), None)
+        require(entry is not None, "找不到申請。 / Request not found.")
+        key, m = entry
+        if command == "revoke":
+            del n["members"][key]
+        else:
+            require(not any(other["approved"] and other["seat"] == m["seat"] for other in n["members"].values()),
+                    "座位已有玩家，請先撤銷舊裝置。 / Revoke the old device before replacing this seat.")
+            m["approved"] = True
+    else:
+        require(False, "未知房間操作。 / Unknown room operation.")
+    g["version"] += 1
+    return host_view(g)
+
+
+def host_view(g):
+    n = network(g)
+    return {"room": public_room(g), "members": [{k: m[k] for k in ("id", "seat", "name", "approved")} for m in n["members"].values()]}
+
+
+def join(g, invite, seat, name):
+    n = network(g)
+    authorize(invite, n.get("invite_hash", ""))
+    require(mode(g) == "multi" and g["phase"] != "finished", "房間暫未開放。 / Room is not open.")
+    player(g, seat)
+    require(len(n["members"]) < 64, "申請已滿，請主持人移除舊申請。 / Ask the host to clear old requests.")
+    token = secrets.token_urlsafe(32)
+    n["members"][digest(token)] = {"id": secrets.token_urlsafe(12), "seat": seat, "name": name, "approved": False}
+    g["version"] += 1
+    return {"player_token": token, "seat": seat}
+
+
+def player_view(g, token, include_private=False):
+    m = member(g, token)
+    if not m["approved"]:
+        return {"approved": False, "seat": m["seat"], "version": g["version"]}
+    result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g)}
+    if not include_private:
+        return result
+    require(mode(g) == "multi", "已切換單機，請看主裝置。 / Single-device mode: use the main device.")
+    p, phase = player(g, m["seat"]), g["phase"]
+    result.update(role=p["role"], alive=p["alive"], can_act=False, info=None)
+    if phase == "reveal":
+        result["can_act"] = p["seat"] not in network(g)["ready"]
+    elif phase == "wolves" and p["role"] == "wolf" and p["alive"]:
+        result.update(can_act=True, info=private_view(g))
+        result["info"]["choices"] = network(g)["wolf_votes"]
+    elif phase in ("witch", "seer"):
+        actor = turn_actor(g, phase)
+        if actor and actor["seat"] == p["seat"]:
+            result.update(can_act=True, info=private_view(g))
+    elif phase == "hunter" and g["hunters"][0] == p["seat"]:
+        result.update(can_act=True, info={"targets": alive(g)})
+    elif phase in ("vote", "runoff") and p["alive"]:
+        result.update(can_act=True, info={"targets": g["runoff"] if phase == "runoff" else alive(g),
+                                         "submitted": str(p["seat"]) in network(g)["ballots"]})
+    return result
+
+
+def player_action(g, token, key, action, data):
+    m = member(g, token)
+    require(m["approved"] and mode(g) == "multi", "請等待批准或使用主裝置。 / Wait for approval or use the main device.")
+    require(key == turn_key(g), "回合已變，請重新同步。 / Turn changed. Please sync again.")
+    require(isinstance(data, dict), "無效參數。 / Invalid fields.")
+    p, phase, n = player(g, m["seat"]), g["phase"], network(g)
+    info = player_view(g, token, True)
+    require(info["can_act"], "現在並非你的行動。 / It is not your turn.")
+    previous = turn_key(g)
+    if phase == "reveal":
+        require(action == "ready" and not data, "請確認身份。 / Confirm your role.")
+        n["ready"] = sorted(set(n["ready"]) | {p["seat"]})
+        if len(n["ready"]) == len(g["players"]):
+            replace_state(g, act(g, "debug_skip_reveal", {}))
+        else:
+            g["version"] += 1
+    elif phase == "wolves":
+        require(action == "wolves" and set(data) == {"target"}, "無效狼人行動。 / Invalid wolf action.")
+        target(g, data["target"], optional=g["rules"].get("wolves_can_abstain", True))
+        n["wolf_votes"][str(p["seat"])] = data["target"]
+        wolves = private_view(g)["wolves"]
+        choices = n["wolf_votes"]
+        if all(str(s) in choices for s in wolves) and len({choices[str(s)] for s in wolves}) == 1:
+            replace_state(g, act(g, "wolves", data))
+        else:
+            g["version"] += 1
+    elif phase in ("vote", "runoff"):
+        require(action == "ballot" and set(data) == {"target"}, "無效投票。 / Invalid ballot.")
+        target(g, data["target"])
+        require(phase != "runoff" or data["target"] is None or data["target"] in g["runoff"], "加賽只可投平票玩家。 / Vote for a tied player.")
+        n["ballots"][str(p["seat"])] = data["target"]
+        if len(n["ballots"]) == len(alive(g)):
+            replace_state(g, act(g, "ballots", {"ballots": n["ballots"]}))
+        else:
+            g["version"] += 1
+    else:
+        allowed = {"witch": {"witch", "inactive_pass"}, "seer": {"inspect", "ack", "inactive_pass"}, "hunter": {"shoot"}}
+        require(action in allowed.get(phase, set()), "不允許此行動。 / Action not allowed.")
+        replace_state(g, act(g, action, data))
+    clear_round_inputs(g, previous)
+    return player_view(g, token)

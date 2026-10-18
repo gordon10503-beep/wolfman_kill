@@ -45,3 +45,15 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Version 1.6.1: backend tests cover both potions on one night, spent-inventory rejection, legacy one-potion behavior, poison precedence, strict Boolean validation and independent fun-mode inventories. Browser verified No limit survives changing presets, two potion effects run, and both inventories are consumed with the wolf target saved and poison recorded.
 
 - Version 1.6.2: browser checked matching gold on-states and muted off-states for Motion/DEBUG/Voice, Motion off wording, speech language first, all house-rule toggles on except fun mode, and left-aligned supporting text. Host actions follow LOCAL TABLE. Observed 1.8-second wolf and 2-second sky CSS durations and no leftover overlays after the night/day transition. Backend tests cover the new last-words default and explicit opt-out; legacy-rule fallback remains unchanged.
+
+
+## Version 1.7.0 — 2026-10-19
+
+- Added seat-approval, cross-seat/cross-room denial, revoked-pass replacement, wolf unanimity, stale-turn rejection, private seer results, mode-switch retention and parallel ballot integration tests. Fun-mode coverage includes independent witches, sequential seers, dead cover turns and hunter chains.
+- Shared SQLite/PostgreSQL storage contract now covers concurrent requests for the same seat, atomic approval and restart persistence. PostgreSQL cases require the CI service or TEST_DATABASE_URL; they are skipped locally.
+- A renewable narrator lease is tested for exclusivity and expiry; players/audience cannot acquire it or fetch room narration. Frontend audio checks include the main-device header and disabled playback.
+- Browser QA: nine-seat room creation, sharing, pending approval without secrets, approvals on the host, private blue/gold hunter card, readiness, a night of player actions, hunter elimination and shot from the player's browser, last-words handoff, both mode switches, refresh/reconnect, revocation and approval on a replacement seat. The replacement received only its crimson wolf card. No console errors in the inspected player session.
+- Player dialog at 375 CSS pixels: document and dialog scroll widths equal client widths. Temporary viewport override reset after testing. Actual physical iPhone installation/network play has not been exercised; browser phone viewport and separate tabs were used.
+- Multiple rooms are isolated in integration tests. No hosting capacity/load-test claim is made.
+
+- Final local suite: 85 Python cases passed, 5 PostgreSQL cases skipped without TEST_DATABASE_URL; 40 frontend cases and all JavaScript syntax checks passed.

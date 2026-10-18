@@ -35,7 +35,7 @@ export class Narrator {
         const query = new URLSearchParams({voice:profile,lang:language});
         if(phase) query.set('phase',phase);
         const response = await fetch(`/api/games/${session.id}/audio?${query}`, {
-          headers:{Authorization:`Bearer ${session.token}`}, signal:controller.signal});
+          headers:{Authorization:`Bearer ${session.token}`,...(session.speaker?{'X-Moonfall-Speaker':session.speaker}:{})}, signal:controller.signal});
         if(!response.ok) throw new Error('Speech unavailable');
         const blob = await response.blob();
         if(epoch !== this.cacheEpoch) return null;

@@ -12,6 +12,27 @@ Choose your house rules **before starting a new game**. To use both witch potion
 
 ![Moonfall interface](docs/preview.png)
 
+## One device or a room of phones
+
+**Single device** remains the default. Enable **各用手機 / Multi-device room** before starting, or open **房間／切換裝置 / Room / devices** in a running game.
+
+1. The host shares the room invite. Each player opens it, enters a name and chooses their physical seat.
+2. The host verifies and approves each seat. Approval is required before any role is revealed; one approved device per seat.
+3. Everyone privately opens their illustrated role card and taps **Ready**. The first night starts after all seats are ready.
+4. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches and seers act in seat order, with independent potions; only the acting seat receives its private information. Hunters decide on their own phones.
+5. Living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after everyone submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
+6. The main device controls dawn, discussion and last words, and plays all narration. Player phones stay silent. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
+
+**Switch modes without restarting:** roles, used potions, pending seer results and game progress are retained. Unresolved phone ballots and wolf choices are cleared when switching. If a phone disconnects, reopen the same browser; its player pass is saved locally. For a replacement phone, revoke the old seat device and approve the new request. If a player cannot reconnect, switch to single-device mode to continue. Keep the host tab and its pass private; the host is trusted and can still use DEBUG.
+
+**Separate groups can play simultaneously, both before and after this update.** Each game has an independent random ID, passes, state snapshot and lock. A group's player pass cannot access another group's game. Room polling runs every three seconds on visible devices. Capacity depends on the hosting plan; this has not been load-tested to a guaranteed number of rooms. PostgreSQL supports independent row locks; local SQLite serializes brief writes. On a single Render instance either works. SQLite on Render's temporary disk still loses games after disk reset/redeploy; multiple phones do not change that storage limitation.
+
+No Supabase account is required. The existing backend supports both modes with SQLite locally or PostgreSQL when `DATABASE_URL` is set. Rooms are for people playing together in real life; the app does not supply voice chat.
+
+角色卡：好人採用金色及藍色；狼人採用暗紅及金色。使用輕量向量繪圖，在手機也保持清晰。 Role cards use gold and blue for the good side, crimson and gold for wolves, with lightweight vector illustrations.
+
+<img src="docs/role-card-preview.png" alt="Crimson and gold wolf role card" width="300">
+
 ## Run locally (optional)
 
 Python **3.13 or 3.14** recommended. No frontend build or npm install is needed.
@@ -51,7 +72,7 @@ Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)**. Stop with `Ctrl+C`.
 
 Use **觀眾畫面** for a read-only public table in another window. The host browser is trusted and can access private information; never project it to spectators. Private dialogs clear when the tab hides. Night interaction timing still depends on players.
 
-Every action saves to SQLite. Reloading the same tab resumes the game; the home page offers a resume button for its existing session. **Keep the host tab open:** credentials live in session storage; closing/clearing it can lose host access. There is no account recovery.
+Every action saves to the configured database (SQLite locally, or PostgreSQL when configured). Reloading the same tab resumes the game; the home page offers a resume button for its existing session. **Keep the host tab open:** credentials live in session storage; closing/clearing it can lose host access. There is no account recovery.
 
 The table follows the game clock: wolves/witch/seer phases use a moonlit forest with mist, wolf silhouettes, and small blood traces; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
 

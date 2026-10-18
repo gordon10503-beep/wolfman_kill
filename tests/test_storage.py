@@ -61,3 +61,23 @@ def test_storage_last_words_queue_survives_reopening(storage):
     store=reopen()
     assert store.get(game_id,host)['last_words_queue']==[victim]
     assert store.update(game_id,host,1,'last_words_done',{})['phase']=='wolves'
+
+
+def test_storage_room_mutations_are_serialized_and_survive_restart(storage):
+    from backend import rooms
+    store,reopen=storage
+    game_id,host,_=store.create(new_game(COUNTS))
+    store.mutate(game_id,lambda state,*_:rooms.host_operation(state,'mode',{'mode':'multi'}))
+    invite=store.mutate(game_id,lambda state,*_:rooms.host_operation(state,'invite',{}))['invite']
+    def join(_):return store.mutate(game_id,lambda state,*_:rooms.join(state,invite,1,'same seat'))
+    with ThreadPoolExecutor(max_workers=2) as pool:passes=list(pool.map(join,range(2)))
+    requests=rooms.host_view(reopen().get(game_id,host))['members']
+    assert len(requests)==2
+    def approve(request):
+        try:
+            store.mutate(game_id,lambda state,*_:rooms.host_operation(state,'approve',{'id':request['id']}))
+            return 'approved'
+        except RuleError:return 'conflict'
+    with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(approve,requests))
+    assert sorted(results)==['approved','conflict']
+    assert sum(rooms.player_view(reopen().get(game_id,host),p['player_token'])['approved'] for p in passes)==1

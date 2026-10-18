@@ -16,27 +16,28 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.7.0"
+VERSION = "1.7.1"
 
 
 class CreateGame(BaseModel):
     model_config = ConfigDict(extra="forbid")
     counts: dict[str, StrictInt]
     rules: dict[str, Any] = Field(default_factory=dict)
-    mode: Literal["single", "multi"] = "single"
+    mode: Literal["single", "multi"] = "multi"
 
 
 class Action(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: StrictInt = Field(ge=0)
     action: str = Field(max_length=24)
+    debug: bool = False
     data: dict[str, Any] = Field(default_factory=dict)
 
 
 class JoinRoom(BaseModel):
     model_config = ConfigDict(extra="forbid")
     invite: str = Field(min_length=20, max_length=100)
-    seat: StrictInt = Field(ge=1, le=16)
+    seat: StrictInt | None = Field(default=None, ge=1, le=16)
     name: str = Field(default="", max_length=32)
 
 
@@ -133,6 +134,8 @@ def create_app(database=None, preload_audio=False):
     def create(body: CreateGame):
         state = new_game(body.counts, body.rules)
         rooms.network(state)["mode"] = body.mode
+        rooms.ensure_host(state)
+        state["version"] = 0
         game_id, host, viewer = app.state.store.create(state)
         return {"id": game_id, "host_token": host, "viewer_token": viewer, "state": public_view(state)}
 
@@ -146,7 +149,7 @@ def create_app(database=None, preload_audio=False):
 
     @app.post("/api/games/{game_id}/actions")
     def action(game_id: str, body: Action, credential=Depends(token)):
-        return public_view(app.state.store.update(game_id, credential, body.version, body.action, body.data))
+        return public_view(app.state.store.update(game_id, credential, body.version, body.action, body.data, debug=body.debug))
 
     @app.get("/api/games/{game_id}/room")
     def room_view(game_id: str, credential=Depends(token)):
@@ -174,6 +177,30 @@ def create_app(database=None, preload_audio=False):
     def player_state(game_id: str, credential=Depends(token)):
         g, _, _ = app.state.store.read_record(game_id)
         return rooms.player_view(g, credential)
+
+    @app.post("/api/games/{game_id}/host-player")
+    def host_player(game_id: str, credential=Depends(token)):
+        def operation(g, host, viewer):
+            rooms.authorize(credential, host)
+            key = rooms.ensure_host(g)
+            return rooms.player_view(g, "", member_key=key)
+        return app.state.store.mutate(game_id, operation)
+
+    @app.get("/api/games/{game_id}/host-player/private")
+    def host_player_private(game_id: str, credential=Depends(token)):
+        g = app.state.store.get(game_id, credential, host_only=True)
+        key = rooms.host_key(g)
+        if key is None:
+            raise HTTPException(409, "請先分配主持人座位。 / Initialize the host seat first.")
+        return rooms.player_view(g, "", True, member_key=key)
+
+    @app.post("/api/games/{game_id}/host-player/actions")
+    def host_player_action(game_id: str, body: PlayerAction, credential=Depends(token)):
+        def operation(g, host, viewer):
+            rooms.authorize(credential, host)
+            key = rooms.ensure_host(g)
+            return rooms.player_action(g, "", body.turn_key, body.action, body.data, member_key=key)
+        return app.state.store.mutate(game_id, operation)
 
     @app.get("/api/games/{game_id}/player/private")
     def player_private(game_id: str, credential=Depends(token)):

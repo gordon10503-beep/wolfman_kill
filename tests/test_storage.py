@@ -63,7 +63,7 @@ def test_storage_last_words_queue_survives_reopening(storage):
     assert store.update(game_id,host,1,'last_words_done',{})['phase']=='wolves'
 
 
-def test_storage_room_mutations_are_serialized_and_survive_restart(storage):
+def test_storage_room_seats_are_allocated_atomically_and_survive_restart(storage):
     from backend import rooms
     store,reopen=storage
     game_id,host,_=store.create(new_game(COUNTS))
@@ -79,5 +79,6 @@ def test_storage_room_mutations_are_serialized_and_survive_restart(storage):
             return 'approved'
         except RuleError:return 'conflict'
     with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(approve,requests))
-    assert sorted(results)==['approved','conflict']
-    assert sum(rooms.player_view(reopen().get(game_id,host),p['player_token'])['approved'] for p in passes)==1
+    assert sorted(results)==['approved','approved']
+    assert {r['seat'] for r in requests}=={1,2}
+    assert sum(rooms.player_view(reopen().get(game_id,host),p['player_token'])['approved'] for p in passes)==2

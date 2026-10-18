@@ -12,7 +12,10 @@ COUNTS = {'wolf':2,'seer':1,'witch':1,'hunter':1,'villager':4}
 @pytest.fixture
 def room(tmp_path):
     with TestClient(create_app(tmp_path/'rooms.db')) as c:
-        created=c.post('/api/games',json={'counts':COUNTS,'mode':'multi'}).json()
+        # Exercise legacy rooms without an automatic host seat as well.
+        g=new_game(COUNTS);rooms.network(g)['mode']='multi'
+        game_id,host_token,viewer_token=c.app.state.store.create(g)
+        created={'id':game_id,'host_token':host_token,'viewer_token':viewer_token}
         path='/api/games/'+created['id']
         host={'Authorization':'Bearer '+created['host_token']}
         invite=c.post(path+'/room',headers=host,json={'command':'invite'}).json()['invite']
@@ -77,11 +80,10 @@ def test_approval_and_seat_scoped_secrets(room):
     assert c.post(path+'/join',json={'invite':'wrong'*8,'seat':2}).status_code==403
     duplicate=join(room,1,False)
     request2=c.get(path+'/room',headers=host).json()['members'][-1]
-    assert c.post(path+'/room',headers=host,json={'command':'approve','data':{'id':request2['id']}}).status_code==409
+    assert c.post(path+'/room',headers=host,json={'command':'approve','data':{'id':request2['id']}}).status_code==200
     command(room,'revoke',{'id':request['id']})
     assert c.get(path+'/player',headers=pending).status_code==403
-    command(room,'approve',{'id':request2['id']})
-    assert detail(room,duplicate)['seat']==1
+    assert detail(room,duplicate)['seat']==2
 
 
 def test_role_actions_consensus_seer_and_mode_switch(room):
@@ -207,3 +209,88 @@ def test_fun_mode_turn_ownership_cover_and_hunter_chain():
     with pytest.raises(RuleError):action(3,'inactive_pass')
     action(2,'inactive_pass')
     assert rooms.player_view(g,passes[3],True)['info']['active']
+
+
+def test_default_multi_room_can_be_debugged_by_host_alone(room):
+    c,_,_,_,_=room
+    created=c.post('/api/games',json={'counts':COUNTS}).json()
+    assert created['state']['room']['mode']=='multi'
+    path='/api/games/'+created['id']
+    host={'Authorization':'Bearer '+created['host_token']}
+    viewer={'Authorization':'Bearer '+created['viewer_token']}
+    state=created['state']
+    def debug(action,data=None,headers=None):
+        nonlocal state
+        r=c.post(path+'/actions',headers=headers or host,json={'version':state['version'],'action':action,'data':data or {},'debug':True})
+        if r.status_code==200:state=r.json()
+        return r
+    assert debug('ack',headers=viewer).status_code==403
+    assert debug('ack').status_code==200
+    assert state['room']['ready']==1
+    assert debug('debug_skip_reveal').status_code==200
+    assert debug('wolves',{'target':None}).status_code==200
+    assert debug('witch',{'save':False,'poison':None}).status_code==200
+    info=c.get(path+'/private',headers=host).json()
+    assert debug('inspect',{'target':info['targets'][0]}).status_code==200
+    assert c.get(path+'/private',headers=host).json()['inspection'] is not None
+    assert debug('ack').status_code==200
+    assert debug('dawn').status_code==200
+    assert debug('vote').status_code==200
+    assert debug('vote_result',{'leaders':[]}).status_code==200
+    assert state['phase']=='wolves' and state['day']==2
+    assert state['room']['mode']=='multi' and state['room']['connected']==1
+    # Disabling the explicit host override restores normal seat-only actions.
+    assert c.post(path+'/actions',headers=host,json={'version':state['version'],'action':'wolves','data':{'target':None}}).status_code==409
+    assert all('role' not in p for p in c.get(path,headers=viewer).json()['players'])
+
+
+def test_host_is_automatically_a_player_and_parallel_joins_get_unique_seats(room):
+    c,*_=room
+    created=c.post('/api/games',json={'counts':COUNTS}).json()
+    path='/api/games/'+created['id'];host={'Authorization':'Bearer '+created['host_token']}
+    viewer={'Authorization':'Bearer '+created['viewer_token']}
+    assert created['state']['room']['connected']==1
+    own=c.post(path+'/host-player',headers=host).json()
+    assert own['approved'] and own['seat']==1
+    private=c.get(path+'/host-player/private',headers=host).json()
+    assert private['seat']==1 and private['role'] in COUNTS
+    assert c.post(path+'/host-player',headers=viewer).status_code==403
+    assert c.get(path+'/host-player/private',headers=viewer).status_code==403
+    ready=c.post(path+'/host-player/actions',headers=host,json={'turn_key':private['turn_key'],'action':'ready'}).json()
+    assert ready['state']['room']['ready']==1
+    invite=c.post(path+'/room',headers=host,json={'command':'invite'}).json()['invite']
+    def request(_):return c.post(path+'/join',json={'invite':invite,'name':'Player'})
+    with ThreadPoolExecutor(max_workers=8) as pool:joined=list(pool.map(request,range(8)))
+    assert all(r.status_code==201 for r in joined)
+    assert {r.json()['seat'] for r in joined}==set(range(2,10))
+    assert request(None).status_code==409
+    members=c.get(path+'/room',headers=host).json()['members']
+    host_member=next(m for m in members if m['host'])
+    assert c.post(path+'/room',headers=host,json={'command':'revoke','data':{'id':host_member['id']}}).status_code==409
+    # Freed pending seats can be reused; no extra moderator seat is added.
+    pending=next(m for m in members if m['seat']==2)
+    assert c.post(path+'/room',headers=host,json={'command':'revoke','data':{'id':pending['id']}}).status_code==200
+    assert request(None).json()['seat']==2
+
+
+def test_host_own_seer_and_ballot_actions_use_their_seat(room):
+    c,*_=room
+    created=c.post('/api/games',json={'counts':COUNTS}).json()
+    game_id=created['id'];path='/api/games/'+game_id;host={'Authorization':'Bearer '+created['host_token']}
+    def set_seer(g,*_):
+        seer=next(p for p in g['players'] if p['role']=='seer')
+        g['players'][0]['role'],seer['role']=seer['role'],g['players'][0]['role']
+        g['phase']='seer'
+    c.app.state.store.mutate(game_id,set_seer)
+    own=c.get(path+'/host-player/private',headers=host).json()
+    assert own['role']=='seer' and own['can_act'] and own['info']['actor_seat']==1
+    result=c.post(path+'/host-player/actions',headers=host,json={'turn_key':own['turn_key'],'action':'inspect','data':{'target':2}})
+    assert result.status_code==200
+    own=c.get(path+'/host-player/private',headers=host).json()
+    assert own['info']['inspection']['seat']==2
+    assert c.post(path+'/host-player/actions',headers=host,json={'turn_key':own['turn_key'],'action':'ack'}).json()['state']['phase']=='dawn'
+    c.app.state.store.mutate(game_id,lambda g,*_:g.update(phase='vote'))
+    own=c.get(path+'/host-player/private',headers=host).json()
+    assert c.post(path+'/host-player/actions',headers=host,json={'turn_key':own['turn_key'],'action':'ballot','data':{'target':1}}).status_code==200
+    state=c.app.state.store.get(game_id,created['host_token'])
+    assert state['network']['ballots']=={'1':1}

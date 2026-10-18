@@ -56,7 +56,7 @@ class PostgresStore:
             raise PermissionError("無效的遊戲通行證。")
         return json.loads(row[2])
 
-    def update(self, game_id, token, version, action, data):
+    def update(self, game_id, token, version, action, data, debug=False):
         with self.connect() as db:
             db.execute("SET LOCAL lock_timeout = '10s'")
             row = db.execute("SELECT host, state FROM games WHERE id=%s FOR UPDATE", (game_id,)).fetchone()
@@ -68,6 +68,6 @@ class PostgresStore:
             if state["version"] != version:
                 raise RuleError("畫面已過時，已重新同步。請確認目前階段後再操作。")
             from .rooms import host_action
-            updated = host_action(state, action, data)
+            updated = host_action(state, action, data, debug=debug)
             db.execute("UPDATE games SET state=%s WHERE id=%s", (json.dumps(updated), game_id))
             return updated

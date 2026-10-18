@@ -14,14 +14,15 @@ Choose your house rules **before starting a new game**. To use both witch potion
 
 ## One device or a room of phones
 
-**Single device** remains the default. Enable **各用手機 / Multi-device room** before starting, or open **房間／切換裝置 / Room / devices** in a running game.
+**Multi-device room is the default.** Turn off **各用手機 / Multi-device room** for shared-device play, or open **房間／切換裝置 / Room / devices** in a running game.
 
-1. The host shares the room invite. Each player opens it, enters a name and chooses their physical seat.
-2. The host verifies and approves each seat. Approval is required before any role is revealed; one approved device per seat.
+1. The host shares the room invite. Each player opens it and enters a name. Seats are assigned in join order, starting after the host at seat 1; pending requests reserve their seats.
+2. The host automatically occupies seat 1 and plays directly on the main device using **我的身份／行動 / My role / action**. No joining, self-approval, extra device or player tab is needed. The host counts toward the configured player total.
+3. The host verifies each name and approves the assigned seat. Approval is required before guests can reveal roles; the host is automatically approved. There is one device per seat.
 3. Everyone privately opens their illustrated role card and taps **Ready**. The first night starts after all seats are ready.
-4. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches and seers act in seat order, with independent potions; only the acting seat receives its private information. Hunters decide on their own phones.
-5. Living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after everyone submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
-6. The main device controls dawn, discussion and last words, and plays all narration. Player phones stay silent. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
+5. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches and seers act in seat order, with independent potions; only the acting seat receives its private information. Hunters decide on their own phones.
+6. Living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after everyone submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
+7. The main device controls dawn, discussion and last words, and plays all narration. Player phones stay silent. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
 
 **Switch modes without restarting:** roles, used potions, pending seer results and game progress are retained. Unresolved phone ballots and wolf choices are cleared when switching. If a phone disconnects, reopen the same browser; its player pass is saved locally. For a replacement phone, revoke the old seat device and approve the new request. If a player cannot reconnect, switch to single-device mode to continue. Keep the host tab and its pass private; the host is trusted and can still use DEBUG.
 
@@ -85,6 +86,8 @@ For testing, toggle **DEBUG on** in the host header. It shows all seat identitie
 In **今晚的約定**, **允許狼人空刀** controls whether wolves may choose no target (on by default). Turn it off before starting a new game to require a living target every night; the server enforces this too. Existing games keep the earlier allow-abstain behavior.
 
 Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English defaults to the male Guy voice; Cantonese defaults to the original female HiuMaan voice. Both languages offer a manual female/male selector and remember overrides separately per language. English uses translated public prompts. The language preference is saved per tab and can change during a game without changing roles or rules. Chinese labels have English subtext across setup rules and instructions, private role screens, voting, timers, debug details, public events, errors, and the endgame seat recap. Private translations stay inside the private dialog; roles and death causes remain hidden in the public seat cards until the game ends.
+
+For solo testing, enable **DEBUG** on the main device. No player joins are needed: skip role reveals, act for the wolves/each witch/each seer/hunters, skip discussion and enter counted votes or individual ballots. The room stays in multi-device mode. Turn DEBUG off to return to normal player-device actions. The host override remains host-only and still follows all role, target, potion and phase rules.
 
 ## What changed
 

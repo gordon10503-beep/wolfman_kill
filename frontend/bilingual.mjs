@@ -35,6 +35,8 @@ const COPY = {
   '狼人達到平票人數即勝':'Wolves win when they equal or outnumber the good team',
   '討論時間（秒）':'Discussion time (seconds)',
   '身份由系統隨機分配，每人私下查看自己的身份。':'Roles are assigned randomly. Each player checks their role privately.',
+  '主持人亦可參與；主分頁播放旁白，玩家在自己的裝置查看身份及行動，亦可切換單機交接。':'The host can play too. The host tab narrates while players view roles and act on their own devices. Shared-device play is also available.',
+  '一部主裝置播放旁白，玩家各用手機查看身份及行動；亦可切換單機交接。':'One main device narrates while players use their own phones for roles and actions. Shared-device play is also available.',
   '一部裝置，主持全場。另設安全的觀眾畫面。':'Host the whole game on one device, with a separate public audience view.',
   '設定角色，集結你的村莊。':'Choose the roles and gather your village.',
   '輪流揭開只屬於你的身份。':'Take turns privately revealing your own role.',

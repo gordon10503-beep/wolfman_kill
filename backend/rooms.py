@@ -36,6 +36,24 @@ def mode(g):
     return g.get("network", {}).get("mode", "single")
 
 
+def host_key(g):
+    return next((key for key,m in network(g)["members"].items() if m.get("host")), None)
+
+
+def ensure_host(g):
+    key = host_key(g)
+    if key:
+        return key
+    n = network(g)
+    occupied = {m["seat"] for m in n["members"].values()}
+    seat = next((p["seat"] for p in g["players"] if p["seat"] not in occupied), None)
+    require(seat is not None, "請先騰出主持人的座位。 / Free a seat for the host first.")
+    key = digest(secrets.token_urlsafe(32))
+    n["members"][key] = {"id": secrets.token_urlsafe(12), "seat":seat, "name":"主持人 / Host", "approved":True, "host":True}
+    g["version"] += 1
+    return key
+
+
 def turn_key(g):
     n = network(g)
     return f'{n["epoch"]}:{g["day"]}:{g["phase"]}:{g.get("witch_cursor",0)}:{g.get("seer_cursor",0)}:{g.get("hunters",[])}:{g.get("inspection")}'
@@ -67,13 +85,15 @@ def clear_round_inputs(g, previous_key):
         network(g)["wolf_votes"] = {}
 
 
-def host_action(g, action, data):
-    if mode(g) == "multi":
+def host_action(g, action, data, debug=False):
+    if mode(g) == "multi" and not debug:
         # Main device controls public pacing; seat devices control private powers.
         require(action in ("dawn", "vote", "last_words_done", "inactive_pass", "debug_skip_reveal"),
                 "此模式請由玩家手機操作，或先切回單機。 / Use the player's device or switch to single device.")
     previous = turn_key(g)
     updated = act(g, action, data)
+    if debug and g["phase"] == "reveal" and action == "ack":
+        network(updated)["ready"] = sorted(set(network(updated)["ready"]) | {g["reveal_seat"]})
     clear_round_inputs(updated, previous)
     return updated
 
@@ -94,12 +114,14 @@ def host_operation(g, command, data):
         invite = secrets.token_urlsafe(32)
         n["invite_hash"] = digest(invite)
         g["version"] += 1
-        return {"invite": invite, "seats": len(g["players"])}
+        host = host_key(g)
+        return {"invite": invite, "seats": len(g["players"]), "host_seat": n["members"][host]["seat"] if host else None}
     elif command in ("approve", "revoke"):
         require(set(data) == {"id"}, "無效參數。 / Invalid fields.")
         entry = next(((key, m) for key, m in n["members"].items() if m["id"] == data["id"]), None)
         require(entry is not None, "找不到申請。 / Request not found.")
         key, m = entry
+        require(not m.get("host"), "主持人保留自己的座位。 / The host keeps their seat.")
         if command == "revoke":
             del n["members"][key]
         else:
@@ -114,14 +136,18 @@ def host_operation(g, command, data):
 
 def host_view(g):
     n = network(g)
-    return {"room": public_room(g), "members": [{k: m[k] for k in ("id", "seat", "name", "approved")} for m in n["members"].values()]}
+    return {"room": public_room(g), "members": [{**{k: m[k] for k in ("id", "seat", "name", "approved")}, "host":bool(m.get("host"))} for m in n["members"].values()]}
 
 
 def join(g, invite, seat, name):
     n = network(g)
     authorize(invite, n.get("invite_hash", ""))
     require(mode(g) == "multi" and g["phase"] != "finished", "房間暫未開放。 / Room is not open.")
-    player(g, seat)
+    # Assign under the storage write lock. Pending requests reserve seats too.
+    # Ignore old clients' requested seat; all clients follow join order.
+    occupied = {m["seat"] for m in n["members"].values()}
+    seat = next((p["seat"] for p in g["players"] if p["seat"] not in occupied), None)
+    require(seat is not None, "房間已滿，請主持人移除離開的玩家。 / Room full. Ask the host to remove a departed player.")
     require(len(n["members"]) < 64, "申請已滿，請主持人移除舊申請。 / Ask the host to clear old requests.")
     token = secrets.token_urlsafe(32)
     n["members"][digest(token)] = {"id": secrets.token_urlsafe(12), "seat": seat, "name": name, "approved": False}
@@ -129,8 +155,8 @@ def join(g, invite, seat, name):
     return {"player_token": token, "seat": seat}
 
 
-def player_view(g, token, include_private=False):
-    m = member(g, token)
+def player_view(g, token, include_private=False, *, member_key=None):
+    m = network(g)["members"][member_key] if member_key else member(g, token)
     if not m["approved"]:
         return {"approved": False, "seat": m["seat"], "version": g["version"]}
     result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g)}
@@ -156,13 +182,13 @@ def player_view(g, token, include_private=False):
     return result
 
 
-def player_action(g, token, key, action, data):
-    m = member(g, token)
+def player_action(g, token, key, action, data, *, member_key=None):
+    m = network(g)["members"][member_key] if member_key else member(g, token)
     require(m["approved"] and mode(g) == "multi", "請等待批准或使用主裝置。 / Wait for approval or use the main device.")
     require(key == turn_key(g), "回合已變，請重新同步。 / Turn changed. Please sync again.")
     require(isinstance(data, dict), "無效參數。 / Invalid fields.")
     p, phase, n = player(g, m["seat"]), g["phase"], network(g)
-    info = player_view(g, token, True)
+    info = player_view(g, token, True, member_key=member_key)
     require(info["can_act"], "現在並非你的行動。 / It is not your turn.")
     previous = turn_key(g)
     if phase == "reveal":
@@ -196,4 +222,4 @@ def player_action(g, token, key, action, data):
         require(action in allowed.get(phase, set()), "不允許此行動。 / Action not allowed.")
         replace_state(g, act(g, action, data))
     clear_round_inputs(g, previous)
-    return player_view(g, token)
+    return player_view(g, token, member_key=member_key)

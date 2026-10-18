@@ -1,3 +1,10 @@
+# Version 1.7.1 — 2026-10-19
+
+- New games default to multi-device rooms in the UI and API; existing games keep their mode.
+- Main-device DEBUG can simulate all roles and voting with no joined players, while retaining normal game-rule and host-pass checks.
+- Host automatically occupies seat 1 and plays privately from the main screen, without joining or an extra tab. Guest seats are allocated atomically in join order; pending requests reserve seats.
+- Setup copy now describes one narrator device and private player phones, with shared-device play available.
+
 # Version 1.7.0 — 2026-10-19
 
 - Switch between shared-device play and private multi-device rooms without restarting. Host-approved seat requests, revocable player passes and reconnect support.

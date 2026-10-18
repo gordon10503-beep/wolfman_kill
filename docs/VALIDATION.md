@@ -57,3 +57,11 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Multiple rooms are isolated in integration tests. No hosting capacity/load-test claim is made.
 
 - Final local suite: 85 Python cases passed, 5 PostgreSQL cases skipped without TEST_DATABASE_URL; 40 frontend cases and all JavaScript syntax checks passed.
+
+
+## Version 1.7.1 — 2026-10-19
+
+- New-game UI/API default to multi-device rooms. Normal play automatically reserves and approves host seat 1, with private host role, readiness, seer investigation and own-ballot APIs. Viewer passes cannot access host-player routes. Host seats cannot be revoked through the guest-management UI/API.
+- Main-device DEBUG can drive all role phases with no guest connections, skip dealing/discussion and submit counted or individual votes. Disabling DEBUG restores seat-only actions. An integration test covers a full peaceful night and counted vote, without any guest joins.
+- Pending requests reserve the next free seat inside SQLite/PostgreSQL write transactions. Eight concurrent guest joins receive seats 2–9 exactly once; a full room rejects new joins and a rejected pending seat is reusable.
+- Browser checked automatic host role reveal and Ready in normal multi mode, without any separate player tab. Solo DEBUG exercised wolf/witch decisions, seer result and acknowledgment. Setup default and revised bilingual copy verified.

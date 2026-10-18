@@ -60,7 +60,7 @@ class Store:
             raise PermissionError("無效的遊戲通行證。")
         return json.loads(row[2])
 
-    def update(self, game_id, token, version, action, data):
+    def update(self, game_id, token, version, action, data, debug=False):
         # Acquire the write reservation before reading; two tabs cannot both commit.
         with closing(self.connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
@@ -73,6 +73,6 @@ class Store:
             if state["version"] != version:
                 raise RuleError("畫面已過時，已重新同步。請確認目前階段後再操作。")
             from .rooms import host_action
-            updated = host_action(state, action, data)
+            updated = host_action(state, action, data, debug=debug)
             db.execute("UPDATE games SET state=? WHERE id=?", (json.dumps(updated), game_id))
             return updated

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {englishFor} from '../frontend/bilingual.mjs';
 
 test('house rules and setup instructions have English translations',()=>{
-  for(const text of ['今晚的約定','允許狼人空刀','語音語言','女巫每晚用藥','最多一瓶','無限制','女巫可以自救','女巫被刀當晚可行動','狼人達到平票人數即勝','討論時間（秒）','身份由系統隨機分配，每人私下查看自己的身份。','一部裝置，主持全場。另設安全的觀眾畫面。']) {
+  for(const text of ['主持人亦可參與；主分頁播放旁白，玩家在自己的裝置查看身份及行動，亦可切換單機交接。','今晚的約定','允許狼人空刀','語音語言','女巫每晚用藥','最多一瓶','無限制','女巫可以自救','女巫被刀當晚可行動','狼人達到平票人數即勝','討論時間（秒）','身份由系統隨機分配，每人私下查看自己的身份。','一部裝置，主持全場。另設安全的觀眾畫面。']) {
     assert.ok(englishFor(text),text);
     assert.doesNotMatch(englishFor(text),/[\u3400-\u9fff]/u);
   }

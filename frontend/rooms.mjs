@@ -28,12 +28,13 @@ export class RoomHost {
       const result=await this.api(`/api/games/${this.session().id}/room`,{method:'POST',body:JSON.stringify({command:'invite'})});
       this.session().invite=result.invite;
       this.session().seats=result.seats;
+      this.session().hostSeat=result.host_seat;
       sessionStorage.setItem('moonfall-session',JSON.stringify(this.session()));this.showInvite();await this.refresh();
     }catch(e){this.dialog.querySelector('#room-error').textContent=e.message;}
   }
   showInvite() {
-    const url=`${location.origin}/#join=${this.session().id}&invite=${this.session().invite}&seats=${this.session().seats||16}`;
-    this.dialog.querySelector('#room-share').innerHTML=`<label for="room-link">${sub('分享房間連結','Share the room link')}</label><input class="share-url" id="room-link" readonly value="${esc(url)}"><div class="button-row"><button class="secondary" id="room-copy">複製 · Copy</button><button class="secondary" id="room-rotate">更新邀請 · Renew invite</button></div><p class="room-status">${sub('玩家選座後，由你核對本人並批准。不要分享主持人裝置。主裝置負責所有旁白。','Verify each person before approving their seat. Keep the host device private. Only the main device plays narration.')}</p>`;
+    const url=`${location.origin}/#join=${this.session().id}&invite=${this.session().invite}&seats=${this.session().seats||16}&hostseat=${this.session().hostSeat||1}`;
+    this.dialog.querySelector('#room-share').innerHTML=`<label for="room-link">${sub('分享房間連結','Share the room link')}</label><input class="share-url" id="room-link" readonly value="${esc(url)}"><div class="button-row"><button class="secondary" id="room-copy">複製 · Copy</button><button class="secondary" id="room-rotate">更新邀請 · Renew invite</button></div><p class="room-status">${sub('主持人已自動入座，在主畫面按「我的身份／行動」即可參與，無須另外加入或切換分頁。','The host is seated automatically. Use My role / action on the main screen; no separate join or player tab is needed.')}</p><p class="room-status">${sub('座位自動分配後，由你核對稱呼並批准。不要分享主持人裝置。主裝置負責所有旁白。','Seats follow join order. Verify each name before approval. Keep the host device private. Only the main device plays narration.')}</p>`;
     this.dialog.querySelector('#room-copy').onclick=async()=>{try{await navigator.clipboard.writeText(url);this.dialog.querySelector('#room-copy').textContent='已複製 · Copied';}catch{this.dialog.querySelector('#room-link').select();}};
     this.dialog.querySelector('#room-rotate').onclick=()=>this.newInvite();
   }
@@ -44,7 +45,7 @@ export class RoomHost {
       this.dialog.querySelector('#room-summary').textContent=`${result.room.mode==='multi'?'各用手機 · Multi device':'單機交接 · Single device'} · ${result.room.connected} 位已批准 / approved`;
       for(const mode of ['single','multi'])this.dialog.querySelector(`#mode-${mode}`).setAttribute('aria-pressed',String(result.room.mode===mode));
       const signature=JSON.stringify(result.members);if(signature===this.signature)return;this.signature=signature;
-      this.dialog.querySelector('#room-members').innerHTML=result.members.length?result.members.map(m=>`<div class="room-member"><span>${sub(`${m.seat} 號 · ${esc(m.name)||'玩家'}`,`Seat ${m.seat} · ${m.approved?'Approved':'Awaiting approval'}`)}</span><div>${!m.approved?`<button class="icon-button" data-approve="${esc(m.id)}">批准 · Approve</button>`:''}<button class="icon-button" data-revoke="${esc(m.id)}">${m.approved?'撤銷 · Revoke':'拒絕 · Reject'}</button></div></div>`).join(''):`<p class="room-status">${sub('等待玩家加入，主裝置也可用另一個分頁以玩家身份加入。','Waiting for players. The host may join as a player in a separate tab.')}</p>`;
+      this.dialog.querySelector('#room-members').innerHTML=result.members.length?result.members.map(m=>`<div class="room-member"><span>${sub(`${m.seat} 號 · ${esc(m.name)||'玩家'}`,`Seat ${m.seat} · ${m.approved?'Approved':'Awaiting approval'}`)}</span><div>${!m.approved?`<button class="icon-button" data-approve="${esc(m.id)}">批准 · Approve</button>`:''}${m.host?'<span class="status-pill">主持人 · HOST</span>':`<button class="icon-button" data-revoke="${esc(m.id)}">${m.approved?'撤銷 · Revoke':'拒絕 · Reject'}</button>`}</div></div>`).join(''):`<p class="room-status">${sub('主持人已自動入座，等待其他玩家加入。','The host is seated automatically. Waiting for other players.')}</p>`;
       this.dialog.querySelectorAll('[data-approve]').forEach(b=>b.onclick=()=>this.command('approve',{id:b.dataset.approve}));
       this.dialog.querySelectorAll('[data-revoke]').forEach(b=>b.onclick=()=>this.command('revoke',{id:b.dataset.revoke}));
     }catch(e){if(this.dialog.open)this.dialog.querySelector('#room-error').textContent=e.message;}
@@ -66,11 +67,11 @@ export async function startPlayer(hash) {
   function error(e){const el=document.querySelector('#player-error');if(el)el.textContent=e.message;}
   async function joinForm() {
     document.documentElement.dataset.theme='lobby';
-    app.innerHTML=`<section class="room-join-intro"><p class="eyebrow">YOUR OWN SECRET · YOUR OWN SCREEN</p><h1>${sub('加入村莊','Join the village')}</h1><p>${sub('選擇實際座位，等主持人核對後即可查看身份。','Choose your physical seat. The host will verify you before your role is available.')}</p><form class="room-form" id="join-form"><label>${sub('你的稱呼','Your name')}<input name="name" maxlength="32" autocomplete="nickname" required></label><label>${sub('你的座位','Your seat')}<select name="seat">${Array.from({length:Math.max(5,Math.min(16,Number(hash.get('seats'))||16))},(_,i)=>`<option value="${i+1}">${i+1} 號 · Seat ${i+1}</option>`).join('')}</select></label><button class="primary">申請加入 · Request a seat</button></form><p class="room-error" id="player-error" role="alert"></p></section>`;
+    app.innerHTML=`<section class="room-join-intro"><p class="eyebrow">YOUR OWN SECRET · YOUR OWN SCREEN</p><h1>${sub('加入村莊','Join the village')}</h1><p>${sub('座位按加入次序自動分配，主持人批准後即可查看身份。','Seats are assigned automatically in join order. The host approves you before your role is available.')}</p><form class="room-form" id="join-form"><label>${sub('你的稱呼','Your name')}<input name="name" maxlength="32" autocomplete="nickname" required></label><button class="primary">申請加入 · Request a seat</button></form><p class="room-error" id="player-error" role="alert"></p></section>`;
     document.querySelector('#join-form').onsubmit=async e=>{
       e.preventDefault();if(busy)return;busy=true;
       try {
-        const form=new FormData(e.currentTarget),result=await request('join',{invite:hash.get('invite')||'',seat:Number(form.get('seat')),name:form.get('name')});
+        const form=new FormData(e.currentTarget),result=await request('join',{invite:hash.get('invite')||'',name:form.get('name')});
         credential={token:result.player_token,seat:result.seat};localStorage.setItem(storageKey,JSON.stringify(credential));
         history.replaceState(null,'',`/#player=${id}`);await sync();
       }catch(e){error(e);}finally{busy=false;}

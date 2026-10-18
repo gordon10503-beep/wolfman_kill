@@ -10,13 +10,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions
+from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report
 from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.7.2"
+VERSION = "1.7.3"
 
 
 class CreateGame(BaseModel):
@@ -224,6 +224,7 @@ def create_app(database=None, preload_audio=False):
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),
                     voice: Literal["original", "narrator"] | None = None,
+                    morning: int | None = Query(default=None, ge=1),
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
         state = app.state.store.get(game_id, credential)
         if rooms.mode(state) == "multi":
@@ -236,8 +237,14 @@ def create_app(database=None, preload_audio=False):
         # Prefetch may name a future cue, but never send arbitrary/private text.
         profile = speech_profile(voice, lang)
         script = NARRATION_EN if lang == "en" else NARRATION
+        text = script[cue]
+        if morning is not None:
+            report = morning_report(state)
+            if not report or morning != state["day"] or cue != state["phase"] or state["phase"] in ("reveal", "wolves", "witch", "seer", "dawn"):
+                raise HTTPException(409, "天亮結果尚未公布或階段已變更。 / Morning results are not published or the turn has changed.")
+            text = report["en" if lang == "en" else "zh"] + " " + text
         try:
-            result = await asyncio.wait_for(app.state.speech.synthesize(script[cue], profile), 14)
+            result = await asyncio.wait_for(app.state.speech.synthesize(text, profile), 14)
         except TimeoutError:
             result = None
         if result is None:

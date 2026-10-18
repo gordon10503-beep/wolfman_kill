@@ -1,3 +1,10 @@
+# Version 1.7.3 — 2026-10-19
+
+- Separate the fixed ground flourish from rotating halos on role cards and homepage symbols.
+- Add crimson glowing wolf blinks, seer eye blinks, hunter arrow draw/release and independently shaking witch bottles in both views.
+- Hydrate actual SVG parts from the shared sprite so animations target individual features; preserve Motion off and reduced motion.
+- Narrate published night casualties or a peaceful night before the next morning instruction in Cantonese/English. Read each report once, include it on explicit replay, and cache the combined clip without revealing roles or causes.
+
 # Version 1.7.2 — 2026-10-19
 
 - Homepage role symbols have subtle individual idle motion. Player rooms now share animated scenery, a bilingual village table and chronicle; join/approval screens also show the forest. Night overlays retain the painted forest and wolf silhouettes.

@@ -70,3 +70,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 
 - Browser animation pass: one shared character sprite, character-rise animation present while halo opacity is initially zero; later halo opacity is 0.9 and its transform rotates while the character rests. All five homepage emblems have distinct idle animations; Motion off removes them. Player views show day/night scenes, with forest-twinkle and forest-sway on the night overlay and no public identity cards during an unfinished game. Public table labels and chronicle remain bilingual.
 - Final animation test suite: 42 frontend tests plus JavaScript syntax checks passed. Backend remains at 88 passing local cases, with 5 PostgreSQL cases requiring CI.
+
+
+## Version 1.7.3 — 2026-10-19
+
+- Fixed ground geometry is separate from halo rotation on the homepage and private role cards. Browser computed styles confirm five stationary ground layers, rotating auras, independently blinking eyes, shaking potions and a moving arrow. Motion off stops each animated part; private witch-card layers were checked separately.
+- Morning audio derives only from an already-published dawn event. Tests cover two casualties, a peaceful night, no pre-dawn disclosure, expiry on the next night, hunter follow-ups, both speech languages, stale-cue rejection, cached replay and muting/interruption races. No role or death cause enters the spoken report.
+- Local verification: 93 Python tests passed; 5 PostgreSQL cases require CI. All 48 frontend tests and JavaScript syntax checks passed.

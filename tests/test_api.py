@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.7.2"}
-    assert response.headers["x-moonfall-version"] == "1.7.2"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.7.3"}
+    assert response.headers["x-moonfall-version"] == "1.7.3"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -147,6 +147,37 @@ def test_english_audio_uses_english_script_and_voice(client):
     assert response.headers["x-audio-voice"] == "en-US-GuyNeural"
     response = client.get(path + '?phase=wolves', headers=headers)
     assert response.headers["x-audio-voice"] == "zh-HK-HiuMaanNeural"
+
+
+@pytest.mark.parametrize("casualties", [True, False])
+def test_morning_audio_reads_only_published_results_in_both_languages(client, casualties):
+    from backend.engine import act, NARRATION, NARRATION_EN
+    g = new_game(COUNTS, {"last_words": False})
+    g["phase"] = "dawn"
+    victims = [p["seat"] for p in g["players"] if p["role"] == "villager"][:2]
+    if casualties:
+        g["kill"], g["poison"] = victims
+    game_id, host_token, _ = client.app.state.store.create(g)
+    path = f"/api/games/{game_id}"
+    headers = {"Authorization": "Bearer " + host_token}
+    seen = []
+    async def synthesize(text, profile):
+        seen.append(text)
+        return b"morning-mp3"
+    client.app.state.speech.synthesize = synthesize
+    assert client.get(path + "/audio?morning=1", headers=headers).status_code == 409
+    assert client.get(path, headers=headers).json()["morning_report"] is None
+    state = client.post(path + "/actions", headers=headers,
+                        json={"version": 0, "action": "dawn"}).json()
+    report = state["morning_report"]
+    for lang, script, field in (("yue", NARRATION, "zh"), ("en", NARRATION_EN, "en")):
+        response = client.get(path + "/audio", headers=headers, params={"morning": 1, "lang": lang})
+        assert response.status_code == 200 and response.content == b"morning-mp3"
+        assert seen[-1] == report[field] + " " + script[state["phase"]]
+        assert not any(word in seen[-1] for word in ("poison", "witch", "狼人", "女巫", "毒"))
+    for query in ("morning=2", "morning=1&phase=wolves"):
+        assert client.get(path + "/audio?" + query, headers=headers).status_code == 409
+    assert len(seen) == 2
 
 def test_forest_animation_style_is_narrowly_allowed(client):
     import base64

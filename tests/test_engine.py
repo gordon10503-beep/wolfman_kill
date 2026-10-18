@@ -21,6 +21,30 @@ def night(g, victim=None, save=False, poison=None, inspect=1):
     return act(g, "ack", {})
 
 
+@pytest.mark.parametrize("victim,poison,seats", [(6, 7, [6, 7]), (None, None, [])])
+def test_morning_report_is_published_only_at_dawn_and_expires_next_night(victim, poison, seats):
+    g = night(game(), victim=victim, poison=poison)
+    assert g["phase"] == "dawn"
+    assert public_view(g)["morning_report"] is None
+    g = act(g, "dawn", {})
+    report = public_view(g)["morning_report"]
+    assert report["day"] == 1 and report["key"] == "1:" + ",".join(map(str, seats))
+    assert report["zh"] == ("昨晚 6 號、7 號 出局。" if seats else "昨晚是平安夜。")
+    assert report["en"] == ("Eliminated last night: seats 6, 7." if seats else "No one was eliminated last night.")
+    assert not any(word in str(report) for word in ("poison", "wolf", "role", "cause"))
+    g = act(act(g, "vote", {}), "vote_result", {"leaders": []})
+    assert g["day"] == 2 and public_view(g)["morning_report"] is None
+
+
+def test_morning_report_survives_hunter_follow_up_without_adding_shot_victim():
+    g = act(night(game(), victim=5), "dawn", {})
+    assert g["phase"] == "hunter"
+    report = public_view(g)["morning_report"]
+    g = act(g, "shoot", {"target": 6})
+    assert public_view(g)["morning_report"] == report
+    assert report["en"] == "Eliminated last night: seats 5."
+
+
 def test_setup_rejects_invalid_composition_and_types():
     for counts in ({"wolf": 2}, {"wolf": 3, "seer": 0, "witch": 0, "hunter": 0, "villager": 2},
                    {"wolf": 1, "seer": 2, "witch": 0, "hunter": 0, "villager": 3},

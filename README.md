@@ -109,6 +109,7 @@ The default is **the same Microsoft neural voice as the original terminal script
 The **聲線** dropdown also offers `zh-HK-WanLungNeural` at `-5%` rate for a slower male delivery. These are voice choices, not guaranteed acting/emotion styles. Edge TTS supports voice/rate/pitch adjustments, but not arbitrary expressive SSML ([library documentation](https://github.com/rany2/edge-tts)). Microsoft lists both Cantonese neural voices in [its language support](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts).
 
 - **Replay:** reuses an in-memory browser audio blob, without another download or synthesis. Rapid clicks share one pending load; only the latest requested playback starts.
+- **Morning results:** after the host publishes dawn results, narration announces eliminated seat numbers or a peaceful night before the next instruction. Each report plays once automatically; Replay includes it again. Cantonese and English are supported, without reading roles or death causes.
 - **Upcoming phases:** prefetch their fixed public prompts while the current clip is ready.
 - **Server cache:** atomic MP3 files in `data/audio-cache/` survive reloads/restarts; memory hits bypass generation. The server warms all original-voice prompts in the background at startup. A cold install still needs internet/time to generate clips once.
 - **Outages:** synthesis is bounded to 12 seconds, repeated failures back off for 30 seconds, and cached clips remain usable. The server generates at most two clips concurrently and deduplicates identical requests.
@@ -123,7 +124,7 @@ python -m backend.prepare_audio --language en
 python -m backend.prepare_audio --language en --voice narrator
 ```
 
-Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only fixed public instructions are cached/sent to the provider; no identities, targets, or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults on for the host and off for audience views; explicit mute choices are saved per tab. **Keep only one tab/device speaking** to avoid multiple independent speakers. A browser may require a click on Replay before allowing its first audio.
+Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only public instructions and already-published morning casualty seat numbers are cached/sent to the provider; no identities, pending targets, causes of death or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults on for the host and off for audience views; explicit mute choices are saved per tab. **Keep only one tab/device speaking** to avoid multiple independent speakers. A browser may require a click on Replay before allowing its first audio.
 
 ## Tests and development
 

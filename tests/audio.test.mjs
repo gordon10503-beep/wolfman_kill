@@ -104,3 +104,39 @@ test('English fallback uses translated text and an English voice',async()=>{
   globalThis.fetch=async()=>({ok:false});globalThis.speechSynthesis.getVoices=()=>[{lang:'zh-HK'},{lang:'en-US'}];
   await narrator.speak();assert.equal(spoken[0].lang,'en-US');assert.equal(spoken[0].text,ctx.state.narration_en);
 });
+
+function morning(ctx, key='1:2,4') {
+  ctx.state={phase:'hunter',narration:'獵人請決定是否開槍。',narration_en:'Hunter, decide whether to shoot.',
+    morning_report:{day:Number(key.split(':')[0]),key,zh:'昨晚 2 號、4 號 出局。',en:'Eliminated last night: seats 2, 4.'}};
+}
+test('morning report plays once before instructions, while explicit replay reuses its clip',async()=>{
+  const {ctx,clips}=setup();morning(ctx);const urls=[];
+  globalThis.fetch=async url=>{urls.push(url);return response();};
+  await narrator.speak();assert.match(urls[0],/morning=1/);
+  clips.at(-1).playing=false;clips.at(-1).onended();
+  await narrator.speak();assert.doesNotMatch(urls[1],/morning=/);
+  await narrator.speak({replay:true});assert.equal(urls.length,2);
+  assert.equal(clips.filter(c=>c.playing).length,1);
+});
+test('interrupted morning reports retry, and another day gets a separate cached report',async()=>{
+  const {ctx,clips}=setup();morning(ctx);const urls=[];
+  globalThis.fetch=async url=>{urls.push(url);return response();};
+  await narrator.speak();narrator.stop();await narrator.speak();
+  assert.equal(urls.length,1);assert.equal(narrator.morningSpoken.size,0);
+  clips.at(-1).playing=false;clips.at(-1).onended();
+  morning(ctx,'2:2,4');await narrator.speak();
+  assert.equal(urls.length,2);assert.match(urls[1],/morning=2/);
+});
+test('English fallback reads public morning results before the phase instruction',async()=>{
+  const {ctx,spoken}=setup();morning(ctx);ctx.language='en';
+  globalThis.fetch=async()=>({ok:false});globalThis.speechSynthesis.getVoices=()=>[{lang:'en-US'}];
+  await narrator.speak();
+  assert.equal(spoken[0].text,'Eliminated last night: seats 2, 4. Hunter, decide whether to shoot.');
+  spoken[0].onend();assert.equal(narrator.morningSpoken.size,1);
+});
+test('muting a pending morning report prevents playback without marking it as announced',async()=>{
+  const {ctx,clips,spoken}=setup();morning(ctx);let finish;
+  globalThis.fetch=()=>new Promise(resolve=>{finish=resolve;});
+  const loading=narrator.speak();ctx.enabled=false;narrator.stop();finish(response());await loading;
+  assert.equal(clips.length,0);assert.equal(spoken.length,0);assert.equal(narrator.morningSpoken.size,0);
+});

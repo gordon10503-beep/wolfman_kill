@@ -8,8 +8,8 @@
 /* One shared sprite; animate compositor properties only. */
 .character-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
 .identity-art{position:relative;isolation:isolate}
-.identity-art .identity-aura{position:absolute;inset:0;transform-origin:50% 46.6667%;opacity:0}
-.identity-art .identity-figure{position:relative;opacity:0;transform:translateY(28px) scale(.92)}
+.identity-art .identity-aura{transform-box:view-box;transform-origin:130px 126px;opacity:0}
+.identity-art .identity-figure{transform-box:view-box;transform-origin:130px 180px;opacity:0;transform:translateY(28px) scale(.92)}
 .identity-art-ready .identity-figure{animation:identity-rise 850ms cubic-bezier(.2,.75,.2,1) both}
 .identity-art-ready .identity-aura{animation:identity-aura-in 1000ms ease 650ms both,identity-orbit 48s linear 650ms infinite}
 @keyframes identity-rise{from{opacity:0;transform:translateY(28px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -19,19 +19,37 @@
 @media(prefers-reduced-motion:reduce){.identity-art-ready .identity-figure,.identity-art-ready .identity-aura{animation:none!important;opacity:1;transform:none}}
 
 /* Gentle idle motion has one transform per card; no animation timers. */
-.role-card .cast-art{transform-origin:50% 70%;animation:cast-breathe 4s ease-in-out infinite}
-.role-card:nth-child(2) .cast-art{animation:cast-drift 5.2s ease-in-out -.7s infinite}
-.role-card:nth-child(3) .cast-art{animation:cast-tilt 4.6s ease-in-out -1.2s infinite}
-.role-card:nth-child(4) .cast-art{animation:cast-watch 5.8s ease-in-out -.4s infinite}
-.role-card:nth-child(5) .cast-art{animation:cast-drift 4.8s ease-in-out -1.8s infinite}
+.role-card .cast-figure{transform-origin:50% 70%;animation:cast-breathe 4s ease-in-out infinite}
+.role-card:nth-child(2) .cast-figure{animation:cast-drift 5.2s ease-in-out -.7s infinite}
+.role-card:nth-child(3) .cast-figure{animation:cast-tilt 4.6s ease-in-out -1.2s infinite}
+.role-card:nth-child(4) .cast-figure{animation:cast-watch 5.8s ease-in-out -.4s infinite}
+.role-card:nth-child(5) .cast-figure{animation:cast-drift 4.8s ease-in-out -1.8s infinite}
 @keyframes cast-breathe{0%,100%{transform:translateY(1px) scale(.98)}50%{transform:translateY(-3px) scale(1.03)}}
 @keyframes cast-drift{0%,100%{transform:translateY(2px)}50%{transform:translateY(-5px)}}
 @keyframes cast-tilt{0%,100%{transform:rotate(-2deg) translateY(1px)}50%{transform:rotate(2deg) translateY(-3px)}}
 @keyframes cast-watch{0%,100%{transform:rotate(-1.3deg)}50%{transform:rotate(1.3deg) translateY(-3px)}}
-:root:has(#motion[aria-pressed="false"]) .role-card .cast-art{animation:none;transform:none}
+:root:has(#motion[aria-pressed="false"]) .role-card .cast-figure{animation:none;transform:none}
 .night-scene .trees-back{opacity:.22}.night-scene .trees-front{opacity:.32}
 .player-shell{max-width:1100px}.player-heading>p:last-child{color:var(--muted);font-size:13px;line-height:1.8;max-width:640px;margin:16px auto}.player-scenery{border-radius:22px;overflow:hidden;text-align:center;padding:22px}.player-table{border-radius:22px;margin-top:28px}.player-table .my-seat{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.player-chronicle .event span{line-height:1.7}.player-wait{position:relative;border:1px solid var(--border);border-radius:22px;background:var(--panel);margin:35px auto;max-width:640px}
-@media(prefers-reduced-motion:reduce){.role-card .cast-art{animation:none!important;transform:none}}
+@media(prefers-reduced-motion:reduce){.role-card .cast-figure{animation:none!important;transform:none}}
 
 [data-theme="lobby"] .player-scenery{height:240px}.player-wait>.player-scenery{margin:-1px -1px 24px}.room-join-intro>.player-scenery{margin-bottom:30px}
 @media(max-width:720px){[data-theme="lobby"] .player-scenery{height:190px}}
+
+/* The floor never belongs to the orbiting layer. */
+.character-ground{transform:none;animation:none}
+.cast-aura{transform-box:view-box;transform-origin:130px 126px;opacity:.9;animation:identity-orbit 48s linear infinite}
+.cast-figure{transform-box:view-box;transform-origin:130px 180px}
+:is(.cast-figure,.identity-figure) .character-wolf-eyes{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 2.5px #fa244f);animation:wolf-blink 7.8s linear infinite,wolf-eye-glow 4s ease-in-out infinite}
+:is(.cast-figure,.identity-figure) .character-seer-eye{transform-box:fill-box;transform-origin:center;animation:seer-blink 8.4s linear infinite}
+:is(.cast-figure,.identity-figure) .character-potion-left{transform-box:view-box;transform-origin:107px 153px;animation:potion-left-shake 4.8s ease-in-out infinite}
+:is(.cast-figure,.identity-figure) .character-potion-right{transform-box:view-box;transform-origin:161px 148px;animation:potion-right-shake 4.8s ease-in-out -.8s infinite}
+:is(.cast-figure,.identity-figure) .character-hunter-arrow{animation:hunter-draw 6.2s ease-in-out infinite}
+@keyframes wolf-blink{0%,20%,24%,72%,76%,80%,84%,100%{transform:scaleY(1)}22%,74%,82%{transform:scaleY(.06)}}
+@keyframes wolf-eye-glow{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes seer-blink{0%,26%,30%,67%,71%,100%{transform:scaleY(1)}28%,69%{transform:scaleY(.035)}}
+@keyframes potion-left-shake{0%,52%,80%,100%{transform:rotate(0)}58%,68%{transform:rotate(-9deg)}63%,73%{transform:rotate(9deg)}}
+@keyframes potion-right-shake{0%,52%,80%,100%{transform:rotate(0)}58%,68%{transform:rotate(8deg)}63%,73%{transform:rotate(-8deg)}}
+@keyframes hunter-draw{0%,15%,78%,100%{transform:translate(0,0)}48%,62%{transform:translate(-10px,11px)}70%{transform:translate(2px,-2px)}}
+:root:has(#motion[aria-pressed="false"]) .cast-aura,:root:has(#motion[aria-pressed="false"]) [data-character-part]{animation:none!important;transform:none;opacity:1}
+@media(prefers-reduced-motion:reduce){.cast-aura,[data-character-part]{animation:none!important;transform:none;opacity:1}}

@@ -1,6 +1,7 @@
 """Deterministic game rules. No I/O, networking, or speech in this module."""
 from collections import Counter
 from copy import deepcopy
+import re
 import secrets
 
 ROLES = ("wolf", "seer", "witch", "hunter", "villager")
@@ -183,6 +184,18 @@ def private_view(g):
     return result
 
 
+def morning_report(g):
+    """Narrate only an already-published dawn event, never pending night actions."""
+    for entry in reversed(g["events"]):
+        if entry["day"] != g["day"] or not entry["text"].startswith("昨晚"):
+            continue
+        seats = [int(s) for s in re.findall(r"(\d+) 號", entry["text"])]
+        return {"day": g["day"], "key": f'{g["day"]}:' + ",".join(map(str,seats)),
+                "zh": entry["text"],
+                "en": "Eliminated last night: seats " + ", ".join(map(str,seats)) + "." if seats else "No one was eliminated last night."}
+    return None
+
+
 def public_view(g):
     from .rooms import public_room
     keys = ("version", "phase", "day", "rules", "reveal_seat", "runoff", "winner", "events")
@@ -196,6 +209,7 @@ def public_view(g):
     result["narration"] = NARRATION[g["phase"]]
     result["narration_en"] = NARRATION_EN[g["phase"]]
     result["room"] = public_room(g)
+    result["morning_report"] = morning_report(g)
     return result
 
 

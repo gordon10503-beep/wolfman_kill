@@ -6,6 +6,15 @@ const roles = {
   villager: ['平民','VILLAGER','THE LANTERN KEEPER','好人陣營 · GOOD SIDE']
 };
 let artLoaded=false,artLoading,artFallback=false;
+const figures={};
+function hydrateArt(){
+  document.querySelectorAll('[data-character-role]').forEach(figure=>{
+    const role=figure.dataset.characterRole;
+    if(!roles[role])return;
+    figure.innerHTML=figures[role] || (artFallback?`<use href="/assets/character-cards.svg#character-${role}"></use>`:'');
+  });
+  document.querySelectorAll('.identity-card').forEach(card=>card.classList.add('identity-art-ready'));
+}
 export function preloadCharacterArt(){
   if(typeof document==='undefined')return Promise.resolve();
   if(artLoading)return artLoading;
@@ -14,23 +23,30 @@ export function preloadCharacterArt(){
   }).then(source=>{
     const parsed=new DOMParser().parseFromString(source,'image/svg+xml');
     if(parsed.querySelector('parsererror'))throw new Error('Invalid character artwork');
+    for(const role of Object.keys(roles))figures[role]=parsed.getElementById(`character-${role}`).innerHTML;
     const sprite=document.importNode(parsed.documentElement,true);
     sprite.classList.add('character-sprite');sprite.setAttribute('aria-hidden','true');
     sprite.setAttribute('width','0');sprite.setAttribute('height','0');document.body.append(sprite);
     artLoaded=true;
-    document.querySelectorAll('.identity-card').forEach(card=>card.classList.add('identity-art-ready'));
+    hydrateArt();
   }).catch(()=>{
     artFallback=true;
     // Keep the role text usable during an outage, with static external art fallback.
-    document.querySelectorAll('.identity-card use').forEach(use=>use.setAttribute('href','/assets/character-cards.svg'+use.getAttribute('href')));
-    document.querySelectorAll('.identity-card').forEach(card=>card.classList.add('identity-art-ready'));
+    document.querySelectorAll('.identity-card use,.cast-art use').forEach(use=>{const href=use.getAttribute('href');if(href?.startsWith('#'))use.setAttribute('href','/assets/character-cards.svg'+href);});
+    hydrateArt();
     artLoading=null;
   });
   return artLoading;
 }
 if(typeof document!=='undefined')void preloadCharacterArt();
+/** Actual SVG children let each eye, arrow and potion animate independently. */
+export function characterArt(role,kind='identity'){
+  if(!roles[role])return '';
+  const prefix=kind==='cast'?'cast':'identity',file=artFallback?'/assets/character-cards.svg':'';
+  return `<svg class="${prefix==='cast'?'cast-art':'identity-artwork'}" viewBox="0 0 260 270" aria-hidden="true"><g class="${prefix}-aura"><use href="${file}#character-aura"></use></g><g class="character-ground"><use href="${file}#character-ground"></use></g><g class="${prefix}-figure" data-character-role="${role}">${figures[role] || (artFallback?`<use href="${file}#character-${role}"></use>`:'')}</g></svg>`;
+}
 export function roleCard(role, seat) {
   if(!roles[role]) return '';
   const [zh,en,title,side]=roles[role];
-  return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>SEAT ${String(seat).padStart(2,'0')}</span></div><div class="identity-art"><svg class="identity-aura" viewBox="0 0 260 270" aria-hidden="true"><use href="${artFallback?'/assets/character-cards.svg':''}#character-aura"></use></svg><svg class="identity-figure" viewBox="0 0 260 270" aria-hidden="true"><use href="${artFallback?'/assets/character-cards.svg':''}#character-${role}"></use></svg></div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
+  return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>SEAT ${String(seat).padStart(2,'0')}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
 }

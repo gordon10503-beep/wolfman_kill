@@ -8,6 +8,7 @@ const ENGLISH_VOICES = {original:'English neural female', narrator:'English neur
 export class Narrator {
   generation = 0; audio = null; url = null; watchdog = null;
   cache = new Map(); pending = new Map(); failures = new Map(); requests = new Map(); cacheEpoch = 0;
+  morningSpoken = new Set();
   constructor({context, status}) { this.context = context; this.status = status; }
   stop() {
     this.generation++;
@@ -19,11 +20,11 @@ export class Narrator {
   dispose() {
     this.stop(); this.cacheEpoch++;
     for(const [controller, timer] of this.requests) { clearTimeout(timer); controller.abort(); }
-    this.requests.clear(); this.cache.clear(); this.pending.clear(); this.failures.clear();
+    this.requests.clear(); this.cache.clear(); this.pending.clear(); this.failures.clear(); this.morningSpoken.clear();
   }
   key(phase, profile, text, language='yue') { return `${language}:${profile}:${phase || text}`; }
-  async clip(session, phase, profile, text='', language='yue') {
-    const key = this.key(phase, profile, text, language);
+  async clip(session, phase, profile, text='', language='yue', report=null) {
+    const key = this.key(report?`${phase}:morning:${report.key}`:phase, profile, text, language);
     if(this.cache.has(key)) return this.cache.get(key);
     if(this.pending.has(key)) return this.pending.get(key);
     if((this.failures.get(key) || 0) > Date.now()) return null;
@@ -34,6 +35,7 @@ export class Narrator {
       try {
         const query = new URLSearchParams({voice:profile,lang:language});
         if(phase) query.set('phase',phase);
+        if(report)query.set('morning',String(report.day));
         const response = await fetch(`/api/games/${session.id}/audio?${query}`, {
           headers:{Authorization:`Bearer ${session.token}`,...(session.speaker?{'X-Moonfall-Speaker':session.speaker}:{})}, signal:controller.signal});
         if(!response.ok) throw new Error('Speech unavailable');
@@ -56,21 +58,25 @@ export class Narrator {
     if(this.context().preload === false) return;
     for(const next of NEXT[phase] || []) void this.clip(session,next,profile,'',language);
   }
-  async speak() {
+  async speak({replay=false}={}) {
     this.stop();
     const {enabled, state, session, profile='original', language='yue'} = this.context();
     if(!enabled || !state || !session) return;
-    const generation = this.generation, text = language==='en' ? state.narration_en : state.narration;
-    this.status(this.cache.has(this.key(state.phase,profile,text,language))?'使用已快取語音…':language==='en'?'Preparing English neural audio…':'正在準備廣東話神經語音…');
-    const blob = await this.clip(session,state.phase,profile,text,language);
+    const generation = this.generation, reportKey=`${session.id}:${state.morning_report?.key}`;
+    const report=state.morning_report && (replay || !this.morningSpoken.has(reportKey))?state.morning_report:null;
+    const text=(report?report[language==='en'?'en':'zh']+' ':'')+(language==='en' ? state.narration_en : state.narration);
+    const cachePhase=report?`${state.phase}:morning:${report.key}`:state.phase;
+    const complete=()=>{if(report)this.morningSpoken.add(reportKey);};
+    this.status(this.cache.has(this.key(cachePhase,profile,text,language))?'使用已快取語音…':language==='en'?'Preparing English neural audio…':'正在準備廣東話神經語音…');
+    const blob = await this.clip(session,state.phase,profile,text,language,report);
     if(generation !== this.generation || !this.context().enabled) return;
-    if(!blob) { this.fallback(text,generation); return; }
+    if(!blob) { this.fallback(text,generation,complete); return; }
     this.prefetch(session,state.phase,profile,language);
     try {
       this.url = URL.createObjectURL(blob); this.audio = new Audio(this.url);
-      this.audio.onended = ()=>{ if(generation === this.generation) { this.status('神經語音播放完畢 · 重播已快取'); this.stop(); } };
+      this.audio.onended = ()=>{ if(generation === this.generation) { complete();this.status('神經語音播放完畢 · 重播已快取'); this.stop(); } };
       this.audio.onerror = ()=>{
-        if(generation === this.generation) { this.cache.delete(this.key(state.phase,profile,text,language)); this.fallback(text,generation); }
+        if(generation === this.generation) { this.cache.delete(this.key(cachePhase,profile,text,language)); this.fallback(text,generation,complete); }
       };
       await this.audio.play();
       if(generation !== this.generation) return;
@@ -79,10 +85,10 @@ export class Narrator {
     } catch(error) {
       if(generation !== this.generation) return;
       if(error.name === 'NotAllowedError') { this.stop(); this.status('語音已備妥，請再按重播以允許播放'); }
-      else this.fallback(text,generation);
+      else this.fallback(text,generation,complete);
     }
   }
-  fallback(text, generation) {
+  fallback(text, generation, complete=()=>{}) {
     if(generation !== this.generation || !this.context().enabled) return;
     clearTimeout(this.watchdog);
     if(this.audio) { this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); this.audio = null; }
@@ -95,7 +101,7 @@ export class Narrator {
     const selected = synth?.getVoices().find(v=>english ? /^en([-_]|$)/i.test(v.lang) : /zh[-_]HK|yue/i.test(v.lang));
     if(!synth || !selected) { this.status('語音暫時不可用 · 請參閱字幕'); return; }
     synth.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.voice = selected; utterance.lang = selected.lang;
-    utterance.onend = ()=>{ if(generation === this.generation) { clearTimeout(this.watchdog); this.status('本機備用語音播放完畢（並非原版神經聲線）'); } };
+    utterance.onend = ()=>{ if(generation === this.generation) { complete();clearTimeout(this.watchdog); this.status('本機備用語音播放完畢（並非原版神經聲線）'); } };
     utterance.onerror = ()=>{ if(generation === this.generation) { clearTimeout(this.watchdog); this.status('請參閱字幕 · 語音未能播放'); } };
     synth.speak(utterance); this.status(`正在播放 · 本機備用${english?'英語':'廣東話'}（並非原版神經聲線）`);
     this.watchdog = setTimeout(()=>{ if(generation === this.generation) { this.stop(); this.status('請參閱字幕'); } },45000);

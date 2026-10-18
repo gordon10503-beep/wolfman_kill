@@ -9,6 +9,82 @@ from backend.engine import new_game, RuleError
 COUNTS = {'wolf':2,'seer':1,'witch':1,'hunter':1,'villager':4}
 
 
+def hybrid_game(role, phase):
+    roles = ['wolf',role,'wolf','seer','witch','hunter','villager','villager','villager']
+    g = new_game({r:roles.count(r) for r in COUNTS}, {'fun_mode':True,'last_words':False})
+    for p,r in zip(g['players'],roles):p['role']=r
+    rooms.network(g)['mode']='multi';rooms.ensure_host(g)
+    invite=rooms.host_operation(g,'invite',{})['invite']
+    guest=rooms.join(g,invite,None,'Player 2')['player_token']
+    rooms.host_operation(g,'approve',{'id':rooms.host_view(g)['members'][-1]['id']})
+    g['phase']=phase
+    if phase=='hunter':g['players'][1]['alive']=False;g['hunters']=[2]
+    return g,guest
+
+
+@pytest.mark.parametrize('role,action,data', [('witch','witch',{}),('seer','inspect',{'target':1}),('seer','ack',{}),('hunter','shoot',{'target':1})])
+def test_debug_cannot_act_for_an_approved_guest(role,action,data):
+    g,_=hybrid_game(role,role)
+    assert rooms.debug_control(g)['protected_seats']==[2]
+    assert rooms.debug_control(g)['can_act'] is False
+    with pytest.raises(RuleError):rooms.host_action(g,action,data,debug=True)
+    with pytest.raises(RuleError):rooms.guard_private(g)
+
+
+def test_hybrid_wolves_require_the_real_players_agreement():
+    g,guest=hybrid_game('wolf','wolves')
+    g=rooms.host_action(g,'wolves',{'target':7},debug=True)
+    assert g['phase']=='wolves' and rooms.network(g)['wolf_votes']=={'1':7,'3':7}
+    rooms.player_action(g,guest,rooms.turn_key(g),'wolves',{'target':8})
+    assert g['phase']=='wolves'
+    rooms.player_action(g,guest,rooms.turn_key(g),'wolves',{'target':7})
+    assert g['phase']=='witch' and g['kill']==7
+
+
+def test_hybrid_ballots_cannot_replace_real_votes_or_force_a_counted_result():
+    g,guest=hybrid_game('villager','vote')
+    rooms.player_action(g,guest,rooms.turn_key(g),'ballot',{'target':1})
+    with pytest.raises(RuleError):rooms.host_action(g,'vote_result',{'leaders':[2]},debug=True)
+    with pytest.raises(RuleError):rooms.host_action(g,'ballots',{'ballots':{str(s):None for s in range(1,10)}},debug=True)
+    votes={str(s):(1 if s==1 else None) for s in range(1,10) if s!=2}
+    g=rooms.host_action(g,'ballots',{'ballots':votes},debug=True)
+    assert not g['players'][0]['alive'] and g['phase']=='wolves'
+
+
+def test_hybrid_simulated_ballots_wait_for_the_real_player():
+    g,guest=hybrid_game('villager','vote')
+    votes={str(s):None for s in range(1,10) if s!=2}
+    g=rooms.host_action(g,'ballots',{'ballots':votes},debug=True)
+    assert g['phase']=='vote' and len(rooms.network(g)['ballots'])==8
+    rooms.player_action(g,guest,rooms.turn_key(g),'ballot',{'target':None})
+    assert g['phase']=='wolves' and g['day']==2
+
+
+def test_approval_discards_a_seats_simulated_inputs():
+    g,_=hybrid_game('wolf','wolves')
+    invite=rooms.host_operation(g,'invite',{})['invite']
+    rooms.join(g,invite,None,'Player 3')
+    g=rooms.host_action(g,'wolves',{'target':7},debug=True)
+    assert '3' in rooms.network(g)['wolf_votes']
+    member=next(m for m in rooms.host_view(g)['members'] if m['seat']==3)
+    rooms.host_operation(g,'approve',{'id':member['id']})
+    assert '3' not in rooms.network(g)['wolf_votes']
+
+
+def test_debug_reveal_waits_for_the_guest_and_revocation_restores_simulation():
+    g,guest=hybrid_game('seer','reveal')
+    g=rooms.host_action(g,'debug_skip_reveal',{},debug=True)
+    assert g['phase']=='reveal' and len(rooms.network(g)['ready'])==8
+    with pytest.raises(RuleError):rooms.host_action(g,'ack',{},debug=True)
+    rooms.player_action(g,guest,rooms.turn_key(g),'ready',{})
+    assert g['phase']=='wolves'
+    g['phase']='seer'
+    member=next(m for m in rooms.host_view(g)['members'] if m['seat']==2)
+    rooms.host_operation(g,'revoke',{'id':member['id']})
+    assert rooms.debug_control(g)['can_act']
+    assert rooms.host_action(g,'inspect',{'target':1},debug=True)['inspection']['seat']==1
+
+
 @pytest.fixture
 def room(tmp_path):
     with TestClient(create_app(tmp_path/'rooms.db')) as c:

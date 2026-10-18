@@ -10,13 +10,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report
+from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report, narration
 from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.7.3"
+VERSION = "1.7.4"
 
 
 class CreateGame(BaseModel):
@@ -145,7 +145,13 @@ def create_app(database=None, preload_audio=False):
 
     @app.get("/api/games/{game_id}/private")
     def private(game_id: str, credential=Depends(token)):
-        return private_view(app.state.store.get(game_id, credential, host_only=True))
+        state = app.state.store.get(game_id, credential, host_only=True)
+        info = private_view(state)
+        if state["phase"] not in ("witch", "seer") or info["active"]:
+            rooms.guard_private(state)
+        if state["phase"] == "wolves" and rooms.mode(state) == "multi":
+            info["choices"] = rooms.network(state)["wolf_votes"]
+        return info
 
     @app.post("/api/games/{game_id}/actions")
     def action(game_id: str, body: Action, credential=Depends(token)):
@@ -219,7 +225,8 @@ def create_app(database=None, preload_audio=False):
             potions["by_seat"] = {str(p["seat"]): witch_potions(state,p["seat"]) for p in state["players"] if p["role"] == "witch"}
         return {"version": state["version"], "phase": state["phase"], "players": state["players"],
                 "potions": potions,
-                "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]}}
+                "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]},
+                "control": rooms.debug_control(state)}
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),
@@ -238,6 +245,8 @@ def create_app(database=None, preload_audio=False):
         profile = speech_profile(voice, lang)
         script = NARRATION_EN if lang == "en" else NARRATION
         text = script[cue]
+        if cue == "finished" and state["phase"] == "finished":
+            text = narration(state, lang)
         if morning is not None:
             report = morning_report(state)
             if not report or morning != state["day"] or cue != state["phase"] or state["phase"] in ("reveal", "wolves", "witch", "seer", "dawn"):

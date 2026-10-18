@@ -45,6 +45,17 @@ def test_morning_report_survives_hunter_follow_up_without_adding_shot_victim():
     assert report["en"] == "Eliminated last night: seats 5."
 
 
+def test_hunter_identity_becomes_public_when_called_and_stays_after_the_shot():
+    g=act(night(game(),victim=5),'dawn',{})
+    view=public_view(g)
+    assert view['players'][4]['revealed_role']=='hunter'
+    assert all('role' not in p and 'cause' not in p for p in view['players'])
+    g=act(g,'shoot',{'target':6})
+    view=public_view(g)
+    assert view['players'][4]['revealed_role']=='hunter'
+    assert 'revealed_role' not in view['players'][5]
+
+
 def test_setup_rejects_invalid_composition_and_types():
     for counts in ({"wolf": 2}, {"wolf": 3, "seer": 0, "witch": 0, "hunter": 0, "villager": 2},
                    {"wolf": 1, "seer": 2, "witch": 0, "hunter": 0, "villager": 3},

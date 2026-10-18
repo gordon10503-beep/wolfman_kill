@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import secrets
 import time
+from copy import deepcopy
 from .engine import act, alive, player, private_view, public_view, require, target, turn_actor
 
 
@@ -85,11 +86,87 @@ def clear_round_inputs(g, previous_key):
         network(g)["wolf_votes"] = {}
 
 
+def protected_seats(g):
+    """Approved guest passes retain ownership even during a temporary disconnect."""
+    return {m["seat"] for m in network(g)["members"].values() if m["approved"] and not m.get("host")}
+
+
+def debug_control(g):
+    protected = protected_seats(g) if mode(g) == "multi" else set()
+    simulated = sorted(set(alive(g)) - protected)
+    phase, actor = g["phase"], None
+    if phase in ("witch", "seer"):
+        p = turn_actor(g, phase)
+        actor = p["seat"] if p else None
+    elif phase == "hunter":
+        actor = g["hunters"][0]
+    elif phase == "reveal":
+        actor = g["reveal_seat"]
+    can_act = actor not in protected
+    if phase == "wolves":
+        can_act = bool(set(private_view(g)["wolves"]) - protected)
+    elif phase in ("vote", "runoff"):
+        can_act = bool(simulated)
+    return {"protected_seats": sorted(protected), "ballot_seats": simulated, "can_act": can_act}
+
+
+def guard_private(g):
+    if mode(g) == "multi":
+        require(debug_control(g)["can_act"], "此角色由已批准的玩家操作。 / This role belongs to an approved player's device.")
+
+
 def host_action(g, action, data, debug=False):
     if mode(g) == "multi" and not debug:
         # Main device controls public pacing; seat devices control private powers.
         require(action in ("dawn", "vote", "last_words_done", "inactive_pass", "debug_skip_reveal"),
                 "此模式請由玩家手機操作，或先切回單機。 / Use the player's device or switch to single device.")
+    protected = protected_seats(g) if mode(g) == "multi" else set()
+    if protected and g["phase"] == "reveal" and action in ("debug_skip_reveal", "ack"):
+        updated = act(g, action, data)  # Keep normal action/field validation.
+        if action == "ack":
+            guard_private(g)
+        ready = set(network(g)["ready"]) | (set(range(1, len(g["players"]) + 1)) - protected if action == "debug_skip_reveal" else {g["reveal_seat"]})
+        network(updated)["ready"] = sorted(ready)
+        if len(ready) < len(g["players"]):
+            updated["phase"] = "reveal"
+            updated["reveal_seat"] = next(s for s in range(1, len(g["players"]) + 1) if s not in ready)
+        clear_round_inputs(updated, turn_key(g))
+        return updated
+    if protected and debug:
+        phase, previous = g["phase"], turn_key(g)
+        if phase in ("witch", "seer", "hunter") and action != "inactive_pass":
+            guard_private(g)
+        if phase == "wolves" and action == "wolves":
+            updated = act(g, action, data)  # Validate without committing the pack's decision yet.
+            wolves = private_view(g)["wolves"]
+            simulated = set(wolves) - protected
+            require(bool(simulated), "所有存活狼人由玩家操作。 / All living wolves are player-controlled.")
+            if set(wolves) & protected:
+                choices = {**network(g)["wolf_votes"], **{str(s): data.get("target") for s in simulated}}
+                if all(str(s) in choices for s in wolves) and len({choices[str(s)] for s in wolves}) == 1:
+                    clear_round_inputs(updated, previous)
+                else:
+                    updated = deepcopy(g)
+                    network(updated)["wolf_votes"] = choices
+                    updated["version"] += 1
+                return updated
+        if phase in ("vote", "runoff") and action in ("ballots", "vote_result") and protected & set(alive(g)):
+            require(action == "ballots", "已有玩家投票，請只模擬未入座玩家的選票。 / Simulate only unclaimed seats; players keep their own ballots.")
+            simulated = set(alive(g)) - protected
+            require(set(data) == {"ballots"} and isinstance(data["ballots"], dict) and bool(simulated)
+                    and set(data["ballots"]) == {str(s) for s in simulated}, "只可提交未入座玩家的選票。 / Submit only unclaimed seats' ballots.")
+            for choice in data["ballots"].values():
+                target(g, choice)
+                require(phase != "runoff" or choice is None or choice in g["runoff"], "加賽只可投平票玩家。 / Vote for a tied player.")
+            updated = deepcopy(g)
+            votes = network(updated)["ballots"]
+            votes.update(data["ballots"])
+            if len(votes) == len(alive(g)):
+                updated = act(updated, "ballots", {"ballots": votes})
+                clear_round_inputs(updated, previous)
+            else:
+                updated["version"] += 1
+            return updated
     previous = turn_key(g)
     updated = act(g, action, data)
     if debug and g["phase"] == "reveal" and action == "ack":
@@ -128,6 +205,10 @@ def host_operation(g, command, data):
             require(not any(other["approved"] and other["seat"] == m["seat"] for other in n["members"].values()),
                     "座位已有玩家，請先撤銷舊裝置。 / Revoke the old device before replacing this seat.")
             m["approved"] = True
+            n["ballots"].pop(str(m["seat"]), None)
+            n["wolf_votes"].pop(str(m["seat"]), None)
+            if g["phase"] == "reveal":
+                n["ready"] = [s for s in n["ready"] if s != m["seat"]]
     else:
         require(False, "未知房間操作。 / Unknown room operation.")
     g["version"] += 1

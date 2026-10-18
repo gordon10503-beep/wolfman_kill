@@ -12,6 +12,17 @@ Choose your house rules **before starting a new game**. To use both witch potion
 
 ![Moonfall interface](docs/preview.png)
 
+## Character archive and invitations
+
+Open the **book icon beside ?** on the homepage, then tap the magic book to release all the animated character cards. The desktop gallery shows three cards above two; phone layouts adapt to two columns. It is a public art collection, independent of any game's secret assignments. Motion off and reduced motion show the collection without the opening effects.
+
+Share these ready-to-post invitation cards; the central QR opens the public website:
+
+- [9:16 invitation · 1080 × 1920 PNG](frontend/assets/invitations/moonfall-invite-9x16.png)
+- [3:4 invitation · 1080 × 1440 PNG](frontend/assets/invitations/moonfall-invite-3x4.png)
+
+Editable SVGs live alongside the PNGs. Optional regeneration: install `tools/requirements-artwork.txt`, run `python tools/generate_invitations.py`, then `node tools/render_invitations.cjs` with `sharp` installed or available through `NODE_PATH`. These artwork dependencies are separate from the game server.
+
 ## One device or a room of phones
 
 **Multi-device room is the default.** Turn off **各用手機 / Multi-device room** for shared-device play, or open **房間／切換裝置 / Room / devices** in a running game.
@@ -25,6 +36,10 @@ Choose your house rules **before starting a new game**. To use both witch potion
 7. The main device controls dawn, discussion and last words, and plays all narration. Player phones stay silent. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
 
 **Switch modes without restarting:** roles, used potions, pending seer results and game progress are retained. Unresolved phone ballots and wolf choices are cleared when switching. If a phone disconnects, reopen the same browser; its player pass is saved locally. For a replacement phone, revoke the old seat device and approve the new request. If a player cannot reconnect, switch to single-device mode to continue. Keep the host tab and its pass private; the host is trusted and can still use DEBUG.
+
+**DEBUG with real players:** approved guests keep control of their own roles, readiness and votes. The host can simulate unclaimed seats and their own seat. Hybrid wolf choices still require the real wolves' agreement, and hybrid ballots wait for the real players. A counted-result shortcut cannot override those ballots. Ownership persists through disconnections until the host revokes the seat or switches to shared-device play. Two host browsers share the same host permissions; version checks accept only one action against a given snapshot, and only the narrator-lease owner speaks.
+
+Once a hunter is publicly called to shoot, their seat label shows **獵人 / Hunter** for the rest of the game. Other identities and death causes remain private until the recap. Endgame narration announces the actual good-side win, wolf win or draw in the chosen language.
 
 **Separate groups can play simultaneously, both before and after this update.** Each game has an independent random ID, passes, state snapshot and lock. A group's player pass cannot access another group's game. Room polling runs every three seconds on visible devices. Capacity depends on the hosting plan; this has not been load-tested to a guaranteed number of rooms. PostgreSQL supports independent row locks; local SQLite serializes brief writes. On a single Render instance either works. SQLite on Render's temporary disk still loses games after disk reset/redeploy; multiple phones do not change that storage limitation.
 

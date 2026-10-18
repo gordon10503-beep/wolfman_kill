@@ -77,3 +77,13 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Fixed ground geometry is separate from halo rotation on the homepage and private role cards. Browser computed styles confirm five stationary ground layers, rotating auras, independently blinking eyes, shaking potions and a moving arrow. Motion off stops each animated part; private witch-card layers were checked separately.
 - Morning audio derives only from an already-published dawn event. Tests cover two casualties, a peaceful night, no pre-dawn disclosure, expiry on the next night, hunter follow-ups, both speech languages, stale-cue rejection, cached replay and muting/interruption races. No role or death cause enters the spoken report.
 - Local verification: 93 Python tests passed; 5 PostgreSQL cases require CI. All 48 frontend tests and JavaScript syntax checks passed.
+
+
+## Version 1.7.4 — 2026-10-19
+
+- Hybrid DEBUG tests reject host power use/inspection for approved guest seers, witches and hunters. Mixed wolf packs wait for agreement, simulated ballots preserve real votes and wait for the final player, and role handoff cannot bypass a guest's Ready. Approval removes the seat's earlier simulated choices; revocation restores simulation.
+- Browser two-tab pass: seat 2 joined, was approved as the seer, investigated seat 1 privately and confirmed the result. The host's stage action was hidden and the bilingual notice identified player-controlled seat 2.
+- Hunter public labels use only a revealed-role flag and retain hidden causes/other roles. Endgame tests cover good-side wins, wolf wins and draws in both narration languages; frontend result caches separate different winners.
+- Archive: book cover, unsealing and card flights checked in the browser. All five cards fit a 1265 × 720 desktop viewport in a 3+2 arrangement without internal scrolling; independent character details animate and Motion off makes the collection static. No console errors observed. Narrow layouts use two columns and allow scrolling; no physical-phone claim is made.
+- Invitation exports: 1080 × 1920 and 1080 × 1440 PNGs visually inspected. ZXing decoded both QR codes at original resolution and at 540-pixel width to https://moonfall-wolfman.onrender.com/. SVG sources and optional reproduction scripts included.
+- Final local checks: 107 Python tests passed, 5 PostgreSQL cases require CI; 51 frontend tests and all JavaScript syntax checks passed. Pytest discovery is restricted to this repository's tests directory.

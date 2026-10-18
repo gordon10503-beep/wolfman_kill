@@ -33,6 +33,17 @@ NARRATION_EN = {
     "runoff": "The vote is tied. Vote once more, choosing only from the tied players.",
     "finished": "The game is over. You may now view the winning team and the full recap.",
 }
+WINNER_NARRATION = {
+    "village": ("遊戲結束。好人陣營勝利！所有狼人已出局。", "The game is over. The good side wins! All werewolves have been eliminated."),
+    "wolves": ("遊戲結束。狼人陣營勝利！", "The game is over. The werewolves win!"),
+    "draw": ("遊戲結束。雙方同時全滅，平局。", "The game is over. Both sides have been eliminated. It is a draw."),
+}
+
+
+def narration(g, language="yue"):
+    if g["phase"] == "finished" and g["winner"] in WINNER_NARRATION:
+        return WINNER_NARRATION[g["winner"]][language == "en"]
+    return (NARRATION_EN if language == "en" else NARRATION)[g["phase"]]
 
 
 class RuleError(ValueError):
@@ -201,13 +212,20 @@ def public_view(g):
     keys = ("version", "phase", "day", "rules", "reveal_seat", "runoff", "winner", "events")
     result = {k: deepcopy(g[k]) for k in keys}
     result["players"] = [{k: v for k, v in p.items() if k in ("seat", "alive") or g["phase"] == "finished"} for p in g["players"]]
+    revealed = {int(match[1]) for e in g["events"] if (match := re.match(r"獵人 (\d+) 號(?:開槍|放棄開槍)", e["text"]))}
+    if g["phase"] == "hunter":
+        revealed.add(g["hunters"][0])
+    if g["phase"] != "finished":
+        for p in result["players"]:
+            if p["seat"] in revealed:
+                p["revealed_role"] = "hunter"
     result["hunter"] = g["hunters"][0] if g["phase"] == "hunter" else None
     result["last_words_seat"] = g["last_words_queue"][0] if g["phase"] == "last_words" else None
     total = sum(p["role"] == g["phase"] for p in g["players"]) if g["phase"] in ("witch", "seer") else 0
     # Role counts/turn ordinals are public; actor seats and availability are not.
     result["role_turn"] = {"number": g.get(g["phase"] + "_cursor", 0) + 1, "total": total} if total > 1 else None
-    result["narration"] = NARRATION[g["phase"]]
-    result["narration_en"] = NARRATION_EN[g["phase"]]
+    result["narration"] = narration(g)
+    result["narration_en"] = narration(g, "en")
     result["room"] = public_room(g)
     result["morning_report"] = morning_report(g)
     return result

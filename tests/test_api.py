@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.7.3"}
-    assert response.headers["x-moonfall-version"] == "1.7.3"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.7.4"}
+    assert response.headers["x-moonfall-version"] == "1.7.4"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -263,3 +263,30 @@ def test_install_manifest_icons_and_worker_are_served(client):
         assert response.status_code==200 and response.headers['content-type']=='image/png'
     assert client.get('/sw.js').status_code==200
     assert 'no-store' in client.get('/sw.js').headers['cache-control']
+
+
+@pytest.mark.parametrize('winner,zh,en', [('village','好人陣營勝利','good side wins'),('wolves','狼人陣營勝利','werewolves win'),('draw','平局','draw')])
+def test_finished_narration_announces_the_actual_result(client,winner,zh,en):
+    g=new_game(COUNTS);g.update(phase='finished',winner=winner)
+    game_id,host,_=client.app.state.store.create(g)
+    path=f'/api/games/{game_id}';headers={'Authorization':'Bearer '+host}
+    state=client.get(path,headers=headers).json()
+    assert zh in state['narration'] and en in state['narration_en']
+    seen=[]
+    async def synthesize(text,profile):seen.append(text);return b'mp3'
+    client.app.state.speech.synthesize=synthesize
+    for lang,expected in [('yue',zh),('en',en)]:
+        assert client.get(path+'/audio?lang='+lang,headers=headers).status_code==200
+        assert expected in seen[-1]
+
+
+def test_debug_private_route_denies_an_approved_guests_power(client):
+    from tests.test_rooms import hybrid_game
+    g,_=hybrid_game('seer','seer')
+    game_id,host,_=client.app.state.store.create(g)
+    path=f'/api/games/{game_id}';headers={'Authorization':'Bearer '+host}
+    assert client.get(path+'/private',headers=headers).status_code==409
+    assert client.get(path+'/debug',headers=headers).json()['control']['can_act'] is False
+    before=client.get(path,headers=headers).json()
+    response=client.post(path+'/actions',headers=headers,json={'version':g['version'],'action':'inspect','data':{'target':1},'debug':True})
+    assert response.status_code==409 and client.get(path,headers=headers).json()==before

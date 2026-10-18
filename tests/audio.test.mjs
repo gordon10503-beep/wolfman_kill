@@ -140,3 +140,12 @@ test('muting a pending morning report prevents playback without marking it as an
   const loading=narrator.speak();ctx.enabled=false;narrator.stop();finish(response());await loading;
   assert.equal(clips.length,0);assert.equal(spoken.length,0);assert.equal(narrator.morningSpoken.size,0);
 });
+
+test('winning teams have separate cached clips across games, and replay reuses the correct result',async()=>{
+  const {ctx}=setup();let requests=0;
+  globalThis.fetch=async()=>{requests++;return response();};
+  ctx.state={phase:'finished',winner:'village',narration:'好人陣營勝利！'};
+  await narrator.speak();ctx.state={...ctx.state,winner:'wolves',narration:'狼人陣營勝利！'};
+  await narrator.speak();await narrator.speak({replay:true});
+  assert.equal(requests,2);
+});

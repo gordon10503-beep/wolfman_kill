@@ -1,3 +1,10 @@
+# Version 1.7.4 — 2026-10-19
+
+- Restrict multi-device DEBUG to unclaimed seats and the host's own seat. Approved guests retain readiness, private powers, pack choices and ballots; hybrid simulations wait for real players. Approval clears prior simulated inputs for that seat.
+- Reveal hunter identity publicly when called to shoot, retain it afterward, and announce the actual winning team or draw with separate cached result clips.
+- Add a public character archive beside Help: a magic book opens and cards fly into a responsive animated gallery. The current desktop layout shows three cards above two, with motion preferences respected.
+- Add matching 1080 × 1920 and 1080 × 1440 invitation PNGs/editable SVGs, with a central QR pointing to the public Render site and optional reproduction tools.
+
 # Version 1.7.3 — 2026-10-19
 
 - Separate the fixed ground flourish from rotating halos on role cards and homepage symbols.

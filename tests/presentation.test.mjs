@@ -23,6 +23,14 @@ test('seat subtext explains the recap without leaking identities or death causes
   assert.equal(englishSeatText({role:'witch',alive:false,cause:'hunter'},true),'Witch · Shot by the hunter');
 });
 
+test('a publicly revealed hunter keeps bilingual identity without exposing their death cause',async()=>{
+  const {chineseSeatText}=await import('../frontend/presentation.mjs');
+  const p={seat:5,alive:false,revealed_role:'hunter'};
+  assert.equal(chineseSeatText(p,false),'獵人 · 已出局');
+  assert.equal(englishSeatText(p,false),'Hunter · Eliminated');
+  assert.equal(chineseSeatText({seat:6,alive:true},false),'身份未公開');
+});
+
 test('recap deaths identify each shooter without exposing that information during play',()=>{
   const victim={seat:1,role:'hunter',alive:false,cause:'hunter',hunter_seat:9};
   assert.equal(chineseDeathText(victim),'被獵人 9 號帶走');

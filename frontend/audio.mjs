@@ -4,6 +4,7 @@ const NEXT = {reveal:['wolves'], wolves:['witch'], witch:['seer'], seer:['dawn']
   vote:['wolves','runoff'], runoff:['wolves']};
 const VOICES = {original:'原版廣東話神經女聲', narrator:'廣東話神經男聲'};
 const ENGLISH_VOICES = {original:'English neural female', narrator:'English neural male'};
+const cueKey=(phase,report,winner)=>`${phase}${winner?`:winner:${winner}`:''}${report?`:morning:${report.key}`:''}`;
 
 export class Narrator {
   generation = 0; audio = null; url = null; watchdog = null;
@@ -23,8 +24,8 @@ export class Narrator {
     this.requests.clear(); this.cache.clear(); this.pending.clear(); this.failures.clear(); this.morningSpoken.clear();
   }
   key(phase, profile, text, language='yue') { return `${language}:${profile}:${phase || text}`; }
-  async clip(session, phase, profile, text='', language='yue', report=null) {
-    const key = this.key(report?`${phase}:morning:${report.key}`:phase, profile, text, language);
+  async clip(session, phase, profile, text='', language='yue', report=null, winner=null) {
+    const key = this.key(cueKey(phase,report,winner), profile, text, language);
     if(this.cache.has(key)) return this.cache.get(key);
     if(this.pending.has(key)) return this.pending.get(key);
     if((this.failures.get(key) || 0) > Date.now()) return null;
@@ -65,10 +66,11 @@ export class Narrator {
     const generation = this.generation, reportKey=`${session.id}:${state.morning_report?.key}`;
     const report=state.morning_report && (replay || !this.morningSpoken.has(reportKey))?state.morning_report:null;
     const text=(report?report[language==='en'?'en':'zh']+' ':'')+(language==='en' ? state.narration_en : state.narration);
-    const cachePhase=report?`${state.phase}:morning:${report.key}`:state.phase;
+    const winner=state.phase==='finished'?state.winner:null;
+    const cachePhase=cueKey(state.phase,report,winner);
     const complete=()=>{if(report)this.morningSpoken.add(reportKey);};
     this.status(this.cache.has(this.key(cachePhase,profile,text,language))?'使用已快取語音…':language==='en'?'Preparing English neural audio…':'正在準備廣東話神經語音…');
-    const blob = await this.clip(session,state.phase,profile,text,language,report);
+    const blob = await this.clip(session,state.phase,profile,text,language,report,winner);
     if(generation !== this.generation || !this.context().enabled) return;
     if(!blob) { this.fallback(text,generation,complete); return; }
     this.prefetch(session,state.phase,profile,language);

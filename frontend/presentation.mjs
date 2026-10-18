@@ -35,8 +35,13 @@ export function chineseDeathText(player, events = []) {
 }
 
 export function englishSeatText(player, finished, events = []) {
-  if (!finished) return player.alive ? 'Alive · Role hidden' : 'Eliminated · Role hidden';
+  if (!finished) return `${player.revealed_role === 'hunter' ? 'Hunter · ' : ''}${player.alive ? 'Alive' : 'Eliminated'}${player.revealed_role === 'hunter' ? '' : ' · Role hidden'}`;
   const hunter = player.cause === 'hunter' ? hunterSeat(player, events) : null;
   const death = hunter ? `Shot by hunter ${hunter}` : ENGLISH_DEATHS[player.cause] || 'Eliminated';
   return `${ENGLISH_ROLES[player.role] || 'Unknown role'} · ${player.alive ? 'Alive' : death}`;
+}
+
+export function chineseSeatText(player, finished, events = []) {
+  if (finished) return `${{wolf:'狼人',seer:'預言家',witch:'女巫',hunter:'獵人',villager:'平民'}[player.role]} · ${player.alive?'存活':chineseDeathText(player,events)}`;
+  return player.revealed_role === 'hunter' ? `獵人 · ${player.alive?'存活':'已出局'}` : player.alive?'身份未公開':'已出局 · 身份未公開';
 }

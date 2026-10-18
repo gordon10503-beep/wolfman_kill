@@ -5,6 +5,7 @@ const roles = {
   hunter: ['獵人','HUNTER','THE LAST ARROW','好人陣營 · GOOD SIDE'],
   villager: ['平民','VILLAGER','THE LANTERN KEEPER','好人陣營 · GOOD SIDE']
 };
+export const characterRoles=Object.keys(roles);
 let artLoaded=false,artLoading,artFallback=false;
 const figures={};
 function hydrateArt(){
@@ -48,5 +49,5 @@ export function characterArt(role,kind='identity'){
 export function roleCard(role, seat) {
   if(!roles[role]) return '';
   const [zh,en,title,side]=roles[role];
-  return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>SEAT ${String(seat).padStart(2,'0')}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
+  return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>${seat==null?'THE ARCHIVE':`SEAT ${String(seat).padStart(2,'0')}`}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
 }

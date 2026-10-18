@@ -13,6 +13,14 @@ test('each identity has distinct detailed artwork, bilingual identity and factio
   assert.equal(roleCard('<script>',1),'');
 });
 
+test('public archive cards have no game seat assignment',async()=>{
+  const {characterRoles}=await import('../frontend/role-cards.mjs');
+  for(const role of characterRoles){
+    assert.match(roleCard(role,null),/THE ARCHIVE/);
+    assert.doesNotMatch(roleCard(role,null),/SEAT/);
+  }
+});
+
 test('character and halo are separate layers for the staged reveal',()=>{
   const card=roleCard('witch',2);
   assert.match(card,/class="identity-figure"/);

@@ -218,3 +218,6 @@ Enable **遺言 / Last words** in house rules to give every first-night casualty
 ## License
 
 No license has been selected. Add an explicit license before inviting redistribution under particular terms.
+
+
+Role artwork is preloaded as a shared vector sprite. Private cards reveal the character first, then a fading, slowly orbiting halo. Homepage symbols have subtle idle motion. Player rooms share day/night animated scenery and the styled public village/chronicle, while private roles remain inside dialogs. Motion off and reduced-motion settings provide static artwork.

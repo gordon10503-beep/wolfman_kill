@@ -1,7 +1,7 @@
 import {roleCard} from './role-cards.mjs';
 import {roleTip, roleEffect} from './role-effects.mjs';
 import {bilingualize} from './bilingual.mjs';
-import {themeForPhase} from './presentation.mjs';
+import {themeForPhase,englishSeatText} from './presentation.mjs';
 import {wolfSweep, skySweep, shouldSweep, skyChange} from './transitions.mjs';
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sub=(zh,en)=>`${zh}<span class="english-subtext" lang="en">${en}</span>`;
@@ -56,6 +56,7 @@ export async function startPlayer(hash) {
   const app=document.querySelector('#app'),dialog=document.querySelector('#private-dialog');
   let id=hash.get('join')||hash.get('player'),credential=null,current=null,busy=false,polling=false,privateKey=null;
   const storageKey=`moonfall-player-${id}`;
+  document.documentElement.dataset.theme='lobby';
   try{credential=JSON.parse(localStorage.getItem(storageKey));}catch{}
   for(const selector of ['#debug','#sound','#session-tools'])document.querySelector(selector).hidden=true;
   document.querySelector('.local-badge').textContent='玩家裝置 · PLAYER DEVICE';
@@ -67,7 +68,7 @@ export async function startPlayer(hash) {
   function error(e){const el=document.querySelector('#player-error');if(el)el.textContent=e.message;}
   async function joinForm() {
     document.documentElement.dataset.theme='lobby';
-    app.innerHTML=`<section class="room-join-intro"><p class="eyebrow">YOUR OWN SECRET · YOUR OWN SCREEN</p><h1>${sub('加入村莊','Join the village')}</h1><p>${sub('座位按加入次序自動分配，主持人批准後即可查看身份。','Seats are assigned automatically in join order. The host approves you before your role is available.')}</p><form class="room-form" id="join-form"><label>${sub('你的稱呼','Your name')}<input name="name" maxlength="32" autocomplete="nickname" required></label><button class="primary">申請加入 · Request a seat</button></form><p class="room-error" id="player-error" role="alert"></p></section>`;
+    app.innerHTML=`<section class="room-join-intro"><div class="game-hero player-scenery"><span>A place among the trees.</span><small>走進村莊 · Enter the village</small></div><p class="eyebrow">YOUR OWN SECRET · YOUR OWN SCREEN</p><h1>${sub('加入村莊','Join the village')}</h1><p>${sub('座位按加入次序自動分配，主持人批准後即可查看身份。','Seats are assigned automatically in join order. The host approves you before your role is available.')}</p><form class="room-form" id="join-form"><label>${sub('你的稱呼','Your name')}<input name="name" maxlength="32" autocomplete="nickname" required></label><button class="primary">申請加入 · Request a seat</button></form><p class="room-error" id="player-error" role="alert"></p></section>`;
     document.querySelector('#join-form').onsubmit=async e=>{
       e.preventDefault();if(busy)return;busy=true;
       try {
@@ -78,13 +79,14 @@ export async function startPlayer(hash) {
     };
   }
   function render() {
-    if(!current.approved){app.innerHTML=`<section class="player-wait"><p class="eyebrow">THE DOOR IS NOT YET OPEN</p><h1>${sub(`${current.seat} 號，等待批准`,`Seat ${current.seat} · Waiting for approval`)}</h1><p>${sub('請讓主持人核對座位，批准後會自動同步。','Ask the host to verify your seat. This screen updates automatically.')}</p><p class="room-error" id="player-error" role="alert"></p></section>`;return;}
+    if(!current.approved){app.innerHTML=`<section class="player-wait"><div class="game-hero player-scenery"><span>The village is gathering.</span><small>等待其他玩家 · Waiting for the village</small></div><p class="eyebrow">THE DOOR IS NOT YET OPEN</p><h1>${sub(`${current.seat} 號，等待批准`,`Seat ${current.seat} · Waiting for approval`)}</h1><p>${sub('請讓主持人核對座位，批准後會自動同步。','Ask the host to verify your seat. This screen updates automatically.')}</p><p class="room-error" id="player-error" role="alert"></p></section>`;return;}
     const state=current.state,multi=state.room.mode==='multi';
     document.documentElement.dataset.theme=themeForPhase(state.phase);
     document.querySelector('meta[name="theme-color"]').content=themeForPhase(state.phase)==='day'?'#edf3eb':'#0a1116';
-    app.innerHTML=`<div class="player-shell"><header class="player-heading"><p class="eyebrow">ONE VILLAGE · YOUR PRIVATE SCREEN</p><h1>${sub(`${current.seat} 號玩家`,`PLAYER ${current.seat}`)}</h1><p>${sub(`第 ${state.day} 輪 · ${state.narration}`,`Round ${state.day} · ${state.narration_en}`)}</p></header><p class="notice">${sub(multi?'跟隨主裝置旁白。只有自己可看私人畫面；切換分頁會自動遮蔽。':'已改用單機交接，請在主裝置繼續。',multi?'Follow the main device narration. Keep private screens to yourself. Switching tabs hides them.':'Single-device mode is active. Continue on the main device.')}</p><div class="player-action">${multi?'<button class="primary" id="player-open">查看身份／行動 · Role & actions</button>':''}</div><div class="player-summary">${state.players.map(p=>`<span>${p.seat} 號 / Seat ${p.seat} · ${p.alive?'存活 / Alive':'出局 / Out'}</span>`).join('')}</div>${state.phase==='finished'?`<div class="winner-banner"><h2>${sub(({village:'好人勝利',wolves:'狼人勝利',draw:'平局'})[state.winner],({village:'Good side wins',wolves:'Wolves win',draw:'Draw'})[state.winner])}</h2>${state.players.map(p=>roleCard(p.role,p.seat)).join('')}</div>`:''}<p class="room-status">${sub('此裝置不播放語音，避免旁白重疊。投票可選自己或棄權。','This device stays silent. You may vote for yourself or abstain. Keep this browser data to reconnect to your seat.')}</p><p class="room-error" id="player-error" role="alert"></p><button class="secondary" id="player-sync">重新同步 · Sync</button></div>`;
+    app.innerHTML=`<div class="player-shell"><header class="player-heading"><p class="eyebrow">ONE VILLAGE · YOUR PRIVATE SCREEN</p><h1>${sub(`${current.seat} 號玩家`,`PLAYER ${current.seat}`)}</h1><p>${sub(`第 ${state.day} 輪 · ${state.narration}`,`Round ${state.day} · ${state.narration_en}`)}</p></header><div class="player-action">${multi?'<button class="primary" id="player-open">查看身份／行動 · Role & actions</button>':''}</div><div class="game-hero player-scenery"><span>${themeForPhase(state.phase)==='night'?'The woods are quiet. Too quiet.':'A new light. The same secrets.'}</span><small>${themeForPhase(state.phase)==='night'?'靜聽森林，守住秘密。 · Keep your secrets.':'晨光已至，故事繼續。 · A new chapter begins.'}</small></div><p class="notice">${sub(multi?'跟隨主裝置旁白。只有自己可看私人畫面；切換分頁會自動遮蔽。':'已改用單機交接，請在主裝置繼續。',multi?'Follow the main device narration. Keep private screens to yourself. Switching tabs hides them.':'Single-device mode is active. Continue on the main device.')}</p><section class="table-panel player-table"><div class="table-top"><p class="eyebrow">THE VILLAGE · 村莊座位</p><span class="live-count"><i></i>${state.players.filter(p=>p.alive).length} / ${state.players.length} 存活 · Alive</span></div><div class="village">${state.players.map(p=>`<article class="seat ${p.alive?'':'dead'} ${p.seat===current.seat?'my-seat':''}"><div class="avatar">${p.seat}</div><strong>SEAT ${String(p.seat).padStart(2,'0')} · ${p.seat} 號</strong><small>${p.seat===current.seat?'本人 · YOU':''}</small><small>${p.alive?'存活':'出局'}${state.phase!=='finished'?' · 身份未公開':''}</small><small>${englishSeatText(p,state.phase==='finished',state.events)}</small></article>`).join('')}</div></section><section class="chronicle player-chronicle"><h3>日夜紀行<span class="english-subtext" lang="en">Day & night chronicle</span></h3>${[...state.events].reverse().map(e=>`<div class="event"><time>ROUND ${String(e.day).padStart(2,'0')}</time><span>${esc(e.text)}</span></div>`).join('')}</section>${state.phase==='finished'?`<div class="winner-banner"><h2>${sub(({village:'好人勝利',wolves:'狼人勝利',draw:'平局'})[state.winner],({village:'Good side wins',wolves:'Wolves win',draw:'Draw'})[state.winner])}</h2>${state.players.map(p=>roleCard(p.role,p.seat)).join('')}</div>`:''}<p class="room-status">${sub('此裝置不播放語音，避免旁白重疊。投票可選自己或棄權。','This device stays silent. You may vote for yourself or abstain. Keep this browser data to reconnect to your seat.')}</p><p class="room-error" id="player-error" role="alert"></p><button class="secondary" id="player-sync">重新同步 · Sync</button></div>`;
     document.querySelector('#player-open')?.addEventListener('click',openPrivate);
     document.querySelector('#player-sync').onclick=()=>sync(true);
+    bilingualize(app);
   }
   async function sync(force=false) {
     if(!credential||polling||document.hidden)return;polling=true;

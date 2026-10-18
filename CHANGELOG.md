@@ -1,3 +1,8 @@
+# Version 1.7.2 — 2026-10-19
+
+- Homepage role symbols have subtle individual idle motion. Player rooms now share animated scenery, a bilingual village table and chronicle; join/approval screens also show the forest. Night overlays retain the painted forest and wolf silhouettes.
+- Role cards preload one shared inline SVG sprite. Emblems rise into place, followed by fading halos and a slow orbit on all five roles. Motion-off/reduced-motion preferences show static cards.
+
 # Version 1.7.1 — 2026-10-19
 
 - New games default to multi-device rooms in the UI and API; existing games keep their mode.

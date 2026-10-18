@@ -4,3 +4,34 @@
 @media(prefers-reduced-motion:reduce){.identity-art svg{filter:none}}
 
 .room-mode button[aria-pressed="true"]{color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent);border-color:var(--gold)}
+
+/* One shared sprite; animate compositor properties only. */
+.character-sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.identity-art{position:relative;isolation:isolate}
+.identity-art .identity-aura{position:absolute;inset:0;transform-origin:50% 46.6667%;opacity:0}
+.identity-art .identity-figure{position:relative;opacity:0;transform:translateY(28px) scale(.92)}
+.identity-art-ready .identity-figure{animation:identity-rise 850ms cubic-bezier(.2,.75,.2,1) both}
+.identity-art-ready .identity-aura{animation:identity-aura-in 1000ms ease 650ms both,identity-orbit 48s linear 650ms infinite}
+@keyframes identity-rise{from{opacity:0;transform:translateY(28px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes identity-aura-in{from{opacity:0}to{opacity:.9}}
+@keyframes identity-orbit{from{transform:rotate(-9deg)}to{transform:rotate(351deg)}}
+:root:has(#motion[aria-pressed="false"]) .identity-art-ready .identity-figure,:root:has(#motion[aria-pressed="false"]) .identity-art-ready .identity-aura{animation:none;opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.identity-art-ready .identity-figure,.identity-art-ready .identity-aura{animation:none!important;opacity:1;transform:none}}
+
+/* Gentle idle motion has one transform per card; no animation timers. */
+.role-card .cast-art{transform-origin:50% 70%;animation:cast-breathe 4s ease-in-out infinite}
+.role-card:nth-child(2) .cast-art{animation:cast-drift 5.2s ease-in-out -.7s infinite}
+.role-card:nth-child(3) .cast-art{animation:cast-tilt 4.6s ease-in-out -1.2s infinite}
+.role-card:nth-child(4) .cast-art{animation:cast-watch 5.8s ease-in-out -.4s infinite}
+.role-card:nth-child(5) .cast-art{animation:cast-drift 4.8s ease-in-out -1.8s infinite}
+@keyframes cast-breathe{0%,100%{transform:translateY(1px) scale(.98)}50%{transform:translateY(-3px) scale(1.03)}}
+@keyframes cast-drift{0%,100%{transform:translateY(2px)}50%{transform:translateY(-5px)}}
+@keyframes cast-tilt{0%,100%{transform:rotate(-2deg) translateY(1px)}50%{transform:rotate(2deg) translateY(-3px)}}
+@keyframes cast-watch{0%,100%{transform:rotate(-1.3deg)}50%{transform:rotate(1.3deg) translateY(-3px)}}
+:root:has(#motion[aria-pressed="false"]) .role-card .cast-art{animation:none;transform:none}
+.night-scene .trees-back{opacity:.22}.night-scene .trees-front{opacity:.32}
+.player-shell{max-width:1100px}.player-heading>p:last-child{color:var(--muted);font-size:13px;line-height:1.8;max-width:640px;margin:16px auto}.player-scenery{border-radius:22px;overflow:hidden;text-align:center;padding:22px}.player-table{border-radius:22px;margin-top:28px}.player-table .my-seat{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.player-chronicle .event span{line-height:1.7}.player-wait{position:relative;border:1px solid var(--border);border-radius:22px;background:var(--panel);margin:35px auto;max-width:640px}
+@media(prefers-reduced-motion:reduce){.role-card .cast-art{animation:none!important;transform:none}}
+
+[data-theme="lobby"] .player-scenery{height:240px}.player-wait>.player-scenery{margin:-1px -1px 24px}.room-join-intro>.player-scenery{margin-bottom:30px}
+@media(max-width:720px){[data-theme="lobby"] .player-scenery{height:190px}}

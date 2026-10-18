@@ -22,17 +22,24 @@ updateMotion();
 function mountForest() {
   const theme = document.documentElement.dataset.theme;
   const hosts = [...app.querySelectorAll('.hero')];
-  if (theme === 'lobby' || theme === 'day') hosts.push(...app.querySelectorAll('.game-hero'));
+  hosts.push(...app.querySelectorAll('.game-hero'));
   for (const host of hosts) {
     if (host.querySelector('.forest-scene')) continue;
-    const kind = theme === 'day' && host.classList.contains('game-hero') ? 'day' : 'lobby';
-    if (!illustrations[kind]) continue;
-    const scene = illustrations[kind].cloneNode(true);
+    const kind = host.classList.contains('game-hero') ? (theme === 'day'?'day':theme==='night'?'night':'lobby') : 'lobby';
+    const source=illustrations[kind==='night'?'lobby':kind];
+    if (!source) continue;
+    const scene = source.cloneNode(true);
     if (kind === 'day') scene.classList.add('day-scene');
+    if(kind==='night'){
+      scene.classList.add('night-scene');
+      // Preserve the painted night forest/wolf silhouettes; layer motion over it.
+      [...scene.children].filter(el=>el.localName==='path').forEach(el=>el.remove());
+      scene.querySelector('.moon')?.remove();
+    }
     scene.classList.add('forest-scene');
     scene.setAttribute('aria-hidden', 'true');
     scene.setAttribute('focusable', 'false');
-    if (host.classList.contains('hero')) scene.setAttribute('preserveAspectRatio', 'xMidYMin slice');
+    if (host.classList.contains('hero') || host.classList.contains('player-scenery')) scene.setAttribute('preserveAspectRatio', 'xMidYMin slice');
     scene.querySelectorAll('.star-field circle').forEach(star => star.setAttribute('r', Math.min(3, Number(star.getAttribute('r')) * 1.7)));
     host.prepend(scene);
     host.classList.add('has-forest-scene');

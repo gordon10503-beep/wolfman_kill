@@ -65,3 +65,8 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Main-device DEBUG can drive all role phases with no guest connections, skip dealing/discussion and submit counted or individual votes. Disabling DEBUG restores seat-only actions. An integration test covers a full peaceful night and counted vote, without any guest joins.
 - Pending requests reserve the next free seat inside SQLite/PostgreSQL write transactions. Eight concurrent guest joins receive seats 2–9 exactly once; a full room rejects new joins and a rejected pending seat is reusable.
 - Browser checked automatic host role reveal and Ready in normal multi mode, without any separate player tab. Solo DEBUG exercised wolf/witch decisions, seer result and acknowledgment. Setup default and revised bilingual copy verified.
+
+- Version 1.7.2 separates each character emblem from its shared halo/star layer, prefixes SVG IDs to avoid forest collisions, and preloads the sprite once. Card identity text remains visible while artwork loads; animation uses opacity/transforms and respects Motion off/reduced motion.
+
+- Browser animation pass: one shared character sprite, character-rise animation present while halo opacity is initially zero; later halo opacity is 0.9 and its transform rotates while the character rests. All five homepage emblems have distinct idle animations; Motion off removes them. Player views show day/night scenes, with forest-twinkle and forest-sway on the night overlay and no public identity cards during an unfinished game. Public table labels and chronicle remain bilingual.
+- Final animation test suite: 42 frontend tests plus JavaScript syntax checks passed. Backend remains at 88 passing local cases, with 5 PostgreSQL cases requiring CI.

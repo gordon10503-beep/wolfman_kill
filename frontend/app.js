@@ -261,7 +261,7 @@ function targetChoices(seats, optional=true) {
 function chosen(form) { const raw=new FormData(form).get('target'); return raw ? Number(raw) : null; }
 async function openHostPrivate(){
   if(busy)return;narrator.stop();
-  try{renderHostPrivate(await api(`/api/games/${session.id}/host-player/private`));showPrivate();}catch(e){toast(e.message);}
+  try{const detail=await api(`/api/games/${session.id}/host-player/private`);if(detail.state.version!==state.version)await setState(detail.state);narrator.stop();renderHostPrivate(detail);showPrivate();}catch(e){toast(e.message);}
 }
 function renderHostPrivate(detail){
   if(detail.can_act && !['vote','runoff'].includes(state.phase)){

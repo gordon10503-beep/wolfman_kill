@@ -13,6 +13,8 @@ export function mountNarratorPanel(content,replay){
 }
 export function selectedPlayMode(){return document.querySelector('input[name="play-mode"]:checked')?.value||'remote';}
 export function updateRuleSummary(){
+  const description=document.querySelector('#play-mode-description');
+  if(description)description.innerHTML=document.querySelector('input[name="play-mode"]:checked')?.closest('label').querySelector('small')?.innerHTML||'';
   const el=document.querySelector('#rules-summary');if(!el)return;
   const checked=id=>document.querySelector('#'+id).checked;
   const mode={single:['共用裝置','Shared device'],multi:['同場各用手機','In-person phones'],remote:['遠端連線','Remote play']}[selectedPlayMode()];

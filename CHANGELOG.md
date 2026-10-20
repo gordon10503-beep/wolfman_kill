@@ -1,3 +1,9 @@
+# Version 1.8.4 — 2026-10-20
+
+- Collapse homepage house rules into a clickable bilingual summary with an expansion chevron; keep Start game accessible while closed and preserve selections across cast/preset changes.
+- Replace overlapping device toggles with one mutually exclusive choice: Shared device, In-person phones, or Remote play (default).
+- Move narrator text and controls into a floating-button glass panel for hosts and remote players, preserving language, voice, replay and fallback controls.
+
 # Version 1.8.3 — 2026-10-20
 
 - Put host room status and invite/approval controls above the Village chronicle heading.

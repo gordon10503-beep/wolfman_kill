@@ -123,3 +123,11 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Frontend syntax and all 56 tests passed. The preceding full backend run passed 114 tests; the additional backend change only bumps the displayed release version.
 
 - Found and fixed native dialog autofocus scrolling a guest role card to Y=-293 while Hide was focused beneath long tips (scrollTop=413). Private identity dialogs now focus the card and start at the top, making the entrance visible.
+
+
+## Version 1.8.4 — 2026-10-20
+
+- House rules default closed with a bilingual six-item overview and chevron; Start remains outside the disclosure. Browser checked live summary changes, exclusively selected play modes, and preserving mode/potion/disclosure state across a six-player preset change.
+- Host narrator content is removed from the main page and moved, with original handlers, into a floating-button glass dialog. Changing language keeps the panel open, updates voice options and leaves only one language selector in the DOM. Remote guests retain language/replay controls in their own panel. Closing restores focus to the launcher.
+- At 390px width, the collapsed home page has no horizontal overflow; narrator panel bounds are x=10…380 and y=10…834 in a 390 × 844 viewport. Temporary QA viewports were reset or their test tabs closed. No physical-phone claim is made.
+- Local checks: 114 Python tests passed, 5 PostgreSQL cases require CI; all 56 frontend tests and JavaScript syntax checks passed.

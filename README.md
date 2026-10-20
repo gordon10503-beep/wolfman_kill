@@ -14,11 +14,13 @@ Choose your house rules **before starting a new game**. To use both witch potion
 
 ## Remote play, chat and DEBUG walkthrough
 
+Tap the floating **旁白 / Narrator** button to open narration text, language, voice and replay settings in a glass panel.
+
 Tap the **speaker icon beside Volume** to mute/unmute without disabling narration; it preserves your chosen volume and mute setting for the tab. Moving the slider unmutes playback.
 
 Tap the floating **聊天 / Chat** bubble to open discussion. A translucent side panel appears on desktop; phones get a nearly full-screen sheet that follows the available keyboard height. Close with ×, Escape or the backdrop. Chat takes no space in the game layout, and unsent drafts survive closing or game updates.
 
-New games default to **遠端遊戲 / Remote play**. Change it in house rules or **Room / devices** during a game. Single-device and in-person phone modes remain available. Remote narration is public only: it never reads role cards, inspections or chat messages. Browsers may require **Replay narration** once before allowing sound.
+New games default to **遠端遊戲 / Remote play**. Open **Tonight’s house rules** and choose one **Play mode**: Shared device, In-person phones, or Remote play. The collapsed summary reflects your choices; Start game stays visible. You can also switch through **Room / devices** during a game. Single-device and in-person phone modes remain available. Remote narration is public only: it never reads role cards, inspections or chat messages. Browsers may require **Replay narration** once before allowing sound.
 
 - **Village chat:** approved players can read it. Living players speak during daytime discussion/voting; designated last-words speakers may speak even after elimination. Lobby and postgame chat are open to approved players. Public sending is closed during night actions.
 - **Private wolf chat:** only living wolves can read/send during the wolves' action phase. The channel disappears when that phase ends. Other roles, audience links, unapproved/revoked passes and other rooms cannot read it. Wolf kill votes remain private and require unanimous agreement, with current pack choices shown in the wolf action screen.

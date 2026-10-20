@@ -1,3 +1,4 @@
+import {clearNarratorPanel,mountNarratorPanel} from './settings-ui.mjs';
 import {roleCard,focusRoleCard} from './role-cards.mjs';
 import {roleTip, roleEffect} from './role-effects.mjs';
 import {bilingualize,setBilingualText} from './bilingual.mjs';
@@ -90,6 +91,7 @@ export async function startPlayer(hash) {
     };
   }
   function render() {
+    clearNarratorPanel(!current.approved||!current.state?.room?.remote);
     updateSound();
     if(!current.approved){narrator.stop();chat.mount(null);app.innerHTML=`<section class="player-wait"><div class="game-hero player-scenery"><span>The village is gathering.</span><small>等待其他玩家 · Waiting for the village</small></div><p class="eyebrow">THE DOOR IS NOT YET OPEN</p><h1>${sub(`${current.seat} 號，等待批准`,`Seat ${current.seat} · Waiting for approval`)}</h1><p>${sub('請讓主持人核對座位，批准後會自動同步。','Ask the host to verify your seat. This screen updates automatically.')}</p><p class="room-error" id="player-error" role="alert"></p></section>`;return;}
     const state=current.state,multi=state.room.mode==='multi';
@@ -99,7 +101,7 @@ export async function startPlayer(hash) {
     document.querySelector('#player-open')?.addEventListener('click',()=>openPrivate(false));
     document.querySelector('#player-role')?.addEventListener('click',()=>openPrivate(true));
     const table=document.querySelector('.player-table'),record=document.querySelector('.player-chronicle');table.before(record);record.insertAdjacentHTML('afterend',voteRecords(state.vote_history));
-    const chatRoot=document.querySelector('#player-chat');if(chatRoot)record.before(chatRoot);chat.mount(chatRoot);
+    const chatRoot=document.querySelector('#player-chat');if(chatRoot)record.before(chatRoot);chat.mount(chatRoot);mountNarratorPanel(document.querySelector('.player-audio-settings'));
     if(state.room.remote){const select=document.querySelector('#player-language');select.value=language;select.onchange=()=>{language=select.value;sessionStorage.setItem('moonfall-speech-language',language);if(voice)narrator.speak();};document.querySelector('#player-replay').onclick=()=>{voice=true;sessionStorage.setItem('moonfall-player-voice','true');updateSound();narrator.speak({replay:true});};}
     document.querySelector('#player-sync').onclick=()=>sync(true);
     bilingualize(app);
@@ -120,7 +122,7 @@ export async function startPlayer(hash) {
       if(dialog.open&&next.state?.phase==='wolves'&&dialog.querySelector('#pack-choices')){const detail=await request('player/private');const pack=dialog.querySelector('#pack-choices');if(pack&&detail.turn_key===privateKey)pack.textContent='狼隊選票 / Pack votes: '+(Object.entries(detail.info?.choices||{}).map(([seat,target])=>`${seat} → ${target??'空刀 / Pass'}`).join(' · ')||'—');}
     }catch(e){
       if(e.status===403){
-        close();narrator.stop();chat.mount(null);credential=null;current=null;updateSound();localStorage.removeItem(storageKey);
+        close();narrator.stop();chat.mount(null);clearNarratorPanel(true);credential=null;current=null;updateSound();localStorage.removeItem(storageKey);
         if(hash.has('invite'))await joinForm();
         else app.innerHTML=`<section class="empty"><h1>${sub('通行證已撤銷','Player pass revoked')}</h1><p>${sub('請重新打開主持人的房間邀請。','Open the host’s room invite to request your seat again.')}</p></section>`;
       }else error(e);

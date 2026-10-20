@@ -18,7 +18,7 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.8.10"
+VERSION = "1.8.11"
 
 
 class CreateGame(BaseModel):
@@ -67,6 +67,7 @@ class Speaker(BaseModel):
 
 
 class ChatMessage(BaseModel):
+    debug: bool = False
     model_config = ConfigDict(extra="forbid")
     channel: Literal["public", "wolves", "spectators"]
     text: str = Field(min_length=1, max_length=500)
@@ -257,13 +258,13 @@ def create_app(database=None, preload_audio=False):
                 "control": rooms.debug_control(state)}
 
     @app.get("/api/games/{game_id}/chat")
-    def chat(game_id: str, after_public: int = Query(default=0, ge=0), after_wolves: int = Query(default=0, ge=0), after_spectators: int = Query(default=0, ge=0), credential=Depends(token)):
+    def chat(game_id: str, after_public: int = Query(default=0, ge=0), after_wolves: int = Query(default=0, ge=0), after_spectators: int = Query(default=0, ge=0), debug: bool = False, credential=Depends(token)):
         g, host, viewer = app.state.store.read_record(game_id)
-        return rooms.chat_view(g, rooms.chat_participant(g, credential, host, viewer), after_public, after_wolves, after_spectators)
+        return rooms.chat_view(g, rooms.chat_participant(g, credential, host, viewer), after_public, after_wolves, after_spectators, debug=debug)
 
     @app.post("/api/games/{game_id}/chat")
     def send_chat(game_id: str, body: ChatMessage, credential=Depends(token)):
-        return app.state.store.mutate(game_id, lambda g, host, viewer: rooms.chat_send(g, rooms.chat_participant(g, credential, host, viewer), body.channel, body.text))
+        return app.state.store.mutate(game_id, lambda g, host, viewer: rooms.chat_send(g, rooms.chat_participant(g, credential, host, viewer), body.channel, body.text, debug=body.debug))
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),

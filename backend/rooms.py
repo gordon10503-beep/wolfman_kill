@@ -334,13 +334,15 @@ def chat_participant(g, credential, host_hash, viewer_hash):
     return participant(g, credential, host_hash)
 
 
-def chat_permissions(g, m):
+def chat_permissions(g, m, debug=False):
     require(remote(g), "文字討論只適用於遠端模式。 / Text chat requires remote mode.")
     if m["seat"] is None:
         return {"public": False, "spectators": True}
     p, phase = player(g, m["seat"]), g["phase"]
     public = phase in ("reveal", "finished") or (p["alive"] and phase in ("discussion", "vote", "runoff")) or (phase == "last_words" and g["last_words_queue"][0] == p["seat"])
-    channels = {"public": public}
+    # Only the authenticated host, alone in the room, may test public chat at night.
+    solo_debug = debug and m.get("host", False) and not protected_seats(g)
+    channels = {"public": public or solo_debug}
     if not p["alive"]:
         channels["spectators"] = True
     if phase == "wolves" and p["role"] == "wolf" and p["alive"]:
@@ -348,17 +350,17 @@ def chat_permissions(g, m):
     return channels
 
 
-def chat_view(g, m, after_public=0, after_wolves=0, after_spectators=0):
-    allowed = chat_permissions(g, m)
+def chat_view(g, m, after_public=0, after_wolves=0, after_spectators=0, debug=False):
+    allowed = chat_permissions(g, m, debug)
     history = network(g).get("chat", {})
-    return {"seat": m["seat"], "channels": {channel: {
+    return {"seat": m["seat"], "solo_debug": bool(debug and m.get("host", False) and not protected_seats(g)), "channels": {channel: {
         "can_send": can_send,
         "messages": [message for message in history.get(channel, [])[-60:] if message["id"] > {"public": after_public, "wolves": after_wolves, "spectators": after_spectators}[channel]]
     } for channel, can_send in allowed.items()}}
 
 
-def chat_send(g, m, channel, text):
-    allowed = chat_permissions(g, m)
+def chat_send(g, m, channel, text, debug=False):
+    allowed = chat_permissions(g, m, debug)
     require(channel in allowed and allowed[channel], "目前不能在此頻道發言。 / You cannot speak in this channel now.")
     require(isinstance(text, str) and 0 < len(text.strip()) <= 500, "訊息須為 1–500 字。 / Messages need 1–500 characters.")
     require(time.time() - m.get("last_chat", 0) >= 1, "請稍候再發送。 / Wait a moment before sending again.")

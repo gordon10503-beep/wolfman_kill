@@ -43,7 +43,7 @@ export class RoomChat{
     try{
       const result=await this.request('?'+query);
       if(generation!==this.generation||!this.root?.isConnected)return;
-      this.capture();
+      this.capture();this.soloDebug=!!result.solo_debug;
       for(const name of Object.keys(this.channels))if(!(name in result.channels)){delete this.channels[name];delete this.drafts[name];}
       for(const [name,c] of Object.entries(result.channels)){
         const previous=this.channels[name]?.messages||[];
@@ -64,6 +64,6 @@ export class RoomChat{
     if(messages.innerHTML!==html){const pinned=messages.scrollHeight-messages.scrollTop-messages.clientHeight<40;messages.innerHTML=html;if(pinned)messages.scrollTop=messages.scrollHeight;}
     const area=this.panel.querySelector('textarea');if(area.value!==(this.drafts[this.active]||''))area.value=this.drafts[this.active]||'';area.disabled=!channel?.can_send;
     this.panel.querySelector('form button').disabled=!channel?.can_send;
-    this.panel.querySelector('.chat-status').textContent=channel?.can_send?(this.active==='wolves'?'僅限存活狼隊可讀。 · Only living wolves can read this channel.':this.active==='spectators'?'僅觀眾與已出局玩家可讀；存活玩家看不到。 · Only spectators and eliminated players can read this chat.':'淘汰玩家可閱讀；輪到遺言時才可發言。 · Eliminated players may read and speak during their last words.'):'目前只可閱讀。 · Read only during this phase.';
+    this.panel.querySelector('.chat-status').textContent=channel?.can_send?(this.soloDebug&&this.active==='public'?'單人 DEBUG：可隨時測試村莊聊天；玩家加入後恢復正常限制。 · Solo DEBUG: test village chat at any phase. Normal restrictions return when a player joins.':this.active==='wolves'?'僅限存活狼隊可讀。 · Only living wolves can read this channel.':this.active==='spectators'?'僅觀眾與已出局玩家可讀；存活玩家看不到。 · Only spectators and eliminated players can read this chat.':'淘汰玩家可閱讀；輪到遺言時才可發言。 · Eliminated players may read and speak during their last words.'):'目前只可閱讀。 · Read only during this phase.';
   }
 }

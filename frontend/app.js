@@ -95,7 +95,7 @@ function toast(message) { setBilingualText($('#toast'), message); $('#toast').cl
 
 const narrator = new Narrator({context:()=>({enabled:voice && mainSpeaker && !(session?.viewer && state?.room?.mode==='multi') && !playerPage,state,session,profile:voiceProfile,language:speechLanguage,allowFallback,volume:voiceVolume()}),status:text=>{const el=$('#voice-status');if(el)setBilingualText(el,text);}});
 bindVolume(narrator);
-const hostChat=new RoomChat({context:()=>({id:session?.id,enabled:!!state?.room?.remote,phase:state?.phase}),request:(suffix,body)=>api(`/api/games/${session.id}/chat${suffix}`,body?{method:'POST',body:JSON.stringify(body)}:{})});
+const hostChat=new RoomChat({context:()=>({id:session?.id,enabled:!!state?.room?.remote,phase:state?.phase}),request:(suffix,body)=>api(`/api/games/${session.id}/chat${suffix}${body?'':`&debug=${debugEnabled&&!session.viewer}`}`,body?{method:'POST',body:JSON.stringify({...body,debug:debugEnabled&&!session.viewer})}:{})});
 const roomHost = new RoomHost({api,session:()=>session,refresh:()=>refresh(),dialog:$('#room-dialog')});
 async function api(path, options = {}) {
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15000);

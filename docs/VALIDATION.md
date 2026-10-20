@@ -172,3 +172,8 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Browser DEBUG pass: six-player room, reveal and confirm seat 1, panel advances to 1/6 ready with prominent seat 2. More options exposes My role; skip action advances to wolves. Existing backend ownership restrictions remain intact.
 - Normal remote host pass: own primary Confirm role reveals the card, then advances readiness to 1/9. At 390px width, document scroll width equals client width (375px) and compact panel width is 339px. Temporary viewport override reset.
 - All 56 frontend tests and syntax checks passed, plus 38 API/room backend cases. Existing player-owned DEBUG and readiness cases passed without engine changes.
+
+
+### 1.8.11 — Solo DEBUG chat
+
+46 remote/room/API tests and 56 frontend tests passed. Verified in the browser that a good-side solo host can send village chat at night in DEBUG. Regression coverage checks ordinary mode, approved guests, spectator credentials, and no extra private-channel access.

@@ -145,3 +145,24 @@ def test_spectators_and_dead_players_share_private_chat_but_only_read_public(rem
     assert c.get(path+'/audio',headers=viewer).status_code==403
     other=c.post('/api/games',json={'counts':{'wolf':1,'seer':1,'witch':1,'hunter':0,'villager':2},'mode':'remote'}).json()
     assert c.get('/api/games/'+other['id']+'/chat',headers=viewer).status_code==403
+
+
+def test_solo_debug_chat_is_host_only_and_stops_when_guest_approved(remote):
+    c,path,host,guest,_,created=remote
+    def night(g,*_):
+        g['phase']='seer'
+        g['players'][0]['role']='villager'
+    c.app.state.store.mutate(created['id'],night)
+    assert not c.get(path+'/chat',headers=host).json()['channels']['public']['can_send']
+    chat=c.get(path+'/chat?debug=true',headers=host).json()
+    assert chat['solo_debug'] and chat['channels']['public']['can_send']
+    assert set(chat['channels'])=={'public'}
+    assert c.post(path+'/chat',headers=host,json={'channel':'public','text':'DEBUG night test','debug':True}).status_code==200
+    viewer={'Authorization':'Bearer '+created['viewer_token']}
+    assert not c.get(path+'/chat?debug=true',headers=viewer).json()['channels']['public']['can_send']
+    assert c.post(path+'/chat',headers=viewer,json={'channel':'public','text':'no','debug':True}).status_code==409
+    approve(remote)
+    for credential in (host,guest):
+        chat=c.get(path+'/chat?debug=true',headers=credential).json()
+        assert not chat['solo_debug'] and not chat['channels']['public']['can_send']
+        assert c.post(path+'/chat',headers=credential,json={'channel':'public','text':'blocked','debug':True}).status_code==409

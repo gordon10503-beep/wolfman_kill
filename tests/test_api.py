@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.8.10"}
-    assert response.headers["x-moonfall-version"] == "1.8.10"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.8.11"}
+    assert response.headers["x-moonfall-version"] == "1.8.11"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):

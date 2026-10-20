@@ -1,5 +1,9 @@
 # Version 1.8.10 — 2026-10-20
 
+## 1.8.11
+
+- Allow the solo DEBUG host to test village chat during night phases. Approved guests restore normal speaking restrictions; private channels remain role protected.
+
 - Simplify role setup to readiness progress, the current seat and core actions. DEBUG prioritizes Skip handoff, with current-seat role viewing secondary.
 - Collapse My role and longer DEBUG/privacy help under More options, retaining a short visible privacy reminder and a visible waiting status for player-controlled turns.
 - Keep existing handlers, permissions and readiness rules; normal hosts still confirm their own role from the primary action.

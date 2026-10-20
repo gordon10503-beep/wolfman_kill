@@ -1,3 +1,8 @@
+# Version 1.8.2 — 2026-10-20
+
+- Default new games to remote mode in setup and the creation API; existing rooms retain their mode.
+- Add a speaker button beside Volume for immediate mute/unmute without disabling narration. Preserve the chosen volume and tab mute preference, with bilingual accessible labels and distinct speaker/muted icons.
+
 # Version 1.8.1 — 2026-10-20
 
 - Replace inline chat with a floating bilingual chat-bubble button and a translucent glass panel: side panel on desktop, nearly full-screen sheet on phones.

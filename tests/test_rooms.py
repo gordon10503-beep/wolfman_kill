@@ -287,10 +287,10 @@ def test_fun_mode_turn_ownership_cover_and_hunter_chain():
     assert rooms.player_view(g,passes[3],True)['info']['active']
 
 
-def test_default_multi_room_can_be_debugged_by_host_alone(room):
+def test_default_remote_room_can_be_debugged_by_host_alone(room):
     c,_,_,_,_=room
     created=c.post('/api/games',json={'counts':COUNTS}).json()
-    assert created['state']['room']['mode']=='multi'
+    assert created['state']['room']['mode']=='multi' and created['state']['room']['remote']
     path='/api/games/'+created['id']
     host={'Authorization':'Bearer '+created['host_token']}
     viewer={'Authorization':'Bearer '+created['viewer_token']}

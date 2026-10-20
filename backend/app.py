@@ -16,14 +16,14 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.8.1"
+VERSION = "1.8.2"
 
 
 class CreateGame(BaseModel):
     model_config = ConfigDict(extra="forbid")
     counts: dict[str, StrictInt]
     rules: dict[str, Any] = Field(default_factory=dict)
-    mode: Literal["single", "multi", "remote"] = "multi"
+    mode: Literal["single", "multi", "remote"] = "remote"
 
 
 class Action(BaseModel):

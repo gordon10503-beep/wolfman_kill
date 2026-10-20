@@ -107,3 +107,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Browser checked opening, Escape closing, focus returned to the launcher, unsent draft retention through closing and game-page rerender, sending a message, and an open draft surviving a server version update. No console errors were observed in the inspected host tab.
 - At 390 × 844 and 390 × 480, the panel and composer stayed within the viewport without horizontal overflow. The smaller viewport simulates reduced available keyboard height; actual physical iPhone keyboard behavior remains untested. VisualViewport resize/scroll tracks phone keyboard space. Temporary viewport override reset.
 - All 56 frontend tests, JavaScript syntax checks and 114 local backend tests passed; 5 PostgreSQL cases require CI. Backend chat access rules are unchanged.
+
+
+## Version 1.8.2 — 2026-10-20
+
+- Browser checked the remote checkbox default and creating a REMOTE TABLE without changing mode. Existing solo DEBUG API coverage now asserts the remote default.
+- Browser checked volume 0.35 → mute → unmute retaining 0.35, narration staying enabled while muted, mute surviving refresh, and slider zero → speaker restoring the last audible volume. Both host and remote guests use the same volume binding and effective-volume context.
+- All 114 local Python tests and 56 frontend tests passed, along with JavaScript syntax checks; 5 PostgreSQL cases require CI.

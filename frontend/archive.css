@@ -47,3 +47,9 @@
 @keyframes archive-chapter-rise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 :root:has(#motion[aria-pressed="false"]) .archive-chapters button{animation:none!important}
 @media(prefers-reduced-motion:reduce){:root:not([data-motion="on"]) .archive-chapters button{animation:none!important}}
+
+/* Chapter palettes retain legible gold typography and the grimoire texture. */
+.archive-dialog[data-chapter="bad"]{background:radial-gradient(ellipse at 50% 20%,#873c4d44,transparent 65%),linear-gradient(90deg,#1b101b,#38202c 48%,#21121e 50%,#38202c 52%,#1b101b);border-color:#bf7d7b88}
+.archive-dialog[data-chapter="good"]{background:radial-gradient(ellipse at 50% 20%,#43877f44,transparent 65%),linear-gradient(90deg,#0b222b,#1c3c43 48%,#102c34 50%,#1c3c43 52%,#0b222b);border-color:#8eb7ad88}
+.archive-dialog[data-chapter="bad"] .archive-chapters{background:#301b29f0}
+.archive-dialog[data-chapter="good"] .archive-chapters{background:#16343cf0}

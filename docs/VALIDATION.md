@@ -191,3 +191,8 @@ Browser verified Enter sends and clears the composer, while Shift+Enter inserts 
 - Browser walkthrough: 13-seat remote DEBUG game; investigate → guardian (host’s own seat) protects wolf target → gravedigger confirms first-night no-result → dawn confirms no deaths → failed knight duel keeps discussion → vote spares Idiot and displays no voting rights. No console errors.
 - Reviewed the nine-card animated archive, verified guardian CSS animation, and checked the 390px mobile cast picker without horizontal overflow. New role art shares the existing lightweight SVG sprite, gold/blue palette, stationary ground and separate rotating aura.
 - Original presets and saves remain valid. New roles start at zero; standard special-role caps remain one and fun-mode caps remain 15 within the total/balance constraints.
+
+
+### 2.0.1 — Presets and compact cast picker
+
+Browser verified: 9-player preset totals nine with one Idiot and two villagers; 12-player preset totals twelve with all nine roles. The 6-player preset folds to five core cards. +/− reveals/hides the extra cards without altering selected counts; a collapsed 12-player preset still creates a twelve-player room. At 390px, the folded picker has no horizontal overflow. JavaScript syntax checks passed.

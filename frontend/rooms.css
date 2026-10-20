@@ -74,3 +74,6 @@
 @media(max-width:720px){.role-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.role-card{padding:15px 4px}.role-card h3{font-size:15px}.role-card small{font-size:8px}.stepper button{width:27px;height:29px}.cast-art{max-width:120px}}
 
 @media(max-width:720px){.progress{overflow-x:auto;justify-content:flex-start}.progress span{flex:0 0 auto;padding:10px 8px}.role-card small{word-break:normal;font-size:8px;letter-spacing:.5px}.stepper{gap:8px}}
+
+.cast-heading{display:flex;align-items:center;gap:12px}.cast-heading h2{margin:0}.cast-expand{flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;font-size:25px;line-height:1;border-radius:14px}.cast-expand[aria-expanded="true"]{border-color:var(--gold);color:var(--gold);background:#c4ab7714}.role-grid.cast-compact{grid-template-columns:repeat(5,minmax(0,1fr))}.cast-extra-summary{margin:15px 0}
+@media(max-width:1000px){.role-grid.cast-compact{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:720px){.cast-heading{gap:8px}.cast-heading h2{font-size:20px}.role-grid.cast-compact{grid-template-columns:repeat(3,minmax(0,1fr))}}

@@ -1,5 +1,10 @@
 # Version 1.8.10 — 2026-10-20
 
+## 2.0.1
+
+- Update 9-player and 12-player presets with new roles.
+- Add a +/− cast control; the traditional 6-player preset hides extra-role cards. Selected extra roles remain included when collapsed and appear in a bilingual summary.
+
 ## 2.0.0 — The village grows
 
 - Add Guardian, Idiot, Knight and Gravedigger with bilingual animated cards and archive support.

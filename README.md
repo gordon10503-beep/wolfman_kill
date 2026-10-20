@@ -72,9 +72,18 @@ No Supabase account is required. The existing backend supports both modes with S
 
 ## Version 2.0 · Nine roles
 
+**Cast picker:** the +/− control beside Assemble the village expands or collapses the four extra roles. Collapsing keeps selected counts, with a bilingual summary so they are never silently removed. The 6-player preset automatically folds the extras; the updated 9- and 12-player presets open them.
+
+| Preset | Cast |
+| --- | --- |
+| 6 | 2 wolves, 1 seer, 1 witch, 2 villagers |
+| 9 | 3 wolves, 1 seer, 1 witch, 1 hunter, 1 Idiot, 2 villagers |
+| 12 | 4 wolves, 1 seer, 1 guardian, 1 witch, 1 hunter, 1 knight, 1 gravedigger, 1 Idiot, 1 villager |
+
+
 <img src="docs/nine-role-archive.png" alt="All nine Moonfall character cards in the animated archive" width="720">
 
-New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All nine cards appear in the animated archive and cast picker. Existing five-role games remain compatible; the new roles start at zero in existing presets.
+New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All nine cards appear in the animated archive and cast picker. Existing five-role games remain compatible; the 6-player preset keeps its traditional cast. The 9-player preset adds the Idiot, and the 12-player preset includes all nine roles.
 
 | Role | Ability |
 | --- | --- |

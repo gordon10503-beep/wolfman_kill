@@ -1,5 +1,9 @@
 # Version 1.8.10 — 2026-10-20
 
+## 1.8.12
+
+- Chat: Enter sends, Shift+Enter inserts a new line. Chinese input composition remains uninterrupted.
+
 ## 1.8.11
 
 - Allow the solo DEBUG host to test village chat during night phases. Approved guests restore normal speaking restrictions; private channels remain role protected.

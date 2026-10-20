@@ -18,7 +18,7 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.8.11"
+VERSION = "1.8.12"
 
 
 class CreateGame(BaseModel):

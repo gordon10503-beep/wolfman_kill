@@ -13,13 +13,22 @@ export class RoomChat{
     if(!this.panel){
       const panel=this.panel=document.createElement('dialog');
       panel.className='chat-overlay';panel.setAttribute('aria-label','遠端文字討論 / Remote text discussion');
-      panel.innerHTML='<header class="chat-heading"><div><p class="eyebrow">VOICES IN THE VILLAGE</p><h3>遠端文字討論<span class="english-subtext" lang="en">Remote text discussion</span></h3></div><button type="button" class="chat-close icon-button" aria-label="關閉聊天室 / Close chat" autofocus>×</button></header><div class="chat-tabs"></div><div class="chat-messages" role="log" aria-label="聊天訊息 / Chat messages"></div><form class="chat-form"><label>訊息 · Message<textarea maxlength="500" rows="2"></textarea></label><button class="secondary">發送 · Send</button></form><p class="chat-status" role="status"></p>';
+      panel.innerHTML='<header class="chat-heading"><div><p class="eyebrow">VOICES IN THE VILLAGE</p><h3>遠端文字討論<span class="english-subtext" lang="en">Remote text discussion</span></h3></div><button type="button" class="chat-close icon-button" aria-label="關閉聊天室 / Close chat" autofocus>×</button></header><div class="chat-tabs"></div><div class="chat-messages" role="log" aria-label="聊天訊息 / Chat messages"></div><form class="chat-form"><label>訊息 · Message<textarea maxlength="500" rows="2" aria-describedby="chat-keyboard-hint"></textarea></label><button class="secondary">發送 · Send</button></form><p class="muted" id="chat-keyboard-hint">Enter 發送 · Shift+Enter 換行<span class="english-subtext" lang="en">Enter to send · Shift+Enter for a new line</span></p><p class="chat-status" role="status"></p>';
       document.body.append(panel);
       this.resize=()=>{const viewport=window.visualViewport;panel.style.setProperty('--chat-viewport-height',`${viewport?.height||window.innerHeight}px`);panel.style.setProperty('--chat-viewport-top',`${viewport?.offsetTop||0}px`);};
       window.visualViewport?.addEventListener('resize',this.resize);window.visualViewport?.addEventListener('scroll',this.resize);this.resize();
       panel.querySelector('.chat-close').onclick=()=>panel.close();
       panel.onclose=()=>{this.capture();this.setExpanded(false);this.root?.querySelector('button')?.focus({preventScroll:true});};
       panel.onclick=event=>{const r=panel.getBoundingClientRect();if(event.target===panel&&(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom))panel.close();};
+      const area=panel.querySelector('textarea');
+      let composing=false;
+      area.addEventListener('compositionstart',()=>{composing=true;});
+      area.addEventListener('compositionend',()=>{composing=false;});
+      area.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'||event.shiftKey||event.isComposing||composing||event.keyCode===229)return;
+        event.preventDefault();
+        if(!event.repeat&&!area.disabled&&!this.sending)panel.querySelector('form').requestSubmit();
+      });
       panel.querySelector('form').onsubmit=async event=>{
         event.preventDefault();const area=panel.querySelector('textarea'),text=area.value.trim(),channel=this.active;
         if(!text||this.sending)return;this.sending=true;

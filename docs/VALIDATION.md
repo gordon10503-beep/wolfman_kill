@@ -114,3 +114,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Browser checked the remote checkbox default and creating a REMOTE TABLE without changing mode. Existing solo DEBUG API coverage now asserts the remote default.
 - Browser checked volume 0.35 → mute → unmute retaining 0.35, narration staying enabled while muted, mute surviving refresh, and slider zero → speaker restoring the last audible volume. Both host and remote guests use the same volume binding and effective-volume context.
 - All 114 local Python tests and 56 frontend tests passed, along with JavaScript syntax checks; 5 PostgreSQL cases require CI.
+
+
+## Version 1.8.3 — 2026-10-20
+
+- Browser host room status Y=201 precedes chronicle heading Y=444. Guest private role has identity-rise + identity-idle and a 32-second halo orbit, with changing computed transforms; its ground has no animation.
+- Browser checked guest Motion off produces no role/halo animation, and explicit Motion on restores both. Reopening host and guest role cards replays their entrance. System reduced-motion preference now controls the default button state and does not suppress an explicitly requested character animation.
+- Frontend syntax and all 56 tests passed. The preceding full backend run passed 114 tests; the additional backend change only bumps the displayed release version.

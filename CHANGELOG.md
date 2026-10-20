@@ -1,3 +1,9 @@
+# Version 1.8.3 — 2026-10-20
+
+- Put host room status and invite/approval controls above the Village chronicle heading.
+- Add continuous gentle role-card idle movement after the entrance and make halo rotation more visible. Keep ground geometry stationary.
+- Reflect system reduced-motion preferences accurately in the Motion button; explicitly selecting Motion on enables character animation, while Motion off still stops it.
+
 # Version 1.8.2 — 2026-10-20
 
 - Default new games to remote mode in setup and the creation API; existing rooms retain their mode.

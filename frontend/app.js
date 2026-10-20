@@ -288,7 +288,7 @@ function renderGame() {
         $('#stage-action')?.remove();$('.quick-vote')?.remove();$('.handoff-stage .handoff-seat')?.remove();$('.handoff-stage .notice')?.remove();
         $('.stage-panel > .muted').innerHTML='等待玩家手機操作。<span class="english-subtext" lang="en">Waiting for the players’ devices.</span>';
       }
-      if(debug){const note=document.createElement('p');note.className='notice';note.id='solo-debug-note';note.innerHTML='單人 DEBUG：可在主裝置代操作所有角色、略過身份交接及討論，並輸入投票結果。無須玩家加入。<span class="english-subtext" lang="en">Solo DEBUG: act for every role on this device, skip reveals/discussion and enter vote results. No joined players required.</span>';if(p==='reveal')$('.stage-panel').prepend(note);else{const help=document.createElement('details');help.className='solo-debug-help';help.innerHTML='<summary>單人除錯指南<span lang="en">Solo DEBUG guide</span></summary>';help.append(note);$('.game-grid').before(help);}}
+      if(debug){const note=document.createElement('p');note.className='notice';note.id='solo-debug-note';note.innerHTML='單人 DEBUG：可在主裝置代操作所有角色、略過身份交接及討論，並輸入投票結果。無須玩家加入。<span class="english-subtext" lang="en">Solo DEBUG: act for every role on this device, skip reveals/discussion and enter vote results. No joined players required.</span>';{const help=document.createElement('details');help.className='solo-debug-help';help.innerHTML='<summary>單人除錯指南<span lang="en">Solo DEBUG guide</span></summary>';help.append(note);$('.game-grid').before(help);}}
       if(hasPlayerAction(p)){const ownAction=document.createElement('button');ownAction.className='primary';ownAction.id='host-own-action';ownAction.textContent=actionLabel(p);ownAction.onclick=()=>openHostPrivate(false);$('.stage-panel').append(ownAction);}
       $('#replay').hidden=false;
     }

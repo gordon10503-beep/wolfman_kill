@@ -69,7 +69,7 @@ export class RoomChat{
     if(tabs.innerHTML!==tabHTML)tabs.innerHTML=tabHTML;
     this.panel.querySelectorAll('[data-channel]').forEach(button=>button.onclick=()=>{this.capture();this.active=button.dataset.channel;this.draw();});
     const channel=this.channels[this.active],messages=this.panel.querySelector('.chat-messages');
-    const html=(channel?.messages||[]).map(m=>`<p><strong>${m.seat===null?'觀眾 · Spectator':`${m.seat} 號 / Seat ${m.seat}`}</strong><span>${esc(m.text)}</span></p>`).join('')||'<p class="muted">還沒有訊息。 · No messages yet.</p>';
+    const html=(channel?.messages||[]).map(m=>`<p><strong>${m.alias?esc(m.alias):m.seat===null?'觀眾 · Spectator':`${m.seat} 號 / Seat ${m.seat}`}</strong><span>${esc(m.text)}</span></p>`).join('')||'<p class="muted">還沒有訊息。 · No messages yet.</p>';
     if(messages.innerHTML!==html){const pinned=messages.scrollHeight-messages.scrollTop-messages.clientHeight<40;messages.innerHTML=html;if(pinned)messages.scrollTop=messages.scrollHeight;}
     const area=this.panel.querySelector('textarea');if(area.value!==(this.drafts[this.active]||''))area.value=this.drafts[this.active]||'';area.disabled=!channel?.can_send;
     this.panel.querySelector('form button').disabled=!channel?.can_send;

@@ -7,7 +7,7 @@ export class NightCoverTimer {
   reset() { clearTimeout(this.timer); this.key = null; }
   enter() {
     const turn = this.context();
-    if (!turn || turn.viewer || !['witch','seer','guard','gravedigger'].includes(turn.phase)) { this.reset(); return; }
+    if (!turn || turn.viewer || !['witch','seer','guard','gravedigger','hidden_wolf','wolf_beauty'].includes(turn.phase)) { this.reset(); return; }
     if (turn.key === this.key) return;
     this.reset(); this.key = turn.key; this.deadline = Date.now() + 10000;
     this.timer = setTimeout(() => this.check(), 10000);

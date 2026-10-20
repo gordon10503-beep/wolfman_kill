@@ -1,6 +1,6 @@
 /** Playback is exclusive; public audio blobs and in-flight loads are reusable. */
-const NEXT = {reveal:['wolves'], wolves:['witch'], witch:['seer'], seer:['guard','gravedigger','dawn'], guard:['gravedigger','dawn'], gravedigger:['dawn'],
-  dawn:['discussion','last_words'], hunter:['discussion','wolves','last_words'], last_words:['discussion','wolves'], discussion:['vote'],
+const NEXT = {reveal:['wolves'], wolves:['hidden_wolf','wolf_beauty','witch'], hidden_wolf:['wolf_beauty','witch'],wolf_beauty:['witch'], witch:['seer'], seer:['guard','gravedigger','dawn'], guard:['gravedigger','dawn'], gravedigger:['dawn'],
+  dawn:['discussion','last_words'], hunter:['discussion','wolves','last_words'],wolf_king_shot:['discussion','wolves','last_words'], last_words:['discussion','wolves'], discussion:['vote'],
   vote:['wolves','runoff'], runoff:['wolves']};
 const VOICES = {original:'原版廣東話神經女聲', narrator:'廣東話神經男聲'};
 const ENGLISH_VOICES = {original:'English neural female', narrator:'English neural male'};
@@ -60,7 +60,7 @@ export class Narrator {
   }
   prefetch(session, phase, profile, language='yue') {
     if(this.context().preload === false) return;
-    for(const next of (NEXT[phase] || []).filter(p=>!['guard','gravedigger'].includes(p)||this.context().state?.role_counts?.[p])) void this.clip(session,next,profile,'',language);
+    for(const next of (NEXT[phase] || []).filter(p=>!['guard','gravedigger','hidden_wolf','wolf_beauty'].includes(p)||this.context().state?.role_counts?.[p])) void this.clip(session,next,profile,'',language);
   }
   async speak({replay=false}={}) {
     this.stop();

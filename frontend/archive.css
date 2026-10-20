@@ -33,3 +33,9 @@
 
 .archive-motion{position:absolute;right:80px;top:18px;display:block;min-height:36px;margin:0;font-size:10px}.archive-motion[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);background:#bda46f14}
 @media(max-width:720px){.archive-dialog .archive-heading{padding-top:42px}.archive-motion{right:66px;top:16px;min-height:40px}}
+
+.archive-chapters{display:flex;gap:10px;justify-content:center;margin:0 auto 22px;max-width:840px;position:sticky;top:-24px;z-index:3;padding:12px 0;background:#142737f0;border-bottom:1px solid #b9a06d40;border-radius:12px}.archive-chapters button{flex:1;max-width:260px;min-height:66px;background:transparent;border:1px solid #ac946a40;border-radius:12px;color:#b9c4cb;padding:10px;cursor:pointer}.archive-chapters button small{font-size:8px;letter-spacing:1.5px;color:#9b927d;display:block;margin-bottom:7px}.archive-chapters button>span{font:17px var(--serif)}.archive-chapters [lang="en"]{display:block;font:10px 'Segoe UI',sans-serif;margin-top:4px;color:#9aabb9}.archive-chapters [aria-selected="true"]{border-color:#d5b77a;background:#b89c6320;color:#eed8a4;box-shadow:inset 0 1px #dcc79830}.archive-chapters [aria-selected="true"] small{color:#d4b97f}.archive-chapter-change .archive-card{animation:chapter-appear .4s ease both}
+@keyframes chapter-appear{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:720px){.archive-chapters{gap:6px;top:-24px}.archive-chapters button{padding:9px 3px;min-height:68px}.archive-chapters button>span{font-size:14px}.archive-chapters [lang="en"]{font-size:9px}.archive-chapters button small{font-size:6px;letter-spacing:.8px}}
+
+.archive-dialog{overflow-x:hidden}

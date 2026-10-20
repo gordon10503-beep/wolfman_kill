@@ -18,7 +18,7 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "2.0.2"
+VERSION = "2.1.0"
 
 
 class CreateGame(BaseModel):
@@ -166,7 +166,8 @@ def create_app(database=None, preload_audio=False):
         if state["phase"] == "wolves" and rooms.mode(state) == "multi":
             info["choices"] = rooms.network(state)["wolf_votes"]
         if state["phase"] == "discussion" and rooms.mode(state) == "multi":
-            info["knights"] = [s for s in info["knights"] if s not in rooms.protected_seats(state)]
+            for name in ("knights", "exploders"):
+                info[name] = [s for s in info[name] if s not in rooms.protected_seats(state)]
         return info
 
     @app.post("/api/games/{game_id}/actions")
@@ -256,7 +257,7 @@ def create_app(database=None, preload_audio=False):
             potions["by_seat"] = {str(p["seat"]): witch_potions(state,p["seat"]) for p in state["players"] if p["role"] == "witch"}
         return {"version": state["version"], "phase": state["phase"], "players": state["players"],
                 "potions": potions,
-                "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]},
+                "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"], "charms": state.get("charms", {})},
                 "control": rooms.debug_control(state)}
 
     @app.get("/api/games/{game_id}/chat")

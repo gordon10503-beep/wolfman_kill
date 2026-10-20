@@ -5,15 +5,19 @@ import re
 import hashlib
 import secrets
 
-ROLES = ("wolf", "seer", "guard", "witch", "hunter", "knight", "gravedigger", "idiot", "villager")
-NIGHT_ROLES = ("witch", "seer", "guard", "gravedigger")
+WOLF_ROLES = frozenset(("wolf", "wolf_king", "white_wolf_king", "wolf_beauty", "hidden_wolf"))
+ROLES = ("wolf", "wolf_king", "white_wolf_king", "wolf_beauty", "hidden_wolf", "seer", "guard", "witch", "hunter", "knight", "gravedigger", "idiot", "villager")
+NIGHT_ROLES = ("hidden_wolf", "wolf_beauty", "witch", "seer", "guard", "gravedigger")
 NEXT_NIGHT = dict(zip(NIGHT_ROLES, (*NIGHT_ROLES[1:], "dawn")))
-ALIGNMENTS = {role: "bad" if role == "wolf" else "good" for role in ROLES}
-LABELS = dict(zip(ROLES, ("狼人", "預言家", "守衛", "女巫", "獵人", "騎士", "守墓人", "白痴神", "平民")))
+ALIGNMENTS = {role: "bad" if role in WOLF_ROLES else "good" for role in ROLES}
+LABELS = dict(zip(ROLES, ("狼人", "狼王", "白狼王", "狼美人", "隱狼", "預言家", "守衛", "女巫", "獵人", "騎士", "守墓人", "白痴神", "平民")))
 NARRATION = {
     "reveal": "歡迎來到狼人殺。請各位玩家依次查看自己的身份。",
-    "wolves": "天黑請閉眼。狼人請睜眼，選擇今晚的目標。",
-    "witch": "狼人請閉眼。女巫請睜眼，確認今晚的資訊，決定是否使用藥物。",
+    "wolves": "天黑請閉眼。有狼刀權的狼隊請睜眼，選擇今晚的目標。其他狼人仍生存時，隱狼請保持閉眼。",
+    "hidden_wolf": "狼隊請閉眼。隱狼請睜眼，私下確認你的狼隊隊友。",
+    "wolf_beauty": "隱狼請閉眼。狼美人請睜眼，選擇今晚魅惑的玩家。",
+    "wolf_king_shot": "狼王請決定是否開槍。",
+    "witch": "狼隊請閉眼。女巫請睜眼，確認今晚的資訊，決定是否使用藥物。",
     "seer": "女巫請閉眼。預言家請睜眼，選擇查驗的玩家。",
     "guard": "預言家請閉眼。守衛請睜眼，選擇今晚守護的玩家。不能連續兩晚守護同一人。",
     "gravedigger": "守衛請閉眼。守墓人請睜眼，查看前一個白天被放逐者的陣營。",
@@ -27,7 +31,10 @@ NARRATION = {
 }
 NARRATION_EN = {
     "reveal": "Welcome to Werewolf. Players, take turns checking your secret roles.",
-    "wolves": "Night falls. Everyone, close your eyes. Werewolves, open your eyes and choose tonight's target.",
+    "wolves": "Night falls. Wolves with the kill vote, open your eyes and choose a target. Hidden Wolves stay closed while other wolves survive.",
+    "hidden_wolf": "Wolves, close your eyes. Hidden Wolf, privately check your teammates.",
+    "wolf_beauty": "Hidden Wolf, close your eyes. Wolf Beauty, open your eyes and choose whom to charm tonight.",
+    "wolf_king_shot": "Wolf King, decide whether to take your final shot.",
     "witch": "Werewolves, close your eyes. Witch, open your eyes. Review tonight's information and decide whether to use a potion.",
     "seer": "Witch, close your eyes. Seer, open your eyes and choose a player to investigate.",
     "guard": "Seer, close your eyes. Guardian, open your eyes. Protect a player, but not the same player as last night.",
@@ -70,7 +77,8 @@ def new_game(counts, rules=None):
     require(all(type(n) is int and 0 <= n <= 16 for n in counts.values()), "角色人數必須是 0–16 的整數。")
     total = sum(counts.values())
     require(5 <= total <= 16, "每局需要 5–16 位玩家。")
-    require(0 < counts["wolf"] < total - counts["wolf"], "至少一位狼人，而且開局狼人必須少於好人。")
+    wolves = sum(counts[r] for r in WOLF_ROLES)
+    require(0 < wolves < total - wolves, "狼人陣營至少一位，而且合計必須少於好人。 / The combined wolf side must start smaller than the good side.")
     options = {"witch_self_save": True, "witch_acts_when_killed": True, "witch_one_potion_per_night": True,
                "guard_save_conflict": True, "parity_wins": True, "discussion_seconds": 90, "wolves_can_abstain": True, "fun_mode": False, "last_words": True}
     if rules:
@@ -97,6 +105,17 @@ def alive(g):
 def player(g, seat):
     require(type(seat) is int and 1 <= seat <= len(g["players"]), "無效座位。")
     return g["players"][seat - 1]
+
+
+def killing_wolves(g):
+    wolves = [p["seat"] for p in g["players"] if p["alive"] and p["role"] in WOLF_ROLES]
+    visible = [s for s in wolves if player(g, s)["role"] != "hidden_wolf"]
+    # Hidden Wolves inherit together only once every other wolf has died.
+    return visible or wolves
+
+
+def wolf_team(g):
+    return [p["seat"] for p in g["players"] if p["role"] in WOLF_ROLES]
 
 
 def role_player(g, role):
@@ -131,7 +150,7 @@ def vote_targets(g):
 
 
 def night_phase(g, phase):
-    while phase in NIGHT_ROLES and not any(p["role"] == phase for p in g["players"]) and (g["rules"].get("fun_mode", False) or phase in ("guard", "gravedigger")):
+    while phase in NIGHT_ROLES and not any(p["role"] == phase for p in g["players"]) and (g["rules"].get("fun_mode", False) or phase in ("guard", "gravedigger", "wolf_beauty", "hidden_wolf")):
         phase = NEXT_NIGHT[phase]
     return phase
 
@@ -165,7 +184,7 @@ def target(g, seat, exclude=(), optional=True):
 
 def check_winner(g):
     living = [p for p in g["players"] if p["alive"]]
-    wolves = sum(p["role"] == "wolf" for p in living)
+    wolves = sum(ALIGNMENTS[p["role"]] == "bad" for p in living)
     good = len(living) - wolves
     # Simultaneous elimination of both factions is explicitly a draw.
     winner = "draw" if not living else "village" if not wolves else "wolves" if not good or (g["rules"]["parity_wins"] and wolves >= good) else None
@@ -182,15 +201,36 @@ def kill(g, seat, cause, night=False):
     p.update(alive=False, cause=cause)
     if g["rules"].get("last_words", False) and (cause == "vote" or (night and g["day"] == 1)):
         g.setdefault("last_words_queue", []).append(seat)
-    if p["role"] == "hunter" and cause != "poison":
+    if p["role"] in ("hunter", "wolf_king") and cause in ("wolf", "vote", "hunter"):
         g["hunters"].append(seat)
+    if p["role"] == "wolf_beauty" and cause in ("vote", "poison", "hunter"):
+        mate = g.get("charms", {}).pop(str(seat), None)
+        if mate is not None:
+            if g.get("_defer_charms"):
+                g.setdefault("_pending_charms", []).append(mate)
+            elif player(g, mate)["alive"]:
+                kill(g, mate, "charm", night)
+                if g["phase"] != "dawn":
+                    event(g, f"{mate} 號因魅惑連鎖出局。")
+
+
+def resolve_deaths(g, causes, night=False):
+    # Direct simultaneous causes win over charm; poison must still prevent shots.
+    before = set(alive(g))
+    g["_defer_charms"] = True
+    for seat, cause in sorted(causes.items()):
+        kill(g, seat, cause, night)
+    g.pop("_defer_charms", None)
+    for seat in g.pop("_pending_charms", []):
+        kill(g, seat, "charm", night)
+    return sorted(before - set(alive(g)))
 
 
 def settle(g, next_phase):
     # Never check parity until all eligible death-triggered shots are resolved.
     g["after_hunter"] = next_phase
     if g["hunters"]:
-        g["phase"] = "hunter"
+        g["phase"] = "wolf_king_shot" if player(g, g["hunters"][0])["role"] == "wolf_king" else "hunter"
     elif g.get("last_words_queue"):
         g["after_last_words"] = next_phase
         g["phase"] = "last_words"
@@ -212,6 +252,8 @@ def private_view(g):
     if phase == "reveal":
         p = player(g, g["reveal_seat"])
         result.update(seat=p["seat"], role=p["role"])
+        if p["role"] == "hidden_wolf":
+            result["team"] = wolf_team(g)
     elif phase == "witch":
         witch = turn_actor(g, "witch")
         victim = g.get("wolf_target", g["kill"])
@@ -234,10 +276,19 @@ def private_view(g):
         exile = g.get("last_exile")
         result.update(active=bool(keeper and keeper["alive"]), actor_seat=keeper["seat"] if keeper else None,
                       grave_result=deepcopy(exile) if keeper and keeper["alive"] and exile and exile["day"] == g["day"] - 1 else None)
+    elif phase == "hidden_wolf":
+        hidden = turn_actor(g, "hidden_wolf")
+        result.update(active=bool(hidden and hidden["alive"]), actor_seat=hidden["seat"] if hidden else None,
+                      team=wolf_team(g) if hidden and hidden["alive"] else [])
+    elif phase == "wolf_beauty":
+        beauty = turn_actor(g, "wolf_beauty")
+        result.update(active=bool(beauty and beauty["alive"]), actor_seat=beauty["seat"] if beauty else None,
+                      targets=[s for s in alive(g) if beauty and s != beauty["seat"]])
     elif phase == "discussion":
+        result["exploders"] = [p["seat"] for p in g["players"] if p["role"] == "white_wolf_king" and p["alive"]]
         result["knights"] = [p["seat"] for p in g["players"] if p["role"] == "knight" and p["alive"] and not p.get("duel_used")]
     elif phase == "wolves":
-        result["wolves"] = [p["seat"] for p in g["players"] if p["alive"] and p["role"] == "wolf"]
+        result["wolves"] = killing_wolves(g)
         result["can_abstain"] = g["rules"].get("wolves_can_abstain", True)
     return result
 
@@ -259,23 +310,26 @@ def public_view(g):
     keys = ("version", "phase", "day", "rules", "reveal_seat", "runoff", "winner", "events")
     result = {k: deepcopy(g[k]) for k in keys}
     result["players"] = [{k: v for k, v in p.items() if k in ("seat", "alive") or g["phase"] == "finished"} for p in g["players"]]
-    revealed = {int(match[1]) for e in g["events"] if (match := re.match(r"獵人 (\d+) 號(?:開槍|放棄開槍)", e["text"]))}
-    if g["phase"] == "hunter":
+    revealed = {int(match[1]) for e in g["events"] if (match := re.match(r"(?:獵人|狼王) (\d+) 號(?:開槍|放棄開槍)", e["text"]))}
+    if g["phase"] in ("hunter", "wolf_king_shot"):
         revealed.add(g["hunters"][0])
     if g["phase"] != "finished":
         for p in result["players"]:
             if p["seat"] in revealed:
-                p["revealed_role"] = "hunter"
+                p["revealed_role"] = player(g, p["seat"])["role"]
     for p in result["players"]:
         original = player(g, p["seat"])
         if original.get("idiot_revealed"):
             p.update(revealed_role="idiot", can_vote=False)
+        elif original.get("exploded"):
+            p["revealed_role"] = "white_wolf_king"
         elif original.get("duel_used"):
             p["revealed_role"] = "knight"
     result["role_counts"] = dict(Counter(p["role"] for p in g["players"]))
     result["voters"] = voters(g)
     result["vote_targets"] = vote_targets(g)
-    result["hunter"] = g["hunters"][0] if g["phase"] == "hunter" else None
+    result["hunter"] = g["hunters"][0] if g["phase"] in ("hunter", "wolf_king_shot") else None
+    result["shooter_role"] = player(g, result["hunter"])["role"] if result["hunter"] else None
     result["last_words_seat"] = g["last_words_queue"][0] if g["phase"] == "last_words" else None
     total = sum(p["role"] == g["phase"] for p in g["players"]) if g["phase"] in NIGHT_ROLES else 0
     # Role counts/turn ordinals are public; actor seats and availability are not.
@@ -319,7 +373,7 @@ def act(original, action, data):
     phase = g["phase"]
     require(phase != "finished", "遊戲已結束。")
     fields = {"ack": set(), "wolves": {"target"}, "witch": {"save", "poison"},
-              "protect": {"target"}, "grave_ack": set(), "duel": {"actor", "target"}, "inspect": {"target"}, "dawn": set(), "shoot": {"target"},
+              "hidden_ack": set(), "charm": {"target"}, "explode": {"actor", "target"}, "protect": {"target"}, "grave_ack": set(), "duel": {"actor", "target"}, "inspect": {"target"}, "dawn": set(), "shoot": {"target"},
               "vote": set(), "ballots": {"ballots"}, "debug_skip_reveal": set(),
               "vote_result": {"leaders"}, "inactive_pass": set(), "last_words_done": set()}
     require(action in fields, "未知行動。")
@@ -337,10 +391,22 @@ def act(original, action, data):
             g["reveal_seat"] += 1
     elif phase == "wolves" and action == "wolves":
         target(g, data.get("target"), optional=g["rules"].get("wolves_can_abstain", True))
-        g["kill"], g["phase"] = data.get("target"), "witch"
+        g["kill"], g["phase"] = data.get("target"), "hidden_wolf"
         g["wolf_target"] = g["kill"]
-        g["witch_cursor"] = g["seer_cursor"] = 0
+        for role in NIGHT_ROLES:
+            g[role + "_cursor"] = 0
         g["poisons"], g["protected"], g["saved_targets"] = [], [], []
+    elif phase == "hidden_wolf" and action == "hidden_ack":
+        finish_role_turn(g, "hidden_wolf", "wolf_beauty")
+    elif phase == "wolf_beauty" and action == "charm":
+        beauty = turn_actor(g, "wolf_beauty")
+        require(beauty is not None and beauty["alive"], "沒有可行動的狼美人。 / No active Wolf Beauty.")
+        seat = data.get("target")
+        target(g, seat, [beauty["seat"]])
+        eligible = seat is not None and (ALIGNMENTS[player(g, seat)["role"]] == "good" or player(g, seat)["role"] == "hidden_wolf")
+        # Never confirm whether the target is a Hidden Wolf through the response.
+        g.setdefault("charms", {})[str(beauty["seat"])] = seat if eligible else None
+        finish_role_turn(g, "wolf_beauty", "witch")
     elif phase == "witch" and action == "witch":
         save, poison = data.get("save", False), data.get("poison")
         require(type(save) is bool, "無效的解藥選項。")
@@ -368,7 +434,7 @@ def act(original, action, data):
         require(seer is not None and seer["alive"], "沒有可行動的預言家。")
         seat = data.get("target")
         target(g, seat, [seer["seat"]], optional=False)
-        g["inspection"] = {"seat": seat, "alignment": ALIGNMENTS[player(g, seat)["role"]]}
+        g["inspection"] = {"seat": seat, "alignment": "good" if player(g, seat)["role"] == "hidden_wolf" else ALIGNMENTS[player(g, seat)["role"]]}
     elif phase == "seer" and action == "ack":
         seer = turn_actor(g, "seer")
         require(seer is None or not seer["alive"] or g["inspection"] is not None, "請先查驗，並確認結果。")
@@ -386,13 +452,23 @@ def act(original, action, data):
         finish_role_turn(g, "guard", "gravedigger")
     elif phase == "gravedigger" and action == "grave_ack":
         finish_role_turn(g, "gravedigger", "dawn")
+    elif phase == "discussion" and action == "explode":
+        king = player(g, data.get("actor"))
+        require(king["role"] == "white_wolf_king" and king["alive"], "白狼王只能在存活的白天討論時自爆。 / A living White Wolf King may explode during discussion only.")
+        seat = data.get("target")
+        target(g, seat, [king["seat"]], optional=False)
+        king["exploded"] = True
+        resolve_deaths(g, {king["seat"]: "explosion", seat: "explosion"})
+        event(g, f"白狼王 {king['seat']} 號自爆，帶走 {seat} 號。")
+        settle(g, "wolves")
+        announce(g, f"白狼王 {king['seat']} 號自爆，帶走 {seat} 號，直接入夜。", f"White Wolf King {king['seat']} explodes, taking seat {seat}. Night begins.")
     elif phase == "discussion" and action == "duel":
         knight = player(g, data.get("actor"))
         require(knight["role"] == "knight" and knight["alive"] and not knight.get("duel_used"), "騎士本局只能決鬥一次。 / Each living knight may duel once per game.")
         seat = data.get("target")
         target(g, seat, [knight["seat"]], optional=False)
         knight["duel_used"] = True
-        if player(g, seat)["role"] == "wolf":
+        if player(g, seat)["role"] in WOLF_ROLES:
             kill(g, seat, "duel")
             event(g, f"騎士 {knight['seat']} 號決鬥，{seat} 號是狼人並出局。")
             settle(g, "wolves")
@@ -408,22 +484,24 @@ def act(original, action, data):
         protected = victim is not None and victim in g.get("protected", [])
         saved = victim is not None and victim in g.get("saved_targets", [])
         wolf_death = victim if protected and saved and g["rules"].get("guard_save_conflict", True) else (None if protected or saved else g["kill"])
-        deaths = sorted(poisons | ({wolf_death} if wolf_death is not None else set()))
-        for seat in deaths:
-            kill(g, seat, "poison" if seat in poisons else "wolf", night=True)
+        causes = {seat: "poison" for seat in poisons}
+        if wolf_death is not None:
+            causes.setdefault(wolf_death, "wolf")
+        deaths = resolve_deaths(g, causes, night=True)
         event(g, "昨晚 " + "、".join(f"{s} 號" for s in deaths) + " 出局。" if deaths else "昨晚是平安夜。")
         settle(g, "discussion")
-        g["morning_cue"] = f'{g["phase"]}:{g["hunters"][0] if g["phase"] == "hunter" else ""}:{g["last_words_queue"][0] if g["phase"] == "last_words" else ""}'
-    elif phase == "hunter" and action == "shoot":
+        g["morning_cue"] = f'{g["phase"]}:{g["hunters"][0] if g["phase"] in ("hunter", "wolf_king_shot") else ""}:{g["last_words_queue"][0] if g["phase"] == "last_words" else ""}'
+    elif phase in ("hunter", "wolf_king_shot") and action == "shoot":
         seat = data.get("target")
         target(g, seat)
         hunter = g["hunters"].pop(0)
+        shooter = LABELS[player(g, hunter)["role"]]
         if seat is not None:
             kill(g, seat, "hunter", night=g["after_hunter"] == "discussion")
-            player(g, seat)["hunter_seat"] = hunter
-            event(g, f"獵人 {hunter} 號開槍，{seat} 號出局。")
+            player(g, seat).update(hunter_seat=hunter, shooter_role=player(g, hunter)["role"])
+            event(g, f"{shooter} {hunter} 號開槍，{seat} 號出局。")
         else:
-            event(g, f"獵人 {hunter} 號放棄開槍。")
+            event(g, f"{shooter} {hunter} 號放棄開槍。")
         settle(g, g["after_hunter"])
     elif phase == "last_words" and action == "last_words_done":
         seat = g["last_words_queue"].pop(0)

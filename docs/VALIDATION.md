@@ -201,3 +201,11 @@ Browser verified: 9-player preset totals nine with one Idiot and two villagers; 
 ### 2.0.2 — Guide return button
 
 Browser confirmed the footer button closes the normal guide, closes the DEBUG guide, and closes the normal guide again after toggling DEBUG off. Guide close handlers are rebound after rebuilding content; optional PWA installation uses delegated clicks and refreshes availability after a rebuild. Module syntax checks passed.
+
+
+### 2.1.0 — Wolf variants, staged cast selection and archive chapters
+
+- 179 backend tests and 58 frontend tests pass locally; five PostgreSQL tests require CI. Syntax checks pass. New wolf coverage checks all three modes, device ownership/stale actions, aggregate balance and victory, shot exceptions/chains, White Wolf King timing, independent/latest charms, Hidden Wolf eligibility and disguise, inherited kill voting, and direct-poison priority.
+- Browser walkthrough: 10-player remote DEBUG room with all four variants. Regular wolf view excludes the Hidden Wolf; its own view lists the team. The seer sees Good side. A night-killed Wolf King shoots Wolf Beauty, taking her charm target too; first-night last words finish before discussion. White Wolf King explodes and skips voting, leaving the Hidden Wolf to inherit the kill.
+- Verified default six-player cast with five core cards, named Extra characters button, eight-option multi-select, no cast change before Confirm, count=1 for additions, and Cancel preserving selected cards.
+- Verified archive chapters contain 13 / 5 / 8 cards with faction styling and continued idle motion. Reviewed desktop artwork and 390px mobile layouts. The vanished book is removed from layout so a desktop-to-phone resize cannot preserve its old off-screen bounds.

@@ -173,4 +173,58 @@
     </g>
     <path d="m117 208 13-14 13 14-13 14Z" fill="#d5bd80"/><path d="m130 198v20" stroke="#314f62"/>
   </symbol>
+
+  <symbol id="character-wolf_king" viewBox="0 0 260 270">
+    <g transform="translate(0 14) scale(1 .9)"><use href="#character-wolf"/></g>
+    <path d="m79 188-22 40 43-15 30 33 30-33 43 15-22-40-51 37Z" fill="#41182b" stroke="#b99460"/>
+    <g class="character-wolf-crown" data-character-part="wolf-crown" fill="url(#character-gold)" stroke="#f0d49b" stroke-width="1.2">
+      <path d="m87 35 24 18 19-32 19 32 24-18-9 39H96Z"/>
+      <path d="M99 67h62" stroke="#522435" stroke-width="4"/>
+      <path d="m130 40 7 10-7 10-7-10Z" fill="#ae2644"/><circle cx="103" cy="58" r="3" fill="#8a243c"/><circle cx="157" cy="58" r="3" fill="#8a243c"/>
+    </g>
+    <g class="character-king-bullet" data-character-part="king-bullet" transform="rotate(-24 195 188)" stroke="#caa574">
+      <path d="M190 152q5-12 10 0v42h-10Z" fill="#cbb178"/><path d="M190 170h10m-11 25h12"/><path d="M194 153v13" stroke="#fff0bd"/>
+    </g>
+  </symbol>
+  <symbol id="character-white_wolf_king" viewBox="0 0 260 270">
+    <circle cx="130" cy="126" r="78" fill="#c8d2d8" opacity=".08"/>
+    <path d="m60 53 42 24 28-13 28 13 42-24-13 83-57 90-57-90Z" fill="#d1d5d2" stroke="url(#character-gold)" stroke-width="1.8"/>
+    <path d="m69 63 22 48 11-28m89-20-22 48-11-28" fill="#432535" stroke="#a77e66"/>
+    <path d="m76 119 30 14 24 45 24-45 30-14-15 52-39 45-39-45Z" fill="#685566"/>
+    <path d="m102 176 28-18 28 18-28 25Z" fill="#d6d0ce" stroke="#af8f76"/><path d="m120 176 10-5 10 5-10 12Z" fill="#241a29"/>
+    <g class="character-wolf-eyes" data-character-part="wolf-eyes"><path d="m86 128 22 8-12 8Zm88 0-22 8 12 8Z" fill="#ff465d"/></g>
+    <path d="m91 43 20 12 19-28 19 28 20-12-8 29H99Z" fill="#bfbdad" stroke="#deca92"/>
+    <g class="character-white-embers" data-character-part="white-embers" fill="#e6c78d">
+      <path d="m45 111 4 8-4 8-4-8Zm170 17 4 8-4 8-4-8ZM69 206l5 7-5 7-5-7Zm122-2 5 7-5 7-5-7Z"/>
+      <circle cx="91" cy="34" r="2"/><circle cx="183" cy="80" r="2"/>
+    </g>
+    <path d="m111 234 19 13 19-13" stroke="#d4ba87" fill="none"/>
+  </symbol>
+  <symbol id="character-wolf_beauty" viewBox="0 0 260 270">
+    <path d="m130 45-47 45-15 122 62 28 62-28-15-122Z" fill="url(#character-red)" stroke="url(#character-gold)" stroke-width="1.6"/>
+    <path d="m130 60-30 40-1 50 31 24 31-24-1-50Z" fill="#191324"/>
+    <path d="m91 90 15 9 24-9 24 9 15-9-8 41-31 24-31-24Z" fill="#94445b" stroke="#d0ae79"/>
+    <path d="m107 111 15 5-10 6Zm46 0-15 5 10 6Z" fill="#f1c69c"/><path d="m121 136 9 4 9-4" fill="none" stroke="#e3ba87"/>
+    <path d="m89 171 41 24 41-24m-54 43 13 10 13-10" stroke="#b7976a" fill="none"/>
+    <g class="character-beauty-heart" data-character-part="beauty-heart">
+      <path d="M130 171c-29-20-31-34-18-39 9-3 15 4 18 9 3-5 9-12 18-9 13 5 11 19-18 39Z" fill="#bc3857" stroke="#e2b47b"/>
+      <path d="m119 145-4 7m28-11 3 5" stroke="#eea5af"/>
+    </g>
+    <g class="character-charm-ribbon" data-character-part="charm-ribbon" fill="none" stroke="#b78079">
+      <path d="M108 151q-64-3-53 39t62 10m35-49q64-3 53 39t-62 10"/>
+      <path d="m55 188-5 8 7 7 6-8Zm150 0 5 8-7 7-6-8Z" fill="#b99666"/>
+    </g>
+  </symbol>
+  <symbol id="character-hidden_wolf" viewBox="0 0 260 270">
+    <path d="m130 44-48 42-13 128 61 26 61-26-13-128Z" fill="#172d40" stroke="#a68b69" stroke-width="1.5"/>
+    <path d="m130 61-31 36 2 63 29 31 29-31 2-63Z" fill="#09111e"/>
+    <path d="m99 99 8-24 23 15 23-15 8 24-5 45-26 35-26-35Z" fill="#172030" stroke="#945264"/>
+    <path d="m111 136 19 11 19-11-19 30Z" fill="#29192a"/>
+    <g class="character-hidden-eye" data-character-part="hidden-eye"><path d="m107 118 15 5-10 7Z" fill="#c5dce0"/><path d="m153 118-15 5 10 7Z" fill="#a83a54"/></g>
+    <g class="character-hidden-veil" data-character-part="hidden-veil" fill="#153349" opacity=".75">
+      <path d="m132 66-9 40 11 39-16 44 14 39 44-18-9-111Z"/>
+    </g>
+    <path d="M68 165q62 63 124-11M77 189q53 37 107-13" fill="none" stroke="#ae9066" opacity=".5"/>
+    <path d="M198 71a18 18 0 1 0 0 32 20 20 0 0 1 0-32Z" fill="#bfa474" opacity=".7"/>
+  </symbol>
 </svg>

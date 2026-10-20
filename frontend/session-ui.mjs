@@ -1,6 +1,6 @@
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const actions={guard:['選擇守護','Choose protection'],gravedigger:['查看放逐陣營','Read the exile’s alignment'],discussion:['騎士決鬥','Knight’s duel'],reveal:['確認身份','Confirm your role'],wolves:['投票選擇狼刀','Vote for the wolf target'],witch:['使用藥水','Choose potions'],seer:['查驗玩家','Investigate a player'],hunter:['決定最後一槍','Take your final shot'],vote:['投票','Vote'],runoff:['加賽投票','Runoff vote']};
-export function actionLabel(phase){return (actions[phase]||['等待下一階段','Waiting for the next phase']).join(' · ');}
+const actions={hidden_wolf:['確認狼隊','Review the wolf team'],wolf_beauty:['選擇魅惑','Choose a charm'],wolf_king_shot:['狼王最後一槍','Wolf King’s final shot'],guard:['選擇守護','Choose protection'],gravedigger:['查看放逐陣營','Read the exile’s alignment'],discussion:['使用白天能力','Use your daytime ability'],reveal:['確認身份','Confirm your role'],wolves:['投票選擇狼刀','Vote for the wolf target'],witch:['使用藥水','Choose potions'],seer:['查驗玩家','Investigate a player'],hunter:['決定最後一槍','Take your final shot'],vote:['投票','Vote'],runoff:['加賽投票','Runoff vote']};
+export function actionLabel(phase,dayAction){if(phase==='discussion'&&dayAction)return dayAction==='explode'?'白狼王自爆 · White Wolf King explosion':'騎士決鬥 · Knight’s duel';return (actions[phase]||['等待下一階段','Waiting for the next phase']).join(' · ');}
 export function hasPlayerAction(phase){return phase in actions;}
 function chosenVolume(){const saved=sessionStorage.getItem('moonfall-volume');return saved===null?1:Math.min(1,Math.max(0,Number(saved)||0));}
 export function voiceVolume(){return sessionStorage.getItem('moonfall-volume-muted')==='true'?0:chosenVolume();}

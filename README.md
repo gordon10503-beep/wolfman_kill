@@ -70,9 +70,9 @@ No Supabase account is required. The existing backend supports both modes with S
 <img src="docs/role-card-preview.png" alt="Crimson and gold wolf role card" width="300">
 
 
-## Version 2.0 · Nine roles
+## Version 2.1 · Thirteen roles
 
-**Cast picker:** the +/− control beside Assemble the village expands or collapses the four extra roles. Collapsing keeps selected counts, with a bilingual summary so they are never silently removed. The 6-player preset automatically folds the extras; the updated 9- and 12-player presets open them.
+**Cast picker:** the homepage defaults to the traditional **6-player preset**, showing only the five core role cards. **＋ 額外角色 / Extra characters** opens a multi-select dialog. Nothing changes until Confirm: new selections start at one player; existing counts are retained; unselecting a role and confirming removes it and sets its count to zero. Cancel leaves the cast untouched. The 9- and 12-player presets explicitly include their configured extras.
 
 | Preset | Cast |
 | --- | --- |
@@ -81,20 +81,26 @@ No Supabase account is required. The existing backend supports both modes with S
 | 12 | 4 wolves, 1 seer, 1 guardian, 1 witch, 1 hunter, 1 knight, 1 gravedigger, 1 Idiot, 1 villager |
 
 
-<img src="docs/nine-role-archive.png" alt="All nine Moonfall character cards in the animated archive" width="720">
+<img src="docs/wolf-role-archive.png" alt="Bad-side chapter with five animated wolf character cards" width="720">
 
-New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All nine cards appear in the animated archive and cast picker. Existing five-role games remain compatible; the 6-player preset keeps its traditional cast. The 9-player preset adds the Idiot, and the 12-player preset includes all nine roles.
+New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All thirteen cards appear in the animated archive, divided into **All (13)**, **Bad side (5)** and **Good side (8)** chapters. Open the magic book first, then use the chapter tabs; the tabs also support arrow keys. Existing five-role games remain compatible; the 6-player preset keeps its traditional cast. The 9-player preset adds the Idiot, and the 12-player preset includes the nine original 2.0 roles; the new wolf variants are optional additions.
 
 | Role | Ability |
 | --- | --- |
+| 狼王 · Wolf King | Joins the wolf kill. Gets a final shot after a night kill, exile or shooting. Poison, duels, explosions and charm deaths prevent the shot. |
+| 白狼王 · White Wolf King | During discussion before voting, explodes and takes another living player, then night begins. Both die without last words or death-triggered shots. |
+| 狼美人 · Wolf Beauty | Chooses a new charm nightly; good players and Hidden Wolves are eligible. Her latest target dies with her after exile, poison or shooting, but not after wolf kills, duels or explosions. Selection does not reveal whether the target is eligible. |
+| 隱狼 · Hidden Wolf | Always inspects as good, but truly belongs to the wolf side. Privately sees wolf-side seats while staying hidden from other wolves. Cannot join the kill or wolf chat while other wolves survive. When only Hidden Wolves remain, they inherit the kill and wolf chat together. |
 | 守衛 · Guardian | Acts after the seer. Protect a living player (including self), or pass. Cannot protect the same seat on consecutive nights. Stops wolf kills, never poison. |
 | 白痴神 · Idiot | Reveals and survives voting exile. Thereafter cannot vote or be exiled again. Still vulnerable to wolves, poison and abilities. Remains a living good-side player for victory counts. |
 | 騎士 · Knight | Once per game, reveal and duel during discussion before voting. A wolf target dies and night starts immediately; otherwise the knight dies and discussion continues. Duel deaths have no last words. |
 | 守墓人 · Gravedigger | Each night privately learns the previous day’s actual voting exile’s alignment. No result on the first night, after no exile, for a spared Idiot or for ability deaths. |
 
-**Night order:** wolves → witch → seer → guardian → gravedigger → dawn. New night roles absent from the cast are skipped. Eliminated holders keep cover turns, with the existing host-visible 10-second inactive timeout. Secrets are never narrated.
+**Night order:** killing wolves → Hidden Wolves → Wolf Beauties → witch → seer → guardian → gravedigger → dawn. New night roles absent from the cast are skipped. Eliminated holders keep cover turns, with the existing host-visible 10-second inactive timeout. Secrets are never narrated.
 
-**守護與解藥同中 / Protection + antidote:** the default house rule eliminates the wolves’ target if both protection and antidote hit them. Turn it off to let that player survive. Poison always takes precedence and prevents hunter shots. Multiple guardians’ protection counts once; each guardian independently remembers their previous target. Each knight has one duel, and each gravedigger receives their own private result. Standard mode allows one of each special role; fun mode allows up to 15, within the 16-player total and wolf minority requirement.
+**Death chains:** resolve simultaneous direct deaths before charm links, with poison taking precedence. Resolve all eligible Hunter/Wolf King shots and last words before victory. A dawn report includes charm casualties that occurred during dawn resolution; a later shot that triggers a charm records the additional elimination separately. Each Wolf Beauty owns a separate latest charm; passing clears it, and repeat targets are allowed. All five wolf-side roles count together for setup balance and victory. The seer’s Hidden Wolf disguise does not change the true alignment reported by the gravedigger.
+
+**守護與解藥同中 / Protection + antidote:** the default house rule eliminates the wolves’ target if both protection and antidote hit them. Turn it off to let that player survive. Poison always takes precedence and prevents hunter shots. Multiple guardians’ protection counts once; each guardian independently remembers their previous target. Each knight has one duel, and each gravedigger receives their own private result. Standard mode allows one of each special role; fun mode permits repeated specials (good-side roles up to 15 and each wolf variant at most 7), within the 16-player total and wolf minority requirement.
 
 A revealed Idiot is omitted from both phone ballot completion and shared-device ballot forms. Knight and Idiot reveals persist on the public seat cards. Public role outcomes receive separate narration cues, so a prefetched ordinary night/discussion prompt cannot replace them. Chat uses **Enter to send**, **Shift+Enter for a newline**, with Chinese IME confirmation protected.
 

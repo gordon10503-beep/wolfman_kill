@@ -1,5 +1,10 @@
+import {wolfRoles} from './new-roles.mjs';
 const roles = {
   wolf: ['狼人','WEREWOLF','THE CRIMSON PACK','壞人陣營 · BAD SIDE'],
+  wolf_king: ['狼王','WOLF KING','THE CRIMSON CROWN','壞人陣營 · BAD SIDE'],
+  white_wolf_king: ['白狼王','WHITE WOLF KING','THE PALE RECKONING','壞人陣營 · BAD SIDE'],
+  wolf_beauty: ['狼美人','WOLF BEAUTY','THE HEARTBOUND CURSE','壞人陣營 · BAD SIDE'],
+  hidden_wolf: ['隱狼','HIDDEN WOLF','THE SILENT ECLIPSE','壞人陣營 · BAD SIDE'],
   seer: ['預言家','SEER','THE VEIL WALKER','好人陣營 · GOOD SIDE'],
   guard: ['守衛','GUARDIAN','THE AEGIS OF DUSK','好人陣營 · GOOD SIDE'],
   witch: ['女巫','WITCH','THE MOON APOTHECARY','好人陣營 · GOOD SIDE'],
@@ -53,7 +58,7 @@ export function characterArt(role,kind='identity'){
 export function roleCard(role, seat) {
   if(!roles[role]) return '';
   const [zh,en,title,side]=roles[role];
-  return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>${seat==null?'THE ARCHIVE':`SEAT ${String(seat).padStart(2,'0')}`}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
+  return `<article class="identity-card ${wolfRoles.includes(role)?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>${seat==null?'THE ARCHIVE':`SEAT ${String(seat).padStart(2,'0')}`}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
 }
 
 /** Keep the entrance visible instead of auto-scrolling to Hide below long role tips. */

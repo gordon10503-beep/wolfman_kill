@@ -8,4 +8,8 @@
 <symbol id="knight" viewBox="0 0 48 48"><path d="m11 5 26 28-5 5L6 10Zm15 23 13 13m-3-17-12 12M35 6l7 7-9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
 <symbol id="gravedigger" viewBox="0 0 48 48"><path d="M10 43V25a9 9 0 0 1 18 0v18M5 43h28M19 23v13m-5-8h10M38 5v31m-5-7h10l-1 12-4 5-4-5ZM34 5q4-7 8 0v5h-8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
 <symbol id="idiot" viewBox="0 0 48 48"><path d="m9 20 15-5 15 5-3 15-12 9-12-9ZM11 20 5 7l14 4 5-8 5 8 14-4-6 13M15 26l5-1m8 0 5 1m-15 8q6 5 12 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="wolf_king" viewBox="0 0 48 48"><path d="m8 17 7 5 9-15 9 15 7-5-4 21-12 8-12-8Zm7 12 5 3m13-3-5 3M8 8l7 3 9-8 9 8 7-3-3 10H11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="white_wolf_king" viewBox="0 0 48 48"><path d="m7 9 11 7h12l11-7-4 22-13 13-13-13Zm7 17 6 3m14-3-6 3M4 39l4-4m32 4-4-4M24 2v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="wolf_beauty" viewBox="0 0 48 48"><path d="m10 8 10 7h8l10-7-3 17-11 12-11-12ZM24 44c-24-16-12-24 0-12 12-12 24-4 0 12Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="hidden_wolf" viewBox="0 0 48 48"><path d="m24 4-15 12-3 26 18 4 18-4-3-26Zm-8 14 8 5 8-5-2 15-6 7-6-7Zm2 8 4 2m8-2-4 2M25 10l-4 11 7 10-5 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
 </defs></svg>

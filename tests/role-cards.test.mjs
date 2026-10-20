@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {roleCard,characterArt} from '../frontend/role-cards.mjs';
 import {readFileSync} from 'node:fs';
 test('each identity has distinct detailed artwork, bilingual identity and faction styling',()=>{
-  for(const role of ['wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
+  for(const role of ['wolf','wolf_king','white_wolf_king','wolf_beauty','hidden_wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
     const card=roleCard(role,4);
     assert.match(card,new RegExp(`data-character-role="${role}"`));
     assert.match(card,/SEAT 04/);
     assert.match(card,/class="english-subtext" lang="en"/);
-    assert.match(card,new RegExp(role==='wolf'?'identity-bad':'identity-good'));
+    assert.match(card,new RegExp(['wolf','wolf_king','white_wolf_king','wolf_beauty','hidden_wolf'].includes(role)?'identity-bad':'identity-good'));
   }
   assert.equal(roleCard('<script>',1),'');
 });
@@ -31,7 +31,7 @@ test('shared sprite has unique IDs and supplies every card layer',()=>{
   const source=readFileSync(new URL('../frontend/assets/character-cards.svg',import.meta.url),'utf8');
   const ids=[...source.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
   assert.equal(new Set(ids).size,ids.length);
-  for(const role of ['wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
+  for(const role of ['wolf','wolf_king','white_wolf_king','wolf_beauty','hidden_wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
     assert.ok(ids.includes(`character-${role}`));
     for(const ref of roleCard(role,1).matchAll(/href="#([^"]+)"/g))assert.ok(ids.includes(ref[1]),ref[1]);
   }
@@ -51,6 +51,15 @@ test('ground geometry is excluded from the rotating halo and shared by both view
 });
 test('role sprite supplies independently moving eyes, arrow and potion groups',()=>{
   const source=readFileSync(new URL('../frontend/assets/character-cards.svg',import.meta.url),'utf8');
-  for(const part of ['wolf-eyes','seer-eye','hunter-arrow','potion-left','potion-right','guard-shield','knight-blade','grave-wisps','idiot-mask'])assert.match(source,new RegExp(`data-character-part="${part}"`));
+  for(const part of ['wolf-eyes','seer-eye','hunter-arrow','potion-left','potion-right','guard-shield','knight-blade','grave-wisps','idiot-mask','wolf-crown','white-embers','beauty-heart','hidden-veil'])assert.match(source,new RegExp(`data-character-part="${part}"`));
   assert.match(source,/#ff465d/);
+});
+
+
+test('archive chapters divide the public catalogue into all, bad and good roles',async()=>{
+  const {archiveRoles}=await import('../frontend/archive.mjs');
+  assert.equal(archiveRoles('all').length,13);assert.equal(archiveRoles('bad').length,5);assert.equal(archiveRoles('good').length,8);
+  assert.deepEqual(new Set([...archiveRoles('bad'),...archiveRoles('good')]),new Set(archiveRoles('all')));
+  for(const role of archiveRoles('bad'))assert.match(roleCard(role,null),/identity-bad/);
+  for(const role of archiveRoles('good'))assert.match(roleCard(role,null),/identity-good/);
 });

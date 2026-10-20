@@ -1,5 +1,13 @@
 # Version 1.8.10 — 2026-10-20
 
+## 2.1.0 — Secrets of the pack
+
+- Add Wolf King, White Wolf King, Wolf Beauty and Hidden Wolf across shared-device, in-person, remote and DEBUG play.
+- Count every wolf variant for balance and victory; Hidden Wolves inspect as good and inherit the kill only when no other wolves survive.
+- Resolve charm and shooting chains without leaking night information; add bilingual narration, role guides and crimson/gold animated cards.
+- Replace cast expansion with a multi-select Extra characters dialog; Confirm applies choices, Cancel preserves the cast. Default to six players with extras absent.
+- Split the archive into All, Bad-side and Good-side chapters, retaining the magic-book opening and card animations.
+
 ## 2.0.2
 
 - Repair guide footer close buttons after guide content is rebuilt, including repeated opens and DEBUG switching.

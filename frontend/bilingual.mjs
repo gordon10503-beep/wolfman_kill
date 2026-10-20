@@ -182,7 +182,7 @@ const COPY = {
   '畫面已過時，已重新同步。請確認目前階段後再操作。':'This view was outdated and has been synchronized. Check the current phase before trying again.'
 };
 
-const roles = {守衛:'Guardian',騎士:'Knight',守墓人:'Gravedigger',白痴神:'Idiot',壞人陣營:'Bad side',好人陣營:'Good side',狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
+const roles = {狼王:'Wolf King',白狼王:'White Wolf King',狼美人:'Wolf Beauty',隱狼:'Hidden Wolf',守衛:'Guardian',騎士:'Knight',守墓人:'Gravedigger',白痴神:'Idiot',壞人陣營:'Bad side',好人陣營:'Good side',狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
 const list = value => value.replace(/、/g, ', ');
 const available = value => value === '無' ? 'none' : `seat ${value}`;
 
@@ -190,6 +190,10 @@ export function englishFor(value) {
   const text = value.trim().replace(/^[↻↩↗＋]\s*/, '').replace(/\s*[↗→]$/, '').replace(/^\/\s*/, '');
   if (COPY[text]) return COPY[text];
   let m;
+  if((m=text.match(/^白狼王 (\d+) 號自爆，帶走 (\d+) 號。$/)))return `White Wolf King ${m[1]} explodes, taking seat ${m[2]}.`;
+  if((m=text.match(/^狼王 (\d+) 號開槍，(\d+) 號出局。$/)))return `Wolf King ${m[1]} shoots. Seat ${m[2]} is eliminated.`;
+  if((m=text.match(/^狼王 (\d+) 號放棄開槍。$/)))return `Wolf King ${m[1]} declines the shot.`;
+  if((m=text.match(/^(\d+) 號因魅惑連鎖出局。$/)))return `Seat ${m[1]} is eliminated by the charm link.`;
   if ((m=text.match(/^白痴神 (\d+) 號翻牌免於放逐，失去投票權。$/))) return `Idiot ${m[1]} reveals, survives exile and loses voting rights.`;
   if ((m=text.match(/^騎士 (\d+) 號決鬥，(\d+) 號是狼人並出局。$/))) return `Knight ${m[1]} duels seat ${m[2]}, a werewolf, who is eliminated.`;
   if ((m=text.match(/^騎士 (\d+) 號決鬥，(\d+) 號不是狼人，騎士出局。$/))) return `Knight ${m[1]} duels seat ${m[2]}, who is not a werewolf. The knight is eliminated.`;
@@ -202,7 +206,7 @@ export function englishFor(value) {
   if ((m=text.match(/^第 (\d+) (晚|輪)$/))) return `${m[2]==='晚'?'Night':'Round'} ${m[1]}`;
   if ((m=text.match(/^(\d+) 號玩家投給$/))) return `Seat ${m[1]} votes for`;
   if ((m=text.match(/^(\d+) 號$/))) return `Seat ${m[1]}`;
-  if ((m=text.match(/^(\d+) 號 · (狼人|預言家|守衛|女巫|獵人|騎士|守墓人|白痴神|平民)$/))) return `Seat ${m[1]} · ${roles[m[2]]}`;
+  if ((m=text.match(/^(\d+) 號 · (狼人|狼王|白狼王|狼美人|隱狼|預言家|守衛|女巫|獵人|騎士|守墓人|白痴神|平民)$/))) return `Seat ${m[1]} · ${roles[m[2]]}`;
   if ((m=text.match(/^現在輪到 (\d+) 號玩家。其他人請移開視線。$/))) return `Seat ${m[1]} is next. Everyone else, look away.`;
   if ((m=text.match(/^確認只有(.+)在看畫面。$/))) return `Confirm that only ${roles[m[1]] || m[1].replace(/(\d+) 號玩家/, 'player $1').replace(/(\d+) 號獵人/, 'hunter $1')} is viewing the screen.`;
   if ((m=text.match(/^你的狼人同伴：([\d、]+) 號。(.*)$/))) return `Fellow wolves: seats ${list(m[1])}. ${englishFor(m[2]) || ''}`;

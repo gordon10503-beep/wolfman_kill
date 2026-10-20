@@ -93,7 +93,7 @@ def test_new_rule_validates_boolean_and_bilingual_prompts_cover_all_phases():
     assert NARRATION.keys() == NARRATION_EN.keys()
     for phase in NARRATION:
         g = game(phase=phase)
-        if phase == "hunter":
+        if phase in ("hunter", "wolf_king_shot"):
             g["hunters"] = [5]
         if phase == "last_words":
             g["last_words_queue"] = [6]

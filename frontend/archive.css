@@ -39,3 +39,11 @@
 @media(max-width:720px){.archive-chapters{gap:6px;top:-24px}.archive-chapters button{padding:9px 3px;min-height:68px}.archive-chapters button>span{font-size:14px}.archive-chapters [lang="en"]{font-size:9px}.archive-chapters button small{font-size:6px;letter-spacing:.8px}}
 
 .archive-dialog{overflow-x:hidden}
+
+/* Chapter tabs rise into place as the grimoire opens. */
+.archive-opened .archive-chapters button{animation:archive-chapter-rise .8s cubic-bezier(.16,.7,.23,1) .45s both}
+.archive-opened .archive-chapters button:nth-child(2){animation-delay:.57s}
+.archive-opened .archive-chapters button:nth-child(3){animation-delay:.69s}
+@keyframes archive-chapter-rise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+:root:has(#motion[aria-pressed="false"]) .archive-chapters button{animation:none!important}
+@media(prefers-reduced-motion:reduce){:root:not([data-motion="on"]) .archive-chapters button{animation:none!important}}

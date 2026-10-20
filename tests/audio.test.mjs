@@ -118,14 +118,36 @@ test('morning report plays once before instructions, while explicit replay reuse
   await narrator.speak({replay:true});assert.equal(urls.length,2);
   assert.equal(clips.filter(c=>c.playing).length,1);
 });
-test('interrupted morning reports retry, and another day gets a separate cached report',async()=>{
+test('an already-started morning report does not repeat when the instruction is interrupted',async()=>{
   const {ctx,clips}=setup();morning(ctx);const urls=[];
   globalThis.fetch=async url=>{urls.push(url);return response();};
   await narrator.speak();narrator.stop();await narrator.speak();
-  assert.equal(urls.length,1);assert.equal(narrator.morningSpoken.size,0);
+  assert.equal(urls.length,2);assert.equal(narrator.morningSpoken.size,1);
+  assert.doesNotMatch(urls[1],/morning=/);
   clips.at(-1).playing=false;clips.at(-1).onended();
   morning(ctx,'2:2,4');await narrator.speak();
-  assert.equal(urls.length,2);assert.match(urls[1],/morning=2/);
+  assert.equal(urls.length,3);assert.match(urls[2],/morning=2/);
+});
+
+test('a hunter shot and its replay cannot repeat the earlier peaceful-night announcement',async()=>{
+  const {ctx}=setup();morning(ctx);ctx.state.phase='discussion';ctx.state.morning_report.zh='昨晚是平安夜。';const urls=[];
+  globalThis.fetch=async url=>{urls.push(url);return response();};
+  await narrator.speak();narrator.stop();ctx.state.phase='hunter';ctx.state.hunter=4;
+  await narrator.speak();await narrator.speak({replay:true});
+  assert.match(urls[0],/morning=1/);assert.equal(urls.length,2);assert.doesNotMatch(urls[1],/morning=/);
+});
+
+test('joining or unmuting during a later hunter turn does not announce an old peaceful night',async()=>{
+  const {ctx}=setup();morning(ctx);ctx.state.hunter=4;ctx.state.morning_report.cue='discussion::';const urls=[];
+  globalThis.fetch=async url=>{urls.push(url);return response();};
+  await narrator.speak({replay:true});assert.doesNotMatch(urls[0],/morning=/);
+});
+
+test('volume changes update the active clip without another request or playback',async()=>{
+  const {ctx,clips}=setup();ctx.volume=.35;let requests=0;
+  globalThis.fetch=async()=>{requests++;return response();};
+  await narrator.speak();assert.equal(clips[0].volume,.35);
+  narrator.setVolume(0);assert.equal(clips[0].volume,0);assert.equal(requests,1);
 });
 test('English fallback reads public morning results before the phase instruction',async()=>{
   const {ctx,spoken}=setup();morning(ctx);ctx.language='en';

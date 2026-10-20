@@ -201,7 +201,7 @@ def morning_report(g):
         if entry["day"] != g["day"] or not entry["text"].startswith("昨晚"):
             continue
         seats = [int(s) for s in re.findall(r"(\d+) 號", entry["text"])]
-        return {"day": g["day"], "key": f'{g["day"]}:' + ",".join(map(str,seats)),
+        return {"day": g["day"], "key": f'{g["day"]}:' + ",".join(map(str,seats)), "cue": g.get("morning_cue"),
                 "zh": entry["text"],
                 "en": "Eliminated last night: seats " + ", ".join(map(str,seats)) + "." if seats else "No one was eliminated last night."}
     return None
@@ -228,6 +228,7 @@ def public_view(g):
     result["narration_en"] = narration(g, "en")
     result["room"] = public_room(g)
     result["morning_report"] = morning_report(g)
+    result["vote_history"] = deepcopy(g.get("vote_history", []))
     return result
 
 
@@ -310,6 +311,7 @@ def act(original, action, data):
             kill(g, seat, "poison" if seat in poisons else "wolf", night=True)
         event(g, "昨晚 " + "、".join(f"{s} 號" for s in deaths) + " 出局。" if deaths else "昨晚是平安夜。")
         settle(g, "discussion")
+        g["morning_cue"] = f'{g["phase"]}:{g["hunters"][0] if g["phase"] == "hunter" else ""}:{g["last_words_queue"][0] if g["phase"] == "last_words" else ""}'
     elif phase == "hunter" and action == "shoot":
         seat = data.get("target")
         target(g, seat)
@@ -336,6 +338,7 @@ def act(original, action, data):
             require(choice is None or phase != "runoff" or choice in g["runoff"], "加賽只可投平票玩家。")
         tally = Counter(s for s in ballots.values() if s is not None)
         leaders = sorted(s for s, n in tally.items() if n == max(tally.values())) if tally else []
+        g.setdefault("vote_history", []).append({"day": g["day"], "round": phase, "ballots": dict(ballots), "leaders": leaders})
         resolve_vote(g, leaders)
     elif phase in ("vote", "runoff") and action == "vote_result":
         leaders = data.get("leaders")

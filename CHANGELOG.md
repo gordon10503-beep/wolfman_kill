@@ -1,3 +1,11 @@
+# Version 1.8.0 — 2026-10-20
+
+- Add switchable remote play with approved-player narration, per-device mute/volume/language and public text discussion. Living wolves have a backend-protected private channel only during their action phase; eliminated players retain reading and designated last words.
+- Preserve completed voter-by-voter results and runoff history, while keeping pending ballots private. Split identity viewing from phase-specific actions and move the chronicle above the seats.
+- Replace Help with a bilingual solo DEBUG walkthrough when DEBUG is enabled, including button purposes and real-player ownership rules.
+- Stop interrupted morning instructions or later hunter turns from repeating an earlier peaceful-night report. Tie new reports to their original morning cue and track playback start rather than waiting for the entire clip to end.
+- Use a host-only cover-status route for inactive-turn timers so player-owned active powers do not cause repeated ownership errors. Text chat uses separate cursors and bounded histories without changing game versions.
+
 # Version 1.7.4 — 2026-10-19
 
 - Restrict multi-device DEBUG to unclaimed seats and the host's own seat. Approved guests retain readiness, private powers, pack choices and ballots; hybrid simulations wait for real players. Approval clears prior simulated inputs for that seat.

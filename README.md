@@ -2,7 +2,7 @@
 
 **When the moon rises, trust no one. 天黑請閉眼，故事即將開始。**
 
-A full-stack, Bilingual-friendly companion for in-person Werewolf. A mysterious moonlit interface replaces terminal prompts, while a Python backend handles rules, private actions, saved games, and narration. The original terminal interface remains available.
+A full-stack, Bilingual-friendly companion for in-person and remote Werewolf. A mysterious moonlit interface replaces terminal prompts, while a Python backend handles rules, private actions, saved games, and narration. The original terminal interface remains available.
 
 **[▶ Play online · 免下載直接玩](https://moonfall-wolfman.onrender.com/)**
 
@@ -11,6 +11,18 @@ Open the link on your phone or computer—no download, Python, or setup required
 Choose your house rules **before starting a new game**. To use both witch potions in one night, turn off **女巫每晚限用一瓶藥 / Limit witch to one potion per night**. Each potion is still single-use per game. Existing games keep their original settings. 如要同晚使用雙藥，請在新局開局前關閉「女巫每晚限用一瓶藥」；每種藥全局仍限一次，舊局設定不變。
 
 ![Moonfall interface](docs/preview.png)
+
+## Remote play, chat and DEBUG walkthrough
+
+Enable **遠端遊戲 / Remote play** in house rules, or select it in **Room / devices** during a game. Single-device and in-person phone modes remain available. Remote narration is public only: it never reads role cards, inspections or chat messages. Browsers may require **Replay narration** once before allowing sound.
+
+- **Village chat:** approved players can read it. Living players speak during daytime discussion/voting; designated last-words speakers may speak even after elimination. Lobby and postgame chat are open to approved players. Public sending is closed during night actions.
+- **Private wolf chat:** only living wolves can read/send during the wolves' action phase. The channel disappears when that phase ends. Other roles, audience links, unapproved/revoked passes and other rooms cannot read it. Wolf kill votes remain private and require unanimous agreement, with current pack choices shown in the wolf action screen.
+- **Vote results:** after all ballots finish, everyone can see each voter, target or abstention, including runoff history. Pending votes remain private. A manually counted result cannot invent individual ballots.
+- **Controls:** View my role is separate from the current action. The lower action button says Vote, Investigate, Choose potions, etc., and appears only when that seat can act. The chronicle and vote ledger sit above the seating plan.
+- **DEBUG help:** turn DEBUG on, then press **?** for a bilingual solo walkthrough explaining each button and its purpose. Turn DEBUG off for the normal game guide. Real player ownership remains protected.
+
+Chat uses bounded per-channel histories in the existing game database, with incremental polling independent of game versions. Sending a message cannot invalidate an open action form or retrigger narration. Chat is text-only for now; live voice discussion remains a future addition.
 
 ## Character archive and invitations
 
@@ -33,7 +45,7 @@ Editable SVGs live alongside the PNGs. Optional regeneration: install `tools/req
 3. Everyone privately opens their illustrated role card and taps **Ready**. The first night starts after all seats are ready.
 5. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches and seers act in seat order, with independent potions; only the acting seat receives its private information. Hunters decide on their own phones.
 6. Living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after everyone submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
-7. The main device controls dawn, discussion and last words, and plays all narration. Player phones stay silent. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
+7. The main device controls dawn, discussion and last words. In-person rooms use one narrator; Remote play gives each approved player public narration with independent mute, volume and language controls. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
 
 **Switch modes without restarting:** roles, used potions, pending seer results and game progress are retained. Unresolved phone ballots and wolf choices are cleared when switching. If a phone disconnects, reopen the same browser; its player pass is saved locally. For a replacement phone, revoke the old seat device and approve the new request. If a player cannot reconnect, switch to single-device mode to continue. Keep the host tab and its pass private; the host is trusted and can still use DEBUG.
 
@@ -43,7 +55,7 @@ Once a hunter is publicly called to shoot, their seat label shows **獵人 / Hun
 
 **Separate groups can play simultaneously, both before and after this update.** Each game has an independent random ID, passes, state snapshot and lock. A group's player pass cannot access another group's game. Room polling runs every three seconds on visible devices. Capacity depends on the hosting plan; this has not been load-tested to a guaranteed number of rooms. PostgreSQL supports independent row locks; local SQLite serializes brief writes. On a single Render instance either works. SQLite on Render's temporary disk still loses games after disk reset/redeploy; multiple phones do not change that storage limitation.
 
-No Supabase account is required. The existing backend supports both modes with SQLite locally or PostgreSQL when `DATABASE_URL` is set. Rooms are for people playing together in real life; the app does not supply voice chat.
+No Supabase account is required. The existing backend supports both modes with SQLite locally or PostgreSQL when `DATABASE_URL` is set. Rooms support playing together in person or remotely with text discussion. Live voice chat is not included yet.
 
 角色卡：好人採用金色及藍色；狼人採用暗紅及金色。使用輕量向量繪圖，在手機也保持清晰。 Role cards use gold and blue for the good side, crimson and gold for wolves, with lightweight vector illustrations.
 
@@ -96,11 +108,11 @@ The table follows the game clock: wolves/witch/seer phases use a moonlit forest 
 | --- | --- |
 | ![Bright morning table](docs/day-preview.png) | ![Moonlit night table](docs/night-preview.png) |
 
-For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During role reveal, **跳過身份交接（DEBUG）** skips all remaining reveals and starts the first night without changing the assigned identities. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
+For testing, toggle **DEBUG on** in the host header. It shows all seat identities, potion inventory, and pending night actions in a host-only panel. During role reveal, **跳過身份交接（DEBUG）** skips unclaimed seats and waits for approved guests to confirm their roles before starting the first night without changing the assigned identities. During discussion it replaces the timer with **跳過討論（DEBUG）**, which goes straight to voting. The toggle is saved in the tab session and can be turned off at any time. Audience links never receive debug information. Turn debug off before handing the host device to players.
 
 In **今晚的約定**, **允許狼人空刀** controls whether wolves may choose no target (on by default). Turn it off before starting a new game to require a living target every night; the server enforces this too. Existing games keep the earlier allow-abstain behavior.
 
-Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English defaults to the male Guy voice; Cantonese defaults to the original female HiuMaan voice. Both languages offer a manual female/male selector and remember overrides separately per language. English uses translated public prompts. The language preference is saved per tab and can change during a game without changing roles or rules. Chinese labels have English subtext across setup rules and instructions, private role screens, voting, timers, debug details, public events, errors, and the endgame seat recap. Private translations stay inside the private dialog; roles and death causes remain hidden in the public seat cards until the game ends.
+Choose **語音語言 → 廣東話 / English** during setup or in the game's narrator card. English defaults to the male Guy voice; Cantonese defaults to the original female HiuMaan voice. Both languages offer a manual female/male selector and remember overrides separately per language. English uses translated public prompts. The language preference is saved per tab and can change during a game without changing roles or rules. Chinese labels have English subtext across setup rules and instructions, private role screens, voting, timers, debug details, public events, errors, and the endgame seat recap. Private translations stay inside the private dialog; unrevealed roles and death causes stay hidden until the recap; publicly called hunters retain their revealed identity.
 
 For solo testing, enable **DEBUG** on the main device. No player joins are needed: skip role reveals, act for the wolves/each witch/each seer/hunters, skip discussion and enter counted votes or individual ballots. The room stays in multi-device mode. Turn DEBUG off to return to normal player-device actions. The host override remains host-only and still follows all role, target, potion and phase rules.
 
@@ -124,7 +136,7 @@ The default is **the same Microsoft neural voice as the original terminal script
 The **聲線** dropdown also offers `zh-HK-WanLungNeural` at `-5%` rate for a slower male delivery. These are voice choices, not guaranteed acting/emotion styles. Edge TTS supports voice/rate/pitch adjustments, but not arbitrary expressive SSML ([library documentation](https://github.com/rany2/edge-tts)). Microsoft lists both Cantonese neural voices in [its language support](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts).
 
 - **Replay:** reuses an in-memory browser audio blob, without another download or synthesis. Rapid clicks share one pending load; only the latest requested playback starts.
-- **Morning results:** after the host publishes dawn results, narration announces eliminated seat numbers or a peaceful night before the next instruction. Each report plays once automatically; Replay includes it again. Cantonese and English are supported, without reading roles or death causes.
+- **Morning results:** after the host publishes dawn results, narration announces eliminated seat numbers or a peaceful night before the next instruction. Each report belongs to the first morning cue and is marked as announced when playback starts. Interrupting an instruction or taking a later hunter shot does not repeat it; Replay includes it only while replaying that same morning cue. Cantonese and English are supported, without reading roles or death causes.
 - **Upcoming phases:** prefetch their fixed public prompts while the current clip is ready.
 - **Server cache:** atomic MP3 files in `data/audio-cache/` survive reloads/restarts; memory hits bypass generation. The server warms all original-voice prompts in the background at startup. A cold install still needs internet/time to generate clips once.
 - **Outages:** synthesis is bounded to 12 seconds, repeated failures back off for 30 seconds, and cached clips remain usable. The server generates at most two clips concurrently and deduplicates identical requests.
@@ -139,7 +151,7 @@ python -m backend.prepare_audio --language en
 python -m backend.prepare_audio --language en --voice narrator
 ```
 
-Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only public instructions and already-published morning casualty seat numbers are cached/sent to the provider; no identities, pending targets, causes of death or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults on for the host and off for audience views; explicit mute choices are saved per tab. **Keep only one tab/device speaking** to avoid multiple independent speakers. A browser may require a click on Replay before allowing its first audio.
+Set `WOLFMAN_AUDIO_CACHE` to choose another cache directory. Only public instructions and already-published morning casualty seat numbers are cached/sent to the provider; no identities, pending targets, causes of death or inspections are voiced. Cached packs work without the speech provider; uncached clips require internet. Audio defaults on for the host and off for audience views; explicit mute choices are saved per tab. **In-person play:** keep one narrator device. **Remote play:** each approved player may narrate and adjust their own volume; audience pages stay silent. A browser may require a click on Replay before allowing its first audio.
 
 ## Tests and development
 

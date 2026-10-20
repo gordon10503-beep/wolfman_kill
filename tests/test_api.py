@@ -47,8 +47,8 @@ def test_validation_and_same_origin(client):
     assert response.status_code == 200
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert response.headers["cache-control"] == "no-store"
-    assert client.get("/api/health").json() == {"status": "ok", "version": "1.7.4"}
-    assert response.headers["x-moonfall-version"] == "1.7.4"
+    assert client.get("/api/health").json() == {"status": "ok", "version": "1.8.0"}
+    assert response.headers["x-moonfall-version"] == "1.8.0"
 
 
 def test_debug_identity_sheet_is_host_only_and_does_not_change_public_state(client):
@@ -286,6 +286,8 @@ def test_debug_private_route_denies_an_approved_guests_power(client):
     game_id,host,_=client.app.state.store.create(g)
     path=f'/api/games/{game_id}';headers={'Authorization':'Bearer '+host}
     assert client.get(path+'/private',headers=headers).status_code==409
+    assert client.get(path+'/cover',headers=headers).json()=={'active':True}
+    assert client.get(path+'/cover').status_code==401
     assert client.get(path+'/debug',headers=headers).json()['control']['can_act'] is False
     before=client.get(path,headers=headers).json()
     response=client.post(path+'/actions',headers=headers,json={'version':g['version'],'action':'inspect','data':{'target':1},'debug':True})

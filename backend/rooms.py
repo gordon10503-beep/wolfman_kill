@@ -37,6 +37,19 @@ def mode(g):
     return g.get("network", {}).get("mode", "single")
 
 
+def remote(g):
+    return mode(g) == "multi" and g.get("network", {}).get("remote", False)
+
+
+def participant(g, credential, host_hash):
+    """Resolve either the host's own seat or one approved player pass."""
+    key = host_key(g) if hmac.compare_digest(digest(credential), host_hash) else digest(credential)
+    m = network(g)["members"].get(key)
+    if not m or not m["approved"]:
+        raise PermissionError("需要已批准玩家的通行證。 / An approved player pass is required.")
+    return m
+
+
 def host_key(g):
     return next((key for key,m in network(g)["members"].items() if m.get("host")), None)
 
@@ -63,7 +76,7 @@ def turn_key(g):
 def public_room(g):
     n = g.get("network", {})
     # Nighttime completion never names the acting seat or reveals availability.
-    return {"mode": mode(g), "connected": sum(m["approved"] for m in n.get("members", {}).values()),
+    return {"mode": mode(g), "remote": remote(g), "connected": sum(m["approved"] for m in n.get("members", {}).values()),
             "ready": len(n.get("ready", [])) if g["phase"] == "reveal" else None,
             "votes_received": len(n.get("ballots", {})) if g["phase"] in ("vote", "runoff") else None}
 
@@ -178,9 +191,11 @@ def host_action(g, action, data, debug=False):
 def host_operation(g, command, data):
     n = network(g)
     if command == "mode":
-        require(set(data) == {"mode"} and data["mode"] in ("single", "multi"), "無效模式。 / Invalid mode.")
-        if n["mode"] != data["mode"]:
-            n["mode"] = data["mode"]
+        require(set(data) == {"mode"} and data["mode"] in ("single", "multi", "remote"), "無效模式。 / Invalid mode.")
+        next_mode = "single" if data["mode"] == "single" else "multi"
+        next_remote = data["mode"] == "remote"
+        if n["mode"] != next_mode or remote(g) != next_remote:
+            n["mode"], n["remote"] = next_mode, next_remote
             n["epoch"] += 1
             n["ballots"], n["wolf_votes"] = {}, {}
             # Roles already checked on the shared device remain acknowledged.
@@ -240,7 +255,14 @@ def player_view(g, token, include_private=False, *, member_key=None):
     m = network(g)["members"][member_key] if member_key else member(g, token)
     if not m["approved"]:
         return {"approved": False, "seat": m["seat"], "version": g["version"]}
-    result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g)}
+    p, phase = player(g, m["seat"]), g["phase"]
+    actor = turn_actor(g, phase) if phase in ("witch", "seer") else None
+    available = ((phase == "reveal" and p["seat"] not in network(g)["ready"])
+                 or (phase == "wolves" and p["role"] == "wolf" and p["alive"])
+                 or (actor is not None and actor["seat"] == p["seat"])
+                 or (phase == "hunter" and g["hunters"][0] == p["seat"])
+                 or (phase in ("vote", "runoff") and p["alive"]))
+    result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g), "can_act": available and mode(g) == "multi"}
     if not include_private:
         return result
     require(mode(g) == "multi", "已切換單機，請看主裝置。 / Single-device mode: use the main device.")
@@ -304,3 +326,35 @@ def player_action(g, token, key, action, data, *, member_key=None):
         replace_state(g, act(g, action, data))
     clear_round_inputs(g, previous)
     return player_view(g, token, member_key=member_key)
+
+
+def chat_permissions(g, m):
+    require(remote(g), "文字討論只適用於遠端模式。 / Text chat requires remote mode.")
+    p, phase = player(g, m["seat"]), g["phase"]
+    public = phase in ("reveal", "finished") or (p["alive"] and phase in ("discussion", "vote", "runoff")) or (phase == "last_words" and g["last_words_queue"][0] == p["seat"])
+    channels = {"public": public}
+    if phase == "wolves" and p["role"] == "wolf" and p["alive"]:
+        channels["wolves"] = True
+    return channels
+
+
+def chat_view(g, m, after_public=0, after_wolves=0):
+    allowed = chat_permissions(g, m)
+    history = network(g).get("chat", {})
+    return {"seat": m["seat"], "channels": {channel: {
+        "can_send": can_send,
+        "messages": [message for message in history.get(channel, [])[-60:] if message["id"] > (after_public if channel == "public" else after_wolves)]
+    } for channel, can_send in allowed.items()}}
+
+
+def chat_send(g, m, channel, text):
+    allowed = chat_permissions(g, m)
+    require(channel in allowed and allowed[channel], "目前不能在此頻道發言。 / You cannot speak in this channel now.")
+    require(isinstance(text, str) and 0 < len(text.strip()) <= 500, "訊息須為 1–500 字。 / Messages need 1–500 characters.")
+    require(time.time() - m.get("last_chat", 0) >= 1, "請稍候再發送。 / Wait a moment before sending again.")
+    history = network(g).setdefault("chat", {}).setdefault(channel, [])
+    history.append({"id": history[-1]["id"] + 1 if history else 1, "seat": m["seat"], "text": text.strip(), "day": g["day"]})
+    del history[:-120]
+    m["last_chat"] = time.time()
+    # Chat has its own cursor: typing must not invalidate role actions or replay narration.
+    return {"sent": True}

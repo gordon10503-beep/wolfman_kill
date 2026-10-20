@@ -87,3 +87,13 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Archive: book cover, unsealing and card flights checked in the browser. All five cards fit a 1265 × 720 desktop viewport in a 3+2 arrangement without internal scrolling; independent character details animate and Motion off makes the collection static. No console errors observed. Narrow layouts use two columns and allow scrolling; no physical-phone claim is made.
 - Invitation exports: 1080 × 1920 and 1080 × 1440 PNGs visually inspected. ZXing decoded both QR codes at original resolution and at 540-pixel width to https://moonfall-wolfman.onrender.com/. SVG sources and optional reproduction scripts included.
 - Final local checks: 107 Python tests passed, 5 PostgreSQL cases require CI; 51 frontend tests and all JavaScript syntax checks passed. Pytest discovery is restricted to this repository's tests directory.
+
+
+## Version 1.8.0 — 2026-10-20
+
+- Remote rooms narrate independently on approved players' devices, with per-device mute, volume, language and cached replay. In-person rooms retain the main-device speaker lease. Viewer and unapproved credentials cannot request remote audio.
+- Chat authorization is enforced server-side: living wolves only during the wolves phase; public daytime chat for living players and the designated last-words speaker. Eliminated players may read public discussion. Independent cursors avoid invalidating actions or replaying narration; bounded histories, message limits, sender cooldown and escaped rendering are covered.
+- Browser two-device pass: approval, private identity separated from actions, real wolf votes preserved during host DEBUG simulation, private wolf discussion removed after the phase, completed voter attribution on both screens, and bilingual solo DEBUG guide. Guest replay played the original Cantonese audio; mute and volume were checked.
+- At a 390 × 844 browser viewport, the remote guest page had no horizontal overflow and the phase-specific action stayed accessible at the bottom. The viewport override was reset. No console errors observed in the guest tab; physical phone testing remains outstanding.
+- Regression cases cover peaceful-night audio not repeating after hunter shots, including interruption, late join, replay and unmute. Chat permission, cursor, room isolation and retention cases run against the API.
+- Local checks: 113 Python cases passed; 5 PostgreSQL cases require CI. All 56 frontend tests and JavaScript syntax checks passed. Voice chat remains deferred.

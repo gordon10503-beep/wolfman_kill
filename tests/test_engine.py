@@ -40,6 +40,7 @@ def test_morning_report_survives_hunter_follow_up_without_adding_shot_victim():
     g = act(night(game(), victim=5), "dawn", {})
     assert g["phase"] == "hunter"
     report = public_view(g)["morning_report"]
+    assert report['cue']=='hunter:5:'
     g = act(g, "shoot", {"target": 6})
     assert public_view(g)["morning_report"] == report
     assert report["en"] == "Eliminated last night: seats 5."

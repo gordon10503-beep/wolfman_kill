@@ -16,14 +16,14 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.7.4"
+VERSION = "1.8.0"
 
 
 class CreateGame(BaseModel):
     model_config = ConfigDict(extra="forbid")
     counts: dict[str, StrictInt]
     rules: dict[str, Any] = Field(default_factory=dict)
-    mode: Literal["single", "multi"] = "multi"
+    mode: Literal["single", "multi", "remote"] = "multi"
 
 
 class Action(BaseModel):
@@ -57,6 +57,12 @@ class PlayerAction(BaseModel):
 class Speaker(BaseModel):
     model_config = ConfigDict(extra="forbid")
     device: str = Field(min_length=20, max_length=64)
+
+
+class ChatMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    channel: Literal["public", "wolves"]
+    text: str = Field(min_length=1, max_length=500)
 
 
 def create_app(database=None, preload_audio=False):
@@ -133,7 +139,7 @@ def create_app(database=None, preload_audio=False):
     @app.post("/api/games", status_code=201)
     def create(body: CreateGame):
         state = new_game(body.counts, body.rules)
-        rooms.network(state)["mode"] = body.mode
+        rooms.network(state).update(mode="single" if body.mode == "single" else "multi", remote=body.mode == "remote")
         rooms.ensure_host(state)
         state["version"] = 0
         game_id, host, viewer = app.state.store.create(state)
@@ -156,6 +162,11 @@ def create_app(database=None, preload_audio=False):
     @app.post("/api/games/{game_id}/actions")
     def action(game_id: str, body: Action, credential=Depends(token)):
         return public_view(app.state.store.update(game_id, credential, body.version, body.action, body.data, debug=body.debug))
+
+    @app.get("/api/games/{game_id}/cover")
+    def cover(game_id: str, credential=Depends(token)):
+        state = app.state.store.get(game_id, credential, host_only=True)
+        return {"active": private_view(state).get("active", True)}
 
     @app.get("/api/games/{game_id}/room")
     def room_view(game_id: str, credential=Depends(token)):
@@ -228,13 +239,26 @@ def create_app(database=None, preload_audio=False):
                 "night": {"kill": state["kill"], "poison": state["poison"], "poisons": state.get("poisons", []), "inspection": state["inspection"]},
                 "control": rooms.debug_control(state)}
 
+    @app.get("/api/games/{game_id}/chat")
+    def chat(game_id: str, after_public: int = Query(default=0, ge=0), after_wolves: int = Query(default=0, ge=0), credential=Depends(token)):
+        g, host, _ = app.state.store.read_record(game_id)
+        return rooms.chat_view(g, rooms.participant(g, credential, host), after_public, after_wolves)
+
+    @app.post("/api/games/{game_id}/chat")
+    def send_chat(game_id: str, body: ChatMessage, credential=Depends(token)):
+        return app.state.store.mutate(game_id, lambda g, host, _: rooms.chat_send(g, rooms.participant(g, credential, host), body.channel, body.text))
+
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),
                     voice: Literal["original", "narrator"] | None = None,
                     morning: int | None = Query(default=None, ge=1),
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
-        state = app.state.store.get(game_id, credential)
-        if rooms.mode(state) == "multi":
+        state, host, _ = app.state.store.read_record(game_id)
+        if rooms.remote(state):
+            rooms.participant(state, credential, host)
+        else:
+            app.state.store.get(game_id, credential)
+        if rooms.mode(state) == "multi" and not rooms.remote(state):
             app.state.store.get(game_id, credential, host_only=True)
             if not rooms.owns_speaker(state, request.headers.get("X-Moonfall-Speaker")):
                 raise HTTPException(403, "只有主裝置可以播放語音。 / Only the main device may narrate.")

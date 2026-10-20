@@ -53,3 +53,7 @@
 .archive-dialog[data-chapter="good"]{background:radial-gradient(ellipse at 50% 20%,#43877f44,transparent 65%),linear-gradient(90deg,#0b222b,#1c3c43 48%,#102c34 50%,#1c3c43 52%,#0b222b);border-color:#8eb7ad88}
 .archive-dialog[data-chapter="bad"] .archive-chapters{background:#301b29f0}
 .archive-dialog[data-chapter="good"] .archive-chapters{background:#16343cf0}
+
+.archive-card[role="button"]{cursor:pointer;border-radius:14px}.archive-card[role="button"]:focus-visible{outline:2px solid #e3c783;outline-offset:4px}
+.archive-role-guide{width:min(540px,calc(100% - 32px));max-height:85dvh;overflow:auto;padding:32px;color:#e5dcc3;background:#142737;border:1px solid #b8a27788;border-radius:20px;box-shadow:0 24px 80px #000a}
+.archive-role-guide::backdrop{background:#03071099;backdrop-filter:blur(5px)}.archive-role-guide h2{padding-right:30px}.archive-role-guide p{line-height:1.8}.archive-role-guide .english-subtext{color:#b8c5cf}

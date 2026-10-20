@@ -152,3 +152,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Found the archive’s unconditional prefers-reduced-motion rule could suppress animations despite an explicit Motion on choice. Scoped the fallback to respect an explicit opt-in, matching role-card behavior; no OS/RDP setting is changed.
 - Browser verified Motion off → open archive → enable motion inside the dialog, resulting in root data-motion=on, book-unseal and archive-emerge animations and a nontrivial cover rotation matrix. All five cards fit at 1265 × 720, with scroll height equal to client height (668px). No claim is made about physical RDP testing.
 - JavaScript syntax, 56 frontend tests and 20 API tests passed. Full PostgreSQL/backend checks run in CI.
+
+
+## Version 1.8.8 — 2026-10-20
+
+- Added host-only invite QR generation using pinned qrcode 8.2 and a pure SVG matrix renderer (no Pillow/server image dependency). No host/viewer pass enters the QR. Tests cover HTTPS link fields, authentication, old-invite invalidation and cross-room denial.
+- Browser rendered the QR, and ZXing independently decoded its screenshot to exactly the displayed invitation URL. Renew invite changed the sharing link. At 390px width the QR measured 252 × 252px, with no document or dialog horizontal overflow; temporary viewport override reset.
+- Local verification: 115 Python tests passed, 5 PostgreSQL cases require CI; all 56 frontend tests and JavaScript syntax checks passed.

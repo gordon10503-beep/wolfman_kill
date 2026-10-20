@@ -1,3 +1,8 @@
+# Version 1.8.8 — 2026-10-20
+
+- Show a high-contrast SVG QR code beside the room invitation link, generated on the backend without external QR services. Renewing an invitation replaces its QR too.
+- Keep QR generation host-only and tied to the current invite; scanned players still require approval. Render the share panel side by side on desktop and stacked on phones.
+
 # Version 1.8.7 — 2026-10-20
 
 - Let explicit Motion on override the archive’s system reduced-motion CSS, including environments where Remote Desktop requests reduced animation.

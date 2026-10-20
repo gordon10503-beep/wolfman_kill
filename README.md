@@ -12,6 +12,8 @@ Choose your house rules **before starting a new game**. To use both witch potion
 
 ![Moonfall interface](docs/preview.png)
 
+Room invitations now include a scannable QR beside the share link in **Room / devices**. Renew invite replaces both. QR generation stays on your backend, and joining still requires host approval.
+
 ## Remote play, chat and DEBUG walkthrough
 
 Tap the floating **旁白 / Narrator** button to open narration text, language, voice and replay settings in a glass panel.

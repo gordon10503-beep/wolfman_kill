@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import urlencode
+from .invitation import qr_svg
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
@@ -16,7 +18,7 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.8.7"
+VERSION = "1.8.8"
 
 
 class CreateGame(BaseModel):
@@ -39,6 +41,11 @@ class JoinRoom(BaseModel):
     invite: str = Field(min_length=20, max_length=100)
     seat: StrictInt | None = Field(default=None, ge=1, le=16)
     name: str = Field(default="", max_length=32)
+
+
+class InviteQR(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    invite: str = Field(min_length=20, max_length=100)
 
 
 class RoomCommand(BaseModel):
@@ -167,6 +174,16 @@ def create_app(database=None, preload_audio=False):
     def cover(game_id: str, credential=Depends(token)):
         state = app.state.store.get(game_id, credential, host_only=True)
         return {"active": private_view(state).get("active", True)}
+
+    @app.post("/api/games/{game_id}/invite-qr")
+    def invite_qr(game_id: str, body: InviteQR, request: Request, credential=Depends(token)):
+        state = app.state.store.get(game_id, credential, host_only=True)
+        network = rooms.network(state)
+        rooms.authorize(body.invite, network.get("invite_hash", ""))
+        host_seat = next((m["seat"] for m in network["members"].values() if m.get("host")), 1)
+        query = urlencode({"join": game_id, "invite": body.invite, "seats": len(state["players"]), "hostseat": host_seat})
+        url = str(request.base_url).rstrip("/") + "/#" + query
+        return {"url": url, "svg": qr_svg(url)}
 
     @app.get("/api/games/{game_id}/room")
     def room_view(game_id: str, credential=Depends(token)):

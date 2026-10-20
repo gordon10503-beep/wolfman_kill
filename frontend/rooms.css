@@ -88,3 +88,10 @@
 .cast-balance{font-size:12px;line-height:1.8;color:var(--muted);margin:15px 0}.cast-balance .english-subtext{text-align:left}
 
 .cast-heading{flex-wrap:wrap}.cast-expand{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;width:auto;min-width:140px;height:auto;min-height:44px;padding:8px 12px;font-size:12px;line-height:1.2;text-align:left}.cast-expand>span:first-child{font-size:24px}.cast-expand .english-subtext{font-size:9px;margin-top:4px;text-align:left}
+
+/* Royal wolves retain independent facial motion in every card view. */
+:is(.cast-figure,.identity-figure) .character-beauty-eyes{transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 2px #e57791);animation:wolf-blink 6.6s linear -1.1s infinite,wolf-eye-glow 3.8s ease-in-out infinite}
+.character-king-snarl{transform-box:fill-box;transform-origin:center top;animation:king-snarl 6.4s ease-in-out infinite}
+.character-king-jaw{animation:king-jaw 6.4s ease-in-out infinite}
+@keyframes king-snarl{0%,35%,78%,100%{transform:scaleY(.55)}48%,62%{transform:scaleY(1)}}
+@keyframes king-jaw{0%,35%,78%,100%{transform:translateY(0)}48%,62%{transform:translateY(5px)}}

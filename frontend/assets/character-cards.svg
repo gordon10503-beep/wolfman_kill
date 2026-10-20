@@ -175,8 +175,32 @@
   </symbol>
 
   <symbol id="character-wolf_king" viewBox="0 0 260 270">
-    <g transform="translate(0 14) scale(1 .9)"><use href="#character-wolf"/></g>
+    <g transform="translate(0 14) scale(1 .9)">
+    <circle cx="130" cy="126" r="76" fill="#8a263f" opacity=".13" />
+    <g stroke-linejoin="round">
+      <path d="m62 53 39 23 29-12 29 12 39-23-7 75-18 53-43 49-43-49-18-53Z" fill="url(#character-red)" stroke="url(#character-gold)" stroke-width="1.8" />
+      <path d="m67 59 23 53 11-30m92-23-23 53-11-30" fill="#160f1c" stroke="#c2a16b" />
+      <path d="m73 112 34 19 23 46 23-46 34-19-15 54-42 50-42-50Z" fill="#101622" />
+      <path d="m102 177 28-19 28 19-28 25Z" fill="#492035" stroke="#af8161" />
+      <path d="m120 178 10-6 10 6-10 10Z" fill="#080f18" />
+      <path d="m105 192 12 6 13-3 13 3 12-6m-25-4v7M85 151l16 5m-11 10 15 2m70-17-16 5m11 10-15 2" fill="none" stroke="#aa7a68" />
+      <path d="m82 181-16 20 27-8m85-12 16 20-27-8" fill="#34182b" stroke="#b89264" />
+      <g class="character-wolf-eyes" data-character-part="wolf-eyes">
+        <path d="m87 128 20 8-11 9Zm86 0-20 8 11 9Z" fill="#ff465d" />
+      </g>
+    </g>
+    <path d="m115 232 15 12 15-12" fill="none" stroke="#c9a46c" />
+  </g>
     <path d="m79 188-22 40 43-15 30 33 30-33 43 15-22-40-51 37Z" fill="#41182b" stroke="#b99460"/>
+    <g class="character-king-snarl" data-character-part="king-snarl">
+      <path d="M106 184q24 13 48 0l-4 20-20 13-20-13Z" fill="#080b13" stroke="#b38b69" stroke-width="1.3"/>
+      <path d="m109 187 5 15 5-12m22 0 5 12 5-15" fill="#f0dfb5" stroke="#c8ac7b" stroke-width=".7"/>
+      <path d="m121 191 3 6 4-4 4 4 4-6" fill="#d7bd8b"/>
+      <g class="character-king-jaw" data-character-part="king-jaw">
+        <path d="m110 202 20 12 20-12-7 15-13 7-13-7Z" fill="#542037" stroke="#c39a6c" stroke-width="1.2"/>
+        <path d="m117 208 2-7 5 11m12 0 5-11 2 7" fill="#e8d4a5"/>
+      </g>
+    </g>
     <g class="character-wolf-crown" data-character-part="wolf-crown" fill="url(#character-gold)" stroke="#f0d49b" stroke-width="1.2">
       <path d="m87 35 24 18 19-32 19 32 24-18-9 39H96Z"/>
       <path d="M99 67h62" stroke="#522435" stroke-width="4"/>
@@ -204,7 +228,7 @@
     <path d="m130 45-47 45-15 122 62 28 62-28-15-122Z" fill="url(#character-red)" stroke="url(#character-gold)" stroke-width="1.6"/>
     <path d="m130 60-30 40-1 50 31 24 31-24-1-50Z" fill="#191324"/>
     <path d="m91 90 15 9 24-9 24 9 15-9-8 41-31 24-31-24Z" fill="#94445b" stroke="#d0ae79"/>
-    <path d="m107 111 15 5-10 6Zm46 0-15 5 10 6Z" fill="#f1c69c"/><path d="m121 136 9 4 9-4" fill="none" stroke="#e3ba87"/>
+    <g class="character-beauty-eyes" data-character-part="beauty-eyes"><path d="m107 111 15 5-10 6Zm46 0-15 5 10 6Z" fill="#f1c69c"/></g><path d="m121 136 9 4 9-4" fill="none" stroke="#e3ba87"/>
     <path d="m89 171 41 24 41-24m-54 43 13 10 13-10" stroke="#b7976a" fill="none"/>
     <g class="character-beauty-heart" data-character-part="beauty-heart">
       <path d="M130 171c-29-20-31-34-18-39 9-3 15 4 18 9 3-5 9-12 18-9 13 5 11 19-18 39Z" fill="#bc3857" stroke="#e2b47b"/>

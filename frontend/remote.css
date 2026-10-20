@@ -49,3 +49,7 @@ body:has(#motion[aria-pressed="false"]) .chat-overlay{animation:none}
 @media(max-width:400px){.play-mode-track .play-mode strong{font-size:11px}.play-mode-track .english-subtext{font-size:8px}}
 :root:has(#motion[aria-pressed="false"]) .play-mode-track::before{transition:none}
 @media(prefers-reduced-motion:reduce){:root:not([data-motion="on"]) .play-mode-track::before{transition:none}}
+
+.chat-launcher .chat-unread{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:999px;background:#b83d4e;color:#fff5e5;border:2px solid var(--bg);box-shadow:0 3px 12px #0005;font:600 11px/1 'Segoe UI',sans-serif;box-sizing:border-box}
+.chat-launcher .chat-unread[hidden]{display:none}
+.chat-channel-unread{display:inline-block;min-width:18px;padding:2px 5px;border-radius:999px;background:#b83d4e;color:#fff5e5;font:600 10px/1.4 'Segoe UI',sans-serif}

@@ -1,3 +1,8 @@
+# Version 1.8.1 — 2026-10-20
+
+- Replace inline chat with a floating bilingual chat-bubble button and a translucent glass panel: side panel on desktop, nearly full-screen sheet on phones.
+- Preserve chat drafts and the open panel across game updates; support Escape, backdrop closing, focus restoration, safe areas and mobile visual viewport changes. Channel permissions remain server-enforced.
+
 # Version 1.8.0 — 2026-10-20
 
 - Add switchable remote play with approved-player narration, per-device mute/volume/language and public text discussion. Living wolves have a backend-protected private channel only during their action phase; eliminated players retain reading and designated last words.

@@ -99,3 +99,11 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Local checks: 114 Python cases passed; 5 PostgreSQL cases require CI. All 56 frontend tests and JavaScript syntax checks passed. Voice chat remains deferred.
 
 - Spectator viewer passes and eliminated players share a separate chat; living players cannot read or write it. API tests verify public read-only access, wolf-channel denial, no public-state leakage, cursors and cross-room isolation. Viewer passes retain their existing restrictions on role actions and audio.
+
+
+## Version 1.8.1 — 2026-10-20
+
+- Replaced inline remote chat with a zero-height floating launcher and native modal glass panel. Desktop uses a 520px side panel; phone view uses the screen minus safe margins. Background scroll is locked only while open.
+- Browser checked opening, Escape closing, focus returned to the launcher, unsent draft retention through closing and game-page rerender, sending a message, and an open draft surviving a server version update. No console errors were observed in the inspected host tab.
+- At 390 × 844 and 390 × 480, the panel and composer stayed within the viewport without horizontal overflow. The smaller viewport simulates reduced available keyboard height; actual physical iPhone keyboard behavior remains untested. VisualViewport resize/scroll tracks phone keyboard space. Temporary viewport override reset.
+- All 56 frontend tests, JavaScript syntax checks and 114 local backend tests passed; 5 PostgreSQL cases require CI. Backend chat access rules are unchanged.

@@ -177,3 +177,8 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 ### 1.8.11 — Solo DEBUG chat
 
 46 remote/room/API tests and 56 frontend tests passed. Verified in the browser that a good-side solo host can send village chat at night in DEBUG. Regression coverage checks ordinary mode, approved guests, spectator credentials, and no extra private-channel access.
+
+
+### 1.8.12 — Chat keyboard shortcuts
+
+Browser verified Enter sends and clears the composer, while Shift+Enter inserts a newline. Composition events, isComposing and legacy key code 229 bypass the send shortcut to protect IME input. JavaScript syntax checks passed.

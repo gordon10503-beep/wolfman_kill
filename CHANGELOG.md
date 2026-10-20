@@ -1,3 +1,8 @@
+# Version 1.8.5 — 2026-10-20
+
+- Include witch self-saving, witch action when attacked, parity victory and discussion duration in the collapsed bilingual rules summary. Numeric edits update immediately.
+- Add a gold Start game button at the hero’s bottom-right, using the same selected roles/rules and submission guard as the existing start button. Narrow screens place it after the hero copy without overlap.
+
 # Version 1.8.4 — 2026-10-20
 
 - Collapse homepage house rules into a clickable bilingual summary with an expansion chevron; keep Start game accessible while closed and preserve selections across cast/preset changes.

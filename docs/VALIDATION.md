@@ -131,3 +131,11 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Host narrator content is removed from the main page and moved, with original handlers, into a floating-button glass dialog. Changing language keeps the panel open, updates voice options and leaves only one language selector in the DOM. Remote guests retain language/replay controls in their own panel. Closing restores focus to the launcher.
 - At 390px width, the collapsed home page has no horizontal overflow; narrator panel bounds are x=10…380 and y=10…834 in a 390 × 844 viewport. Temporary QA viewports were reset or their test tabs closed. No physical-phone claim is made.
 - Local checks: 114 Python tests passed, 5 PostgreSQL cases require CI; all 56 frontend tests and JavaScript syntax checks passed.
+
+
+## Version 1.8.5 — 2026-10-20
+
+- Browser checked all four added summary entries, including disabled states and discussion time changing to 120 seconds during input.
+- The hero start button created a remote game with the selected 120-second discussion, self-save off, witch action when attacked off and parity victory off; the stored game was checked directly for this QA room.
+- At 390px width the document had no horizontal overflow, and the button remained within the hero bounds after the copy. Desktop screenshot verified bottom-right placement above the footer quote. Temporary viewport override reset.
+- JavaScript syntax and 56 frontend tests passed; all 20 API tests passed for the release version. Full backend coverage continues in CI.

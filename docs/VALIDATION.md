@@ -159,3 +159,9 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Added host-only invite QR generation using pinned qrcode 8.2 and a pure SVG matrix renderer (no Pillow/server image dependency). No host/viewer pass enters the QR. Tests cover HTTPS link fields, authentication, old-invite invalidation and cross-room denial.
 - Browser rendered the QR, and ZXing independently decoded its screenshot to exactly the displayed invitation URL. Renew invite changed the sharing link. At 390px width the QR measured 252 × 252px, with no document or dialog horizontal overflow; temporary viewport override reset.
 - Local verification: 115 Python tests passed, 5 PostgreSQL cases require CI; all 56 frontend tests and JavaScript syntax checks passed.
+
+
+## Version 1.8.9 — 2026-10-20
+
+- Browser verified a fresh session starts with Motion on and root data-motion=on. Turning it off survives refresh; turning it on restores motion. This is now the requested default even when the system requests reduced animation.
+- Preserved the user's committed hero/chronicle copy changes (42f9e71). Frontend syntax and 56 tests passed; 21 API/invite-QR tests passed.

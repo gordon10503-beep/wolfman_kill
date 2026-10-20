@@ -2,11 +2,10 @@
 // animate its layers reliably, including under the app's strict CSP.
 const app = document.querySelector('#app');
 const illustrations = {};
-let motionPreference = sessionStorage.getItem('moonfall-forest-motion');
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+let motionPreference = sessionStorage.getItem('moonfall-forest-motion') || 'on';
 function updateMotion() {
-  const enabled = motionPreference === 'on' || (motionPreference !== 'off' && !reducedMotion.matches);
-  document.documentElement.dataset.motion = motionPreference === 'on' ? 'on' : enabled ? 'auto' : 'off';
+  const enabled = motionPreference !== 'off';
+  document.documentElement.dataset.motion = enabled ? 'on' : 'off';
   app.querySelectorAll('.forest-scene').forEach(scene => scene.classList.toggle('forest-motion-off', !enabled));
   document.querySelectorAll('#motion').forEach(button => {
     button.setAttribute('aria-pressed', String(enabled));
@@ -21,7 +20,6 @@ control.addEventListener('click', () => {
   updateMotion();
 });
 updateMotion();
-reducedMotion.addEventListener('change', updateMotion);
 function mountForest() {
   const theme = document.documentElement.dataset.theme;
   const hosts = [...app.querySelectorAll('.hero')];

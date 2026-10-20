@@ -1,3 +1,7 @@
+# Version 1.8.9 — 2026-10-20
+
+- Default motion to on, including sessions that report system reduced motion. Preserve an explicitly saved Motion off choice; the header and archive toggles still control it.
+
 # Version 1.8.8 — 2026-10-20
 
 - Show a high-contrast SVG QR code beside the room invitation link, generated on the backend without external QR services. Renewing an invitation replaces its QR too.

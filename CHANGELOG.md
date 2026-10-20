@@ -1,3 +1,8 @@
+# Version 1.8.7 — 2026-10-20
+
+- Let explicit Motion on override the archive’s system reduced-motion CSS, including environments where Remote Desktop requests reduced animation.
+- Add a Motion toggle inside the archive; retain the static view when disabled. Start each archive visit at the top and preserve the book’s measured position during its opening animation.
+
 # Version 1.8.6 — 2026-10-20
 
 - Add crater patterns, surface shading and soft rim light to the crescent icon and forest moon, retaining lightweight SVG artwork.

@@ -9,7 +9,7 @@
 .archive-cover::before,.archive-cover::after{content:'✦';position:absolute;left:18px;right:18px;text-align:center;color:#bba16a80;font-size:13px;border-left:1px solid #bba16a66;border-right:1px solid #bba16a66;height:34px}.archive-cover::before{top:18px;border-top:1px solid #bba16a66}.archive-cover::after{bottom:18px;border-bottom:1px solid #bba16a66}
 .book-edition{font-size:7px;letter-spacing:2px}.book-crescent{font:75px var(--serif);line-height:1;color:#dfca8b;text-shadow:0 0 28px #d9cb8e88}.book-orbit{position:absolute;top:66px;width:140px;height:140px;border:1px solid #b7a16d5c;border-radius:50%;padding-top:2px;animation:identity-orbit 32s linear infinite}.book-title{font:27px var(--serif);letter-spacing:5px}.book-title>span{display:block;font-size:14px;letter-spacing:4px;margin-top:14px}.book-rule{font-size:12px;color:#9c8960}.book-open-label{font-size:11px;letter-spacing:2px}.book-open-label>span{display:block;font:italic 11px var(--serif);letter-spacing:0;margin-top:7px;color:#a6b6c3}.book-clasp{position:absolute;right:-13px;top:46%;padding:10px 6px;border:1px solid #c0a572;border-radius:4px;background:linear-gradient(100deg,#4b3e2a,#b29a65,#58472b);color:#172432;box-shadow:0 4px 7px #0007}
 .archive-cards{display:none}.archive-caption{text-align:center;font-size:9px;color:#94a7b4;margin:15px 0 0}.archive-caption span{display:block;margin-top:5px}
-.archive-opened .archive-book{position:absolute;left:calc(50% - 135px);top:105px;margin:0;pointer-events:none;animation:book-vanish 1.4s ease both}
+.archive-opened .archive-book{position:absolute;left:var(--archive-book-x,calc(50% - 135px));top:var(--archive-book-y,105px);margin:0;pointer-events:none;animation:book-vanish 1.4s ease both}
 .archive-opened .archive-cover{animation:book-unseal 1.2s cubic-bezier(.25,.6,.3,1) both}
 .archive-opened .archive-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:15px 22px;max-width:840px;margin:auto;perspective:1200px}
 .archive-card{grid-column:span 2;min-width:0;animation:archive-emerge 1.2s cubic-bezier(.16,.7,.23,1) calc(.55s + var(--card-order)*.12s) both;--flight-x:0px;--flight-turn:0deg}.archive-card:nth-child(3n+1):nth-last-child(2){grid-column:2/span 2}.archive-card:nth-child(3n+1):last-child{grid-column:3/span 2}
@@ -19,7 +19,7 @@
 @keyframes archive-emerge{from{opacity:0;transform:translate(var(--flight-x),var(--flight-y,140px)) scale(.12) rotate(var(--flight-turn)) rotateY(30deg)}45%{opacity:1}to{opacity:1;transform:none}}
 :root:has(#motion[aria-pressed="false"]) :is(.archive-card,.archive-book,.archive-cover,.book-orbit){animation:none!important;transform:none}:root:has(#motion[aria-pressed="false"]) .archive-opened .archive-book{display:none}
 @media(max-width:720px){.archive-dialog{padding:24px 16px 18px}.archive-heading h2{font-size:23px}.archive-heading h2 span{display:block;margin:7px 0 0}.archive-heading>p>span{display:block;margin:6px 0 0}.archive-opened .archive-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.archive-card,.archive-card:nth-child(3n+1):nth-last-child(2),.archive-card:nth-child(3n+1):last-child{grid-column:auto}.archive-card:last-child:nth-child(odd){grid-column:1/-1;width:calc(50% - 6px);justify-self:center}.archive-card .identity-art{max-width:110px}.archive-card .identity-card{padding:13px 9px}.archive-card .identity-top{font-size:6px;letter-spacing:.4px}.archive-card .identity-title{font-size:6px;letter-spacing:.6px}.archive-card .identity-side{font-size:7px;letter-spacing:0}}
-@media(prefers-reduced-motion:reduce){.archive-card,.archive-book,.archive-cover,.book-orbit{animation:none!important;transform:none}.archive-opened .archive-book{display:none}}
+@media(prefers-reduced-motion:reduce){:root:not([data-motion="on"]) :is(.archive-card,.archive-book,.archive-cover,.book-orbit){animation:none!important;transform:none}:root:not([data-motion="on"]) .archive-opened .archive-book{display:none}}
 
 .topbar.in-game #archive{display:none}
 
@@ -30,3 +30,6 @@
 .archive-card .identity-side{line-height:1.4;margin-top:7px}.archive-card .identity-seal{display:none}
 
 .archive-preparing .archive-card{animation:none!important;opacity:0}
+
+.archive-motion{position:absolute;right:80px;top:18px;display:block;min-height:36px;margin:0;font-size:10px}.archive-motion[aria-pressed="true"]{color:var(--gold);border-color:var(--gold);background:#bda46f14}
+@media(max-width:720px){.archive-dialog .archive-heading{padding-top:42px}.archive-motion{right:66px;top:16px;min-height:40px}}

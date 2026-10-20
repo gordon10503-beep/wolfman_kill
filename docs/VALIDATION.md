@@ -145,3 +145,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 
 - Browser measured Motion/DEBUG/Voice at 156 × 44 CSS pixels and speaker/help/archive at 44 × 44 on desktop. At 390px width, the three toggles share equal ~110px widths and 44px height; document scroll width equals client width. Temporary viewport override reset.
 - SVG XML parsing passed for moon.svg and forest.svg. Browser visually checked crater shading, edge glow, original forest animation and the refreshed crescent logo; no console errors observed. The forest glow uses gradients, with no animated filters.
+
+
+## Version 1.8.7 — 2026-10-20
+
+- Found the archive’s unconditional prefers-reduced-motion rule could suppress animations despite an explicit Motion on choice. Scoped the fallback to respect an explicit opt-in, matching role-card behavior; no OS/RDP setting is changed.
+- Browser verified Motion off → open archive → enable motion inside the dialog, resulting in root data-motion=on, book-unseal and archive-emerge animations and a nontrivial cover rotation matrix. All five cards fit at 1265 × 720, with scroll height equal to client height (668px). No claim is made about physical RDP testing.
+- JavaScript syntax, 56 frontend tests and 20 API tests passed. Full PostgreSQL/backend checks run in CI.

@@ -53,3 +53,9 @@ body:has(#motion[aria-pressed="false"]) .chat-overlay{animation:none}
 .chat-launcher .chat-unread{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;min-width:23px;height:23px;padding:0 5px;border-radius:999px;background:#b83d4e;color:#fff5e5;border:2px solid var(--bg);box-shadow:0 3px 12px #0005;font:600 11px/1 'Segoe UI',sans-serif;box-sizing:border-box}
 .chat-launcher .chat-unread[hidden]{display:none}
 .chat-channel-unread{display:inline-block;min-width:18px;padding:2px 5px;border-radius:999px;background:#b83d4e;color:#fff5e5;font:600 10px/1.4 'Segoe UI',sans-serif}
+
+/* DEBUG help occupies its own row rather than the narrow phase panel. */
+.solo-debug-help{margin:0 0 20px;padding:14px 18px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--muted)}
+.solo-debug-help summary{cursor:pointer;font-size:12px;line-height:1.6;color:var(--gold)}.solo-debug-help summary span{margin-left:10px;font-size:11px}
+.solo-debug-help #solo-debug-note{margin:12px 0 0;padding:0;border:0;background:none;font-size:12px;line-height:1.8}.solo-debug-help .english-subtext{margin-top:7px}
+.stage-panel>#host-own-role{display:block;width:100%;margin:0 0 24px;white-space:normal;line-height:1.6;padding:12px}

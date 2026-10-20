@@ -1,5 +1,10 @@
 # Version 1.8.10 — 2026-10-20
 
+## 2.0.2
+
+- Repair guide footer close buttons after guide content is rebuilt, including repeated opens and DEBUG switching.
+- Keep the optional install button functional across guide rebuilds.
+
 ## 2.0.1
 
 - Update 9-player and 12-player presets with new roles.

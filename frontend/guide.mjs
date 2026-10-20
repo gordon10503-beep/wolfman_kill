@@ -1,3 +1,4 @@
+import {refreshInstallButton} from './install.mjs';
 let normalGuide;
 const steps=[
  ['先選一個 6 人局','Start with the 6-player preset','開啟 DEBUG，選好房規，再按「開始遊戲」。不需要邀請朋友，也不需要額外分頁。','Enable DEBUG, set the house rules, then press Begin the night. No friends or extra tabs are needed.'],
@@ -16,6 +17,7 @@ export function updateGuideLabels(debug){
 export function showGuide(debug){
   const dialog=document.querySelector('#help-dialog');normalGuide??=dialog.innerHTML;
   dialog.setAttribute('aria-label',debug?'除錯指南 / DEBUG guide':'玩法指南 / How to play');
-  dialog.innerHTML=debug?`<button class="close" aria-label="關閉指南 / Close guide">×</button><p class="eyebrow">YOUR FIRST DEBUG SESSION</p><h2>一個人也能試玩<span class="english-subtext">Solo DEBUG walkthrough</span></h2><p>這是主持人專用的測試模式，會顯示所有身份。<span class="english-subtext">This host-only testing mode reveals all identities.</span></p><ol class="debug-walkthrough">${steps.map(([zh,en,body,translation])=>`<li><h3>${zh}<span class="english-subtext">${en}</span></h3><p>${body}<span class="english-subtext">${translation}</span></p></li>`).join('')}</ol>`:normalGuide;
-  dialog.querySelector('.close').onclick=()=>dialog.close();dialog.showModal();
+  dialog.innerHTML=debug?`<button class="close" aria-label="關閉指南 / Close guide">×</button><p class="eyebrow">YOUR FIRST DEBUG SESSION</p><h2>一個人也能試玩<span class="english-subtext">Solo DEBUG walkthrough</span></h2><p>這是主持人專用的測試模式，會顯示所有身份。<span class="english-subtext">This host-only testing mode reveals all identities.</span></p><ol class="debug-walkthrough">${steps.map(([zh,en,body,translation])=>`<li><h3>${zh}<span class="english-subtext">${en}</span></h3><p>${body}<span class="english-subtext">${translation}</span></p></li>`).join('')}</ol><button type="button" class="primary" data-close="help-dialog">明白了，返回遊戲 · Got it, back to the game</button>`:normalGuide;
+  dialog.querySelectorAll('.close,[data-close="help-dialog"]').forEach(button=>button.onclick=()=>dialog.close());
+  refreshInstallButton();dialog.showModal();
 }

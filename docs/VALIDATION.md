@@ -196,3 +196,8 @@ Browser verified Enter sends and clears the composer, while Shift+Enter inserts 
 ### 2.0.1 — Presets and compact cast picker
 
 Browser verified: 9-player preset totals nine with one Idiot and two villagers; 12-player preset totals twelve with all nine roles. The 6-player preset folds to five core cards. +/− reveals/hides the extra cards without altering selected counts; a collapsed 12-player preset still creates a twelve-player room. At 390px, the folded picker has no horizontal overflow. JavaScript syntax checks passed.
+
+
+### 2.0.2 — Guide return button
+
+Browser confirmed the footer button closes the normal guide, closes the DEBUG guide, and closes the normal guide again after toggling DEBUG off. Guide close handlers are rebound after rebuilding content; optional PWA installation uses delegated clicks and refreshes availability after a rebuild. Module syntax checks passed.

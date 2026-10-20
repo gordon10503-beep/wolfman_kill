@@ -3,19 +3,19 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 let prompt;
-window.addEventListener('beforeinstallprompt',event=>{
-  event.preventDefault();
-  prompt=event;
+export function refreshInstallButton(){
   const button=document.querySelector('#install-app');
-  button.hidden=false;
-  button.onclick=async()=>{
-    if(!prompt)return;
-    await prompt.prompt();
-    await prompt.userChoice;
-    prompt=null;button.hidden=true;
-  };
+  if(button)button.hidden=!prompt;
+}
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();prompt=event;refreshInstallButton();
 });
-window.addEventListener('appinstalled',()=>{
-  prompt=null;
-  document.querySelector('#install-app').hidden=true;
+// Delegation survives guide content being rebuilt when switching DEBUG on/off.
+document.addEventListener('click',async event=>{
+  if(!event.target.closest?.('#install-app')||!prompt)return;
+  const active=prompt;
+  await active.prompt();await active.userChoice;
+  if(prompt===active)prompt=null;
+  refreshInstallButton();
 });
+window.addEventListener('appinstalled',()=>{prompt=null;refreshInstallButton();});

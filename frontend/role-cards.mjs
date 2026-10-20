@@ -1,8 +1,12 @@
 const roles = {
   wolf: ['狼人','WEREWOLF','THE CRIMSON PACK','壞人陣營 · BAD SIDE'],
   seer: ['預言家','SEER','THE VEIL WALKER','好人陣營 · GOOD SIDE'],
+  guard: ['守衛','GUARDIAN','THE AEGIS OF DUSK','好人陣營 · GOOD SIDE'],
   witch: ['女巫','WITCH','THE MOON APOTHECARY','好人陣營 · GOOD SIDE'],
   hunter: ['獵人','HUNTER','THE LAST ARROW','好人陣營 · GOOD SIDE'],
+  knight: ['騎士','KNIGHT','THE OATHBOUND BLADE','好人陣營 · GOOD SIDE'],
+  gravedigger: ['守墓人','GRAVEDIGGER','THE KEEPER OF ECHOES','好人陣營 · GOOD SIDE'],
+  idiot: ['白痴神','IDIOT','THE HIDDEN WISDOM','好人陣營 · GOOD SIDE'],
   villager: ['平民','VILLAGER','THE LANTERN KEEPER','好人陣營 · GOOD SIDE']
 };
 export const characterRoles=Object.keys(roles);

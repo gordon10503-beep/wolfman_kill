@@ -45,21 +45,21 @@ Editable SVGs live alongside the PNGs. Optional regeneration: install `tools/req
 
 ## One device or a room of phones
 
-**Multi-device room is the default.** Turn off **各用手機 / Multi-device room** for shared-device play, or open **房間／切換裝置 / Room / devices** in a running game.
+**Remote play is the default.** In **Tonight’s house rules**, choose Shared device, In-person phones or Remote play. Use **房間／切換裝置 / Room / devices** to switch during a game.
 
 1. The host shares the room invite. Each player opens it and enters a name. Seats are assigned in join order, starting after the host at seat 1; pending requests reserve their seats.
 2. The host automatically occupies seat 1 and plays directly on the main device using **我的身份／行動 / My role / action**. No joining, self-approval, extra device or player tab is needed. The host counts toward the configured player total.
 3. The host verifies each name and approves the assigned seat. Approval is required before guests can reveal roles; the host is automatically approved. There is one device per seat.
-3. Everyone privately opens their illustrated role card and taps **Ready**. The first night starts after all seats are ready.
-5. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches and seers act in seat order, with independent potions; only the acting seat receives its private information. Hunters decide on their own phones.
-6. Living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after everyone submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
+4. Everyone privately opens their illustrated role card and taps **Ready**. The first night starts after all seats are ready.
+5. Players act on their own phones. Living wolves must agree on one target (or all pass, if allowed). Witches, seers, guardians and gravediggers act in seat order, with independent inventories and protection histories; only the acting seat receives its private information. Hunters decide on their own phones.
+6. Eligible living players submit a vote or abstention. Self-votes are allowed. Votes stay private and resolve automatically after every eligible voter submits; a tie uses the existing one-runoff rule. Choices may change until the final ballot arrives.
 7. The main device controls dawn, discussion and last words. In-person rooms use one narrator; Remote play gives each approved player public narration with independent mute, volume and language controls. A renewable per-game narrator lease prevents two host tabs from simultaneously starting narration; another host can take over after the old lease expires (up to 20 seconds).
 
 **Switch modes without restarting:** roles, used potions, pending seer results and game progress are retained. Unresolved phone ballots and wolf choices are cleared when switching. If a phone disconnects, reopen the same browser; its player pass is saved locally. For a replacement phone, revoke the old seat device and approve the new request. If a player cannot reconnect, switch to single-device mode to continue. Keep the host tab and its pass private; the host is trusted and can still use DEBUG.
 
 **DEBUG with real players:** approved guests keep control of their own roles, readiness and votes. The host can simulate unclaimed seats and their own seat. Hybrid wolf choices still require the real wolves' agreement, and hybrid ballots wait for the real players. A counted-result shortcut cannot override those ballots. Ownership persists through disconnections until the host revokes the seat or switches to shared-device play. Two host browsers share the same host permissions; version checks accept only one action against a given snapshot, and only the narrator-lease owner speaks.
 
-Once a hunter is publicly called to shoot, their seat label shows **獵人 / Hunter** for the rest of the game. Other identities and death causes remain private until the recap. Endgame narration announces the actual good-side win, wolf win or draw in the chosen language.
+Once a hunter is publicly called to shoot, their seat label shows **獵人 / Hunter** for the rest of the game. Knights reveal when dueling; the Idiot reveals when spared by exile. Other identities and death causes remain private until the recap. Endgame narration announces the actual good-side win, wolf win or draw in the chosen language.
 
 **Separate groups can play simultaneously, both before and after this update.** Each game has an independent random ID, passes, state snapshot and lock. A group's player pass cannot access another group's game. Room polling runs every three seconds on visible devices. Capacity depends on the hosting plan; this has not been load-tested to a guaranteed number of rooms. PostgreSQL supports independent row locks; local SQLite serializes brief writes. On a single Render instance either works. SQLite on Render's temporary disk still loses games after disk reset/redeploy; multiple phones do not change that storage limitation.
 
@@ -68,6 +68,26 @@ No Supabase account is required. The existing backend supports both modes with S
 角色卡：好人採用金色及藍色；狼人採用暗紅及金色。使用輕量向量繪圖，在手機也保持清晰。 Role cards use gold and blue for the good side, crimson and gold for wolves, with lightweight vector illustrations.
 
 <img src="docs/role-card-preview.png" alt="Crimson and gold wolf role card" width="300">
+
+
+## Version 2.0 · Nine roles
+
+<img src="docs/nine-role-archive.png" alt="All nine Moonfall character cards in the animated archive" width="720">
+
+New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All nine cards appear in the animated archive and cast picker. Existing five-role games remain compatible; the new roles start at zero in existing presets.
+
+| Role | Ability |
+| --- | --- |
+| 守衛 · Guardian | Acts after the seer. Protect a living player (including self), or pass. Cannot protect the same seat on consecutive nights. Stops wolf kills, never poison. |
+| 白痴神 · Idiot | Reveals and survives voting exile. Thereafter cannot vote or be exiled again. Still vulnerable to wolves, poison and abilities. Remains a living good-side player for victory counts. |
+| 騎士 · Knight | Once per game, reveal and duel during discussion before voting. A wolf target dies and night starts immediately; otherwise the knight dies and discussion continues. Duel deaths have no last words. |
+| 守墓人 · Gravedigger | Each night privately learns the previous day’s actual voting exile’s alignment. No result on the first night, after no exile, for a spared Idiot or for ability deaths. |
+
+**Night order:** wolves → witch → seer → guardian → gravedigger → dawn. New night roles absent from the cast are skipped. Eliminated holders keep cover turns, with the existing host-visible 10-second inactive timeout. Secrets are never narrated.
+
+**守護與解藥同中 / Protection + antidote:** the default house rule eliminates the wolves’ target if both protection and antidote hit them. Turn it off to let that player survive. Poison always takes precedence and prevents hunter shots. Multiple guardians’ protection counts once; each guardian independently remembers their previous target. Each knight has one duel, and each gravedigger receives their own private result. Standard mode allows one of each special role; fun mode allows up to 15, within the 16-player total and wolf minority requirement.
+
+A revealed Idiot is omitted from both phone ballot completion and shared-device ballot forms. Knight and Idiot reveals persist on the public seat cards. Public role outcomes receive separate narration cues, so a prefetched ordinary night/discussion prompt cannot replace them. Chat uses **Enter to send**, **Shift+Enter for a newline**, with Chinese IME confirmation protected.
 
 ## Run locally (optional)
 
@@ -102,7 +122,7 @@ Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)**. Stop with `Ctrl+C`.
 1. Choose a 6-, 9-, or 12-player preset, or adjust the cast for 5–16 players. Agree on house rules.
 2. Pass the device around. Each player explicitly reveals their random identity, then hides it.
 3. Narration starts **on** in the host tab. Keep only one device speaking. Public Cantonese prompts guide the night; secrets stay silent.
-4. Wolves, witch, and seer use private handoff screens. Deaths remain hidden until dawn.
+4. Wolves, witch, seer, guardian and gravedigger use private handoff screens. Deaths remain hidden until dawn.
 5. Discuss with the pauseable timer, then record every living player's ballot. Ties trigger one runoff.
 6. Resolve the hunter's shot before calculating victory. At the end, reveal the cast and death causes.
 
@@ -110,7 +130,7 @@ Use **觀眾畫面** for a read-only public table in another window. The host br
 
 Every action saves to the configured database (SQLite locally, or PostgreSQL when configured). Reloading the same tab resumes the game; the home page offers a resume button for its existing session. **Keep the host tab open:** credentials live in session storage; closing/clearing it can lose host access. There is no account recovery.
 
-The table follows the game clock: wolves/witch/seer phases use a moonlit forest with mist, wolf silhouettes, and small blood traces; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
+The table follows the game clock: wolves/witch/seer/guardian/gravedigger phases use a moonlit forest with mist, wolf silhouettes, and small blood traces; dawn, hunter resolution, discussion, voting, and recap switch to a bright morning palette. Setup retains the original moonlit style.
 
 | Morning | Night |
 | --- | --- |
@@ -243,13 +263,13 @@ Use **? 玩法指南 · How to play** on the homepage or the header’s **?** bu
 
 New games enable **witch self-save** by default. Saved games keep their original rules. **Fun mode / 娛樂模式** allows up to 15 of each non-wolf role within the 5–16 player limit; wolves must still start fewer than the good side. Role holders act privately in seat order, including cover turns for eliminated holders. Each witch has her own antidote and poison. **Limit witch to one potion per night** is on by default; switching it off allows both in one night, while each potion remains single-use per game. Witches see the original wolf target, so an earlier witch’s save is not revealed to the next witch; potions resolve together at dawn and poison still prevents a hunter shot. Each seer sees only their own **Bad side / Good side** result. All eligible hunter shots resolve before victory, including long hunter chains. Each new hunter turn replays the cached final-shot prompt; repeated polls do not replay it.
 
-With the host page visible, an inactive witch/seer turn advances after **10 seconds without interaction**. Opening or using the private screen renews the interval. Living actors and hunter shots are never auto-skipped; the audience receives no inactivity status or automatic-pass log entry. Close DEBUG before passing the host device. Physical clicks and players’ timing still need cooperation.
+With the host page visible, an inactive special-role night turn advances after **10 seconds without interaction**. Opening or using the private screen renews the interval. Living actors and hunter shots are never auto-skipped; the audience receives no inactivity status or automatic-pass log entry. Close DEBUG before passing the host device. Physical clicks and players’ timing still need cooperation.
 
 The voting screen shows **Votes counted in person** directly, with individual ballots in an optional dialog. Select one highest-vote seat to eliminate it, all tied leaders for a runoff, or no seats for no elimination. A second tie ends without elimination. The server validates targets and preserves hunter and victory resolution.
 
 Day/night boundaries animate the setting sun or moon and rising counterpart. The daytime panorama has moving clouds, sunlight and trees. Private actions send a flask, magnifier or role symbol to the target card, flip it 360°, then show the result or advance. Cancelling the screen cancels an unfinished effect. The motion toggle skips these effects when paused. The wolf transition uses soft haze and a page crossfade instead of a sliding rectangular backdrop.
 
-Enable **遺言 / Last words** in house rules to give every first-night casualty and voted-out player a speaking turn. Daytime hunter-shot victims and deaths from night two onward get none. Hunters resolve first, then the host confirms each speaker before victory or the next phase. It is on by default for new games; existing games keep their saved setting. Fun mode skips witch/seer roles absent from the cast; eliminated holders still get cover turns.
+Enable **遺言 / Last words** in house rules to give every first-night casualty and voted-out player a speaking turn. Daytime hunter-shot victims and deaths from night two onward get none. Hunters resolve first, then the host confirms each speaker before victory or the next phase. It is on by default for new games; existing games keep their saved setting. Fun mode skips night roles absent from the cast; eliminated holders still get cover turns.
 
 ## License
 

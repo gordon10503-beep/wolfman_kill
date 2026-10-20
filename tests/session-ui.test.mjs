@@ -4,7 +4,7 @@ import {actionLabel,hasPlayerAction,voteRecords} from '../frontend/session-ui.mj
 
 test('the action button follows the actual phase instead of a generic role/action label',()=>{
   assert.equal(actionLabel('vote'),'投票 · Vote');assert.equal(actionLabel('seer'),'查驗玩家 · Investigate a player');
-  assert.equal(hasPlayerAction('discussion'),false);assert.equal(hasPlayerAction('runoff'),true);
+  assert.equal(hasPlayerAction('discussion'),true);assert.equal(hasPlayerAction('runoff'),true);
 });
 test('the public vote ledger preserves abstentions, voters and runoff history safely',()=>{
   const html=voteRecords([{day:1,round:'runoff',ballots:{1:2,2:null},leaders:[2]}]);

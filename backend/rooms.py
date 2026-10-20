@@ -4,7 +4,7 @@ import hmac
 import secrets
 import time
 from copy import deepcopy
-from .engine import act, alive, player, private_view, public_view, require, target, turn_actor
+from .engine import act, alive, player, private_view, public_view, require, target, turn_actor, NIGHT_ROLES, voters, vote_targets
 
 
 def digest(value):
@@ -70,7 +70,7 @@ def ensure_host(g):
 
 def turn_key(g):
     n = network(g)
-    return f'{n["epoch"]}:{g["day"]}:{g["phase"]}:{g.get("witch_cursor",0)}:{g.get("seer_cursor",0)}:{g.get("hunters",[])}:{g.get("inspection")}'
+    return f'{n["epoch"]}:{g["day"]}:{g["phase"]}:{g.get("witch_cursor",0)}:{g.get("seer_cursor",0)}:{g.get("hunters",[])}:{g.get("inspection")}:{g.get("guard_cursor",0)}:{g.get("gravedigger_cursor",0)}'
 
 
 def public_room(g):
@@ -106,9 +106,9 @@ def protected_seats(g):
 
 def debug_control(g):
     protected = protected_seats(g) if mode(g) == "multi" else set()
-    simulated = sorted(set(alive(g)) - protected)
+    simulated = sorted(set(voters(g)) - protected)
     phase, actor = g["phase"], None
-    if phase in ("witch", "seer"):
+    if phase in NIGHT_ROLES:
         p = turn_actor(g, phase)
         actor = p["seat"] if p else None
     elif phase == "hunter":
@@ -147,7 +147,7 @@ def host_action(g, action, data, debug=False):
         return updated
     if protected and debug:
         phase, previous = g["phase"], turn_key(g)
-        if phase in ("witch", "seer", "hunter") and action != "inactive_pass":
+        if phase in (*NIGHT_ROLES, "hunter") and action != "inactive_pass":
             guard_private(g)
         if phase == "wolves" and action == "wolves":
             updated = act(g, action, data)  # Validate without committing the pack's decision yet.
@@ -163,23 +163,26 @@ def host_action(g, action, data, debug=False):
                     network(updated)["wolf_votes"] = choices
                     updated["version"] += 1
                 return updated
-        if phase in ("vote", "runoff") and action in ("ballots", "vote_result") and protected & set(alive(g)):
+        if phase in ("vote", "runoff") and action in ("ballots", "vote_result") and protected & set(voters(g)):
             require(action == "ballots", "已有玩家投票，請只模擬未入座玩家的選票。 / Simulate only unclaimed seats; players keep their own ballots.")
-            simulated = set(alive(g)) - protected
+            simulated = set(voters(g)) - protected
             require(set(data) == {"ballots"} and isinstance(data["ballots"], dict) and bool(simulated)
                     and set(data["ballots"]) == {str(s) for s in simulated}, "只可提交未入座玩家的選票。 / Submit only unclaimed seats' ballots.")
             for choice in data["ballots"].values():
                 target(g, choice)
+                require(choice is None or choice in vote_targets(g), "此玩家不能被放逐。 / This player cannot be exiled.")
                 require(phase != "runoff" or choice is None or choice in g["runoff"], "加賽只可投平票玩家。 / Vote for a tied player.")
             updated = deepcopy(g)
             votes = network(updated)["ballots"]
             votes.update(data["ballots"])
-            if len(votes) == len(alive(g)):
+            if len(votes) == len(voters(g)):
                 updated = act(updated, "ballots", {"ballots": votes})
                 clear_round_inputs(updated, previous)
             else:
                 updated["version"] += 1
             return updated
+    if action == "duel" and mode(g) == "multi":
+        require(data.get("actor") not in protected, "騎士由玩家裝置操作。 / This knight belongs to a player device.")
     previous = turn_key(g)
     updated = act(g, action, data)
     if debug and g["phase"] == "reveal" and action == "ack":
@@ -256,12 +259,13 @@ def player_view(g, token, include_private=False, *, member_key=None):
     if not m["approved"]:
         return {"approved": False, "seat": m["seat"], "version": g["version"]}
     p, phase = player(g, m["seat"]), g["phase"]
-    actor = turn_actor(g, phase) if phase in ("witch", "seer") else None
+    actor = turn_actor(g, phase) if phase in NIGHT_ROLES else None
     available = ((phase == "reveal" and p["seat"] not in network(g)["ready"])
                  or (phase == "wolves" and p["role"] == "wolf" and p["alive"])
                  or (actor is not None and actor["seat"] == p["seat"])
                  or (phase == "hunter" and g["hunters"][0] == p["seat"])
-                 or (phase in ("vote", "runoff") and p["alive"]))
+                 or (phase in ("vote", "runoff") and p["seat"] in voters(g))
+                 or (phase == "discussion" and p["role"] == "knight" and p["alive"] and not p.get("duel_used")))
     result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g), "can_act": available and mode(g) == "multi"}
     if not include_private:
         return result
@@ -273,14 +277,16 @@ def player_view(g, token, include_private=False, *, member_key=None):
     elif phase == "wolves" and p["role"] == "wolf" and p["alive"]:
         result.update(can_act=True, info=private_view(g))
         result["info"]["choices"] = network(g)["wolf_votes"]
-    elif phase in ("witch", "seer"):
+    elif phase in NIGHT_ROLES:
         actor = turn_actor(g, phase)
         if actor and actor["seat"] == p["seat"]:
             result.update(can_act=True, info=private_view(g))
     elif phase == "hunter" and g["hunters"][0] == p["seat"]:
         result.update(can_act=True, info={"targets": alive(g)})
-    elif phase in ("vote", "runoff") and p["alive"]:
-        result.update(can_act=True, info={"targets": g["runoff"] if phase == "runoff" else alive(g),
+    elif phase == "discussion" and p["role"] == "knight" and p["alive"] and not p.get("duel_used"):
+        result.update(can_act=True, info={"actor_seat": p["seat"], "targets": [s for s in alive(g) if s != p["seat"]]})
+    elif phase in ("vote", "runoff") and p["seat"] in voters(g):
+        result.update(can_act=True, info={"targets": g["runoff"] if phase == "runoff" else vote_targets(g),
                                          "submitted": str(p["seat"]) in network(g)["ballots"]})
     return result
 
@@ -314,15 +320,19 @@ def player_action(g, token, key, action, data, *, member_key=None):
     elif phase in ("vote", "runoff"):
         require(action == "ballot" and set(data) == {"target"}, "無效投票。 / Invalid ballot.")
         target(g, data["target"])
+        require(data["target"] is None or data["target"] in vote_targets(g), "此玩家不能被放逐。 / This player cannot be exiled.")
         require(phase != "runoff" or data["target"] is None or data["target"] in g["runoff"], "加賽只可投平票玩家。 / Vote for a tied player.")
         n["ballots"][str(p["seat"])] = data["target"]
-        if len(n["ballots"]) == len(alive(g)):
+        if len(n["ballots"]) == len(voters(g)):
             replace_state(g, act(g, "ballots", {"ballots": n["ballots"]}))
         else:
             g["version"] += 1
     else:
-        allowed = {"witch": {"witch", "inactive_pass"}, "seer": {"inspect", "ack", "inactive_pass"}, "hunter": {"shoot"}}
+        allowed = {"witch": {"witch", "inactive_pass"}, "seer": {"inspect", "ack", "inactive_pass"}, "hunter": {"shoot"}, "guard": {"protect", "inactive_pass"}, "gravedigger": {"grave_ack", "inactive_pass"}, "discussion": {"duel"}}
         require(action in allowed.get(phase, set()), "不允許此行動。 / Action not allowed.")
+        if action == "duel":
+            require(set(data) <= {"target", "actor"} and data.get("actor", p["seat"]) == p["seat"], "只能操作自己的騎士。 / Control your own knight only.")
+            data = {**data, "actor": p["seat"]}
         replace_state(g, act(g, action, data))
     clear_round_inputs(g, previous)
     return player_view(g, token, member_key=member_key)

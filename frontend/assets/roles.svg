@@ -4,4 +4,8 @@
 <symbol id="witch" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M18 6h12v5h-2v10l10 15q4 7-5 7H15q-9 0-5-7l10-15V11h-2Zm2 5h8M15 31h18"/><path d="m20 34 2 4m7-5-2 5M7 9v8M3 13h8m27 1v8m-4-4h8"/></g></symbol>
 <symbol id="hunter" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="24" r="14"/><circle cx="24" cy="24" r="5"/><path d="M24 3v14m0 14v14M3 24h14m14 0h14"/></g></symbol>
 <symbol id="villager" viewBox="0 0 48 48"><g fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="24" cy="12" r="7"/><path d="M12 42v-8c0-7 4-12 12-12s12 5 12 12v8Zm6-12v12m12-12v12"/></g></symbol>
+<symbol id="guard" viewBox="0 0 48 48"><path d="M24 4 42 12l-3 20-15 12L9 32 6 12ZM24 11v26M13 18h22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="knight" viewBox="0 0 48 48"><path d="m11 5 26 28-5 5L6 10Zm15 23 13 13m-3-17-12 12M35 6l7 7-9 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="gravedigger" viewBox="0 0 48 48"><path d="M10 43V25a9 9 0 0 1 18 0v18M5 43h28M19 23v13m-5-8h10M38 5v31m-5-7h10l-1 12-4 5-4-5ZM34 5q4-7 8 0v5h-8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="idiot" viewBox="0 0 48 48"><path d="m9 20 15-5 15 5-3 15-12 9-12-9ZM11 20 5 7l14 4 5-8 5 8 14-4-6 13M15 26l5-1m8 0 5 1m-15 8q6 5 12 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
 </defs></svg>

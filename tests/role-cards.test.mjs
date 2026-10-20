@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {roleCard,characterArt} from '../frontend/role-cards.mjs';
 import {readFileSync} from 'node:fs';
 test('each identity has distinct detailed artwork, bilingual identity and faction styling',()=>{
-  for(const role of ['wolf','seer','witch','hunter','villager']){
+  for(const role of ['wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
     const card=roleCard(role,4);
     assert.match(card,new RegExp(`data-character-role="${role}"`));
     assert.match(card,/SEAT 04/);
@@ -31,7 +31,8 @@ test('shared sprite has unique IDs and supplies every card layer',()=>{
   const source=readFileSync(new URL('../frontend/assets/character-cards.svg',import.meta.url),'utf8');
   const ids=[...source.matchAll(/id="([^"]+)"/g)].map(m=>m[1]);
   assert.equal(new Set(ids).size,ids.length);
-  for(const role of ['wolf','seer','witch','hunter','villager']){
+  for(const role of ['wolf','seer','guard','witch','hunter','knight','gravedigger','idiot','villager']){
+    assert.ok(ids.includes(`character-${role}`));
     for(const ref of roleCard(role,1).matchAll(/href="#([^"]+)"/g))assert.ok(ids.includes(ref[1]),ref[1]);
   }
 });
@@ -50,6 +51,6 @@ test('ground geometry is excluded from the rotating halo and shared by both view
 });
 test('role sprite supplies independently moving eyes, arrow and potion groups',()=>{
   const source=readFileSync(new URL('../frontend/assets/character-cards.svg',import.meta.url),'utf8');
-  for(const part of ['wolf-eyes','seer-eye','hunter-arrow','potion-left','potion-right'])assert.match(source,new RegExp(`data-character-part="${part}"`));
+  for(const part of ['wolf-eyes','seer-eye','hunter-arrow','potion-left','potion-right','guard-shield','knight-blade','grave-wisps','idiot-mask'])assert.match(source,new RegExp(`data-character-part="${part}"`));
   assert.match(source,/#ff465d/);
 });

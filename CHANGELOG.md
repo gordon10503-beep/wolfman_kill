@@ -1,5 +1,14 @@
 # Version 1.8.10 — 2026-10-20
 
+## 2.0.0 — The village grows
+
+- Add Guardian, Idiot, Knight and Gravedigger with bilingual animated cards and archive support.
+- Add guardian/antidote conflict house rule, enabled by default.
+- Support new abilities, independent fun-mode inventories, cover turns and player ownership in every play mode.
+- Persist public role reveals and exclude revealed Idiots from voting.
+- Narrate public role outcomes with isolated, replayable audio cues.
+- Preserve existing games and presets; new cast counts default to zero.
+
 ## 1.8.12
 
 - Chat: Enter sends, Shift+Enter inserts a new line. Chinese input composition remains uninterrupted.

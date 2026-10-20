@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {themeForPhase, englishSeatText, chineseDeathText} from '../frontend/presentation.mjs';
 
 test('private night actions use the night palette',()=>{
-  for(const phase of ['wolves','witch','seer']) assert.equal(themeForPhase(phase),'night');
+  for(const phase of ['wolves','witch','seer','guard','gravedigger']) assert.equal(themeForPhase(phase),'night');
 });
 test('dawn, hunter resolution, voting and recap all use daylight',()=>{
   for(const phase of ['dawn','hunter','last_words','discussion','vote','runoff','finished']) assert.equal(themeForPhase(phase),'day');

@@ -1,3 +1,4 @@
+import {nightRoles,extraRoleControls,extraRoleAction} from './new-roles.mjs';
 import {clearNarratorPanel,mountNarratorPanel} from './settings-ui.mjs';
 import {roleCard,focusRoleCard} from './role-cards.mjs';
 import {roleTip, roleEffect} from './role-effects.mjs';
@@ -146,9 +147,10 @@ export async function startPlayer(hash) {
     if(!roleOnly&&detail.can_act) {
       if(phase==='reveal'){controls='<button class="primary" id="player-ready">記住身份，準備好了 · Ready</button>';}
       else if(phase==='seer' && info.inspection){controls=`<h2 class="player-private-title">${sub(`${info.inspection.seat} 號：${info.inspection.alignment==='bad'?'壞人陣營':'好人陣營'}`,`Seat ${info.inspection.seat}: ${info.inspection.alignment==='bad'?'Bad side':'Good side'}`)}</h2><button class="primary" id="player-ack">確認結果 · Confirm result</button>`;}
+      else if(['guard','gravedigger','discussion'].includes(phase) && (info.active!==false)){controls=extraRoleControls(phase,info,choices);}
       else {
         operation=phase==='wolves'?'wolves':phase==='witch'?'witch':phase==='seer'?'inspect':phase==='hunter'?'shoot':'ballot';
-        if(['witch','seer'].includes(phase) && !info.active)operation='inactive_pass';
+        if(nightRoles.includes(phase) && !info.active)operation='inactive_pass';
         const optional=!['seer'].includes(phase) && (phase!=='wolves'||info.can_abstain);
         controls=`${phase==='wolves'?`<p class="notice">${sub(`存活狼隊：${info.wolves.join('、')} 號。必須選擇相同目標才會結算。`,`Living wolves: ${info.wolves.join(', ')}. All must agree on the same target.`)}</p><p class="room-status" id="pack-choices">${sub('已提交的狼隊選擇','Pack choices')}: ${Object.entries(info.choices).map(([seat,target])=>`${seat} → ${target??'空刀 / Pass'}`).join(' · ')||'—'}</p>`:''}${phase==='witch'&&info.active?`<p class="notice">${sub(info.kill?`今晚狼刀：${info.kill} 號`:'今晚空刀',info.kill?`Wolf target: seat ${info.kill}`:'No wolf target')}</p><p>${sub(detail.state.rules.witch_one_potion_per_night?'每晚限用一瓶藥。':'可同晚使用雙藥；每種藥全局一次。',detail.state.rules.witch_one_potion_per_night?'Use at most one potion tonight.':'Both potions may be used tonight; each is single-use per game.')}</p>`:''}${operation==='inactive_pass'?`<p class="notice">${sub('本回合只有掩護操作，不會使用能力。','This is a cover action. It has no power.')}</p>`:''}${['vote','runoff'].includes(phase)?`<h2>${sub('投出你的一票','Cast your vote')}</h2><p>${sub(info.submitted?'已投票；全部人完成前可修改。':'可投自己或棄權。全部人完成後自動結算。',info.submitted?'Submitted. You may change it until everyone has voted.':'Vote for yourself or abstain. Resolves when everyone submits.')}</p>`:''}<form id="player-action-form">${phase==='witch'&&info.can_save?'<label class="check-label"><input name="save" type="checkbox">使用解藥 · Use antidote</label>':''}${phase!=='witch'||info.can_poison||operation==='inactive_pass'?choices(operation==='inactive_pass'?detail.state.players.filter(p=>p.alive).map(p=>p.seat):info.targets,operation==='inactive_pass'||optional):''}<button class="primary">確認 · Confirm</button></form>`;
       }
@@ -158,6 +160,8 @@ export async function startPlayer(hash) {
     dialog.querySelector('#player-hide').onclick=close;
     dialog.querySelector('#player-ready')?.addEventListener('click',()=>submit('ready',{},detail));
     dialog.querySelector('#player-ack')?.addEventListener('click',()=>submit('ack',{},detail));
+    dialog.querySelector('#extra-grave-ack')?.addEventListener('click',()=>submit('grave_ack',{},detail));
+    dialog.querySelector('#extra-role-form')?.addEventListener('submit',e=>{e.preventDefault();const form=e.currentTarget,data=new FormData(form),target=data.get('target')?Number(data.get('target')):null;submit(extraRoleAction(phase),phase==='discussion'?{actor:detail.seat,target}:{target},detail,form,target);});
     dialog.querySelector('#player-action-form')?.addEventListener('submit',async e=>{
       e.preventDefault();if(busy)return;
       const form=e.currentTarget,data=new FormData(form),target=data.get('target')?Number(data.get('target')):null;
@@ -172,7 +176,7 @@ export async function startPlayer(hash) {
     try {
       if(form&&!['ballot','inactive_pass'].includes(action)){
         const targets=action==='witch'&&data.save?[...new Set([detail.info.kill,...(target===null?[]:[target])])]:[target];
-        if(!(await Promise.all(targets.map(seat=>roleEffect(form,detail.state.phase,seat)))).every(Boolean))return;
+        if(!(await Promise.all(targets.map(seat=>roleEffect(form,detail.state.phase==='discussion'?'knight':detail.state.phase,seat)))).every(Boolean))return;
       }
       const previous=current.state;const result=await request('player/actions',{turn_key:detail.turn_key,action,data});current=result;
       if(action==='inspect'){const fresh=await request('player/private');if(!document.hidden&&dialog.open)drawPrivate(fresh);}

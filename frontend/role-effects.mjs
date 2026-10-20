@@ -1,8 +1,14 @@
 export function privacyReminder() {
-  return `<aside class="role-tip"><strong>保密提醒 · KEEP THE NIGHT SECRET</strong><p>即使已出局，夜間叫到你的角色時，仍請協助開啟畫面、選擇座位及按確認，避免其他人從點擊聲或沒有點擊聲猜到身份。掩護操作不會使用能力。<span class="english-subtext" lang="en">Even after elimination, open your role screen, select a seat and confirm when called at night. Keep making the usual clicks so sounds—or silence—do not reveal your role. Cover actions have no power.</span></p><p>無法行動的女巫或預言家，若沒有人操作，閒置 10 秒後自動繼續。獵人的最後一槍仍須親自確認。<span class="english-subtext" lang="en">An inactive witch or seer turn continues automatically after 10 seconds without interaction. The hunter’s final shot still requires confirmation.</span></p></aside>`;
+  return `<aside class="role-tip"><strong>保密提醒 · KEEP THE NIGHT SECRET</strong><p>即使已出局，夜間叫到你的角色時，仍請協助開啟畫面、選擇座位及按確認，避免其他人從點擊聲或沒有點擊聲猜到身份。掩護操作不會使用能力。<span class="english-subtext" lang="en">Even after elimination, open your role screen, select a seat and confirm when called at night. Keep making the usual clicks so sounds—or silence—do not reveal your role. Cover actions have no power.</span></p><p>無法行動的夜間特殊角色，若沒有人操作，閒置 10 秒後自動繼續。獵人的最後一槍仍須親自確認。<span class="english-subtext" lang="en">An inactive special-role night turn continues automatically after 10 seconds without interaction. The hunter’s final shot still requires confirmation.</span></p></aside>`;
 }
 
-export function roleTip(role) { return ['wolf','witch','seer','hunter'].includes(role) ? privacyReminder() : ''; }
+const newTips={
+  guard:['每晚守護一人，可自守或放棄，不能連續守同一人。守護只擋狼刀；守救同中依房規。','Protect one player nightly, including yourself, or pass. No consecutive protection of the same seat. Blocks wolves, not poison. Protection plus antidote follows the house rule.'],
+  knight:['白天討論時可翻牌決鬥一次。對方是狼人：狼人出局並直接入夜；否則自己出局，討論繼續。','Duel once during daytime discussion. A wolf target dies and night begins; otherwise you die and discussion continues.'],
+  gravedigger:['每晚私下得知前一個白天被投票放逐者的陣營。首夜、無放逐、白痴神免死及技能死亡皆沒有結果。','Privately learn the previous day’s voting exile’s alignment. No result on the first night, with no exile, for a spared Idiot or for an ability death.'],
+  idiot:['被投票放逐時翻牌免死，之後沒有投票權，也不能再被放逐；狼刀、毒藥及技能仍可令你出局。','Reveal and survive voting exile, then lose voting rights and eligibility for further exile. Wolf kills, poison and abilities can still eliminate you.']
+};
+export function roleTip(role) { const tip=newTips[role]; return (tip?`<aside class="role-tip"><strong>能力 · ABILITY</strong><p>${tip[0]}<span class="english-subtext" lang="en">${tip[1]}</span></p></aside>`:'')+ (['wolf','witch','seer','hunter','guard','gravedigger'].includes(role) ? privacyReminder() : ''); }
 
 /** All visuals stay inside the private dialog, before any result is shown. */
 export async function roleEffect(form, role, seat) {

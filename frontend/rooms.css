@@ -54,3 +54,23 @@
 @keyframes hunter-draw{0%,15%,78%,100%{transform:translate(0,0)}48%,62%{transform:translate(-10px,11px)}70%{transform:translate(2px,-2px)}}
 :root:has(#motion[aria-pressed="false"]) .cast-aura,:root:has(#motion[aria-pressed="false"]) [data-character-part]{animation:none!important;transform:none;opacity:1}
 @media(prefers-reduced-motion:reduce){:root:not([data-motion="on"]) .cast-aura,:root:not([data-motion="on"]) [data-character-part]{animation:none!important;transform:none;opacity:1}}
+
+/* Nine roles share the same gold/blue geometry and independently moving details. */
+.role-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.character-guard-shield{transform-box:view-box;transform-origin:130px 200px;animation:guardian-watch 5s ease-in-out infinite}
+.character-guard-glint{animation:guardian-glint 4s ease-in-out infinite}
+.character-knight-blade{transform-box:view-box;transform-origin:143px 196px;animation:knight-oath 5.5s ease-in-out infinite}
+.character-grave-spade{transform-box:view-box;transform-origin:184px 210px;animation:grave-vigil 6s ease-in-out infinite}
+.character-grave-wisps{animation:grave-whisper 4s ease-in-out infinite}
+.character-idiot-mask{transform-box:view-box;transform-origin:130px 150px;animation:masked-wisdom 6s ease-in-out infinite}
+.character-idiot-bells{transform-box:view-box;transform-origin:130px 90px;animation:jester-bells 3.5s ease-in-out infinite}
+@keyframes guardian-watch{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes guardian-glint{0%,100%{opacity:.08}50%{opacity:.4}}
+@keyframes knight-oath{0%,70%,100%{transform:rotate(0)}35%,50%{transform:rotate(9deg)}}
+@keyframes grave-vigil{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg)}}
+@keyframes grave-whisper{0%,100%{opacity:.2;transform:translateY(3px)}50%{opacity:.9;transform:translateY(-7px)}}
+@keyframes masked-wisdom{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes jester-bells{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@media(max-width:720px){.role-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.role-card{padding:15px 4px}.role-card h3{font-size:15px}.role-card small{font-size:8px}.stepper button{width:27px;height:29px}.cast-art{max-width:120px}}
+
+@media(max-width:720px){.progress{overflow-x:auto;justify-content:flex-start}.progress span{flex:0 0 auto;padding:10px 8px}.role-card small{word-break:normal;font-size:8px;letter-spacing:.5px}.stepper{gap:8px}}

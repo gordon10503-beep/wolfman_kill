@@ -1,5 +1,5 @@
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const actions={reveal:['確認身份','Confirm your role'],wolves:['投票選擇狼刀','Vote for the wolf target'],witch:['使用藥水','Choose potions'],seer:['查驗玩家','Investigate a player'],hunter:['決定最後一槍','Take your final shot'],vote:['投票','Vote'],runoff:['加賽投票','Runoff vote']};
+const actions={guard:['選擇守護','Choose protection'],gravedigger:['查看放逐陣營','Read the exile’s alignment'],discussion:['騎士決鬥','Knight’s duel'],reveal:['確認身份','Confirm your role'],wolves:['投票選擇狼刀','Vote for the wolf target'],witch:['使用藥水','Choose potions'],seer:['查驗玩家','Investigate a player'],hunter:['決定最後一槍','Take your final shot'],vote:['投票','Vote'],runoff:['加賽投票','Runoff vote']};
 export function actionLabel(phase){return (actions[phase]||['等待下一階段','Waiting for the next phase']).join(' · ');}
 export function hasPlayerAction(phase){return phase in actions;}
 function chosenVolume(){const saved=sessionStorage.getItem('moonfall-volume');return saved===null?1:Math.min(1,Math.max(0,Number(saved)||0));}

@@ -1,5 +1,7 @@
 /** Local, display-only translations. Never requests or publishes private data. */
 const COPY = {
+  '守衛':'Guardian', '守墓人':'Gravedigger',
+  '娛樂模式可重複任何特殊角色；狼人仍須少於好人。':'Fun mode allows multiple copies of every special role. Wolves must still be fewer than the good side.',
   '女巫每晚限用一瓶藥':'Limit witch to one potion per night', '女巫每晚用藥':'Witch potions per night', '最多一瓶':'One potion', '無限制':'No limit',
   '本局可同晚使用解藥及毒藥，各限全局一次。解藥只能救狼人目標；毒藥可選任意存活玩家。':'Both potions may be used on the same night, each once per game. The antidote saves the wolves’ target; poison may target any living player.',
   '女巫的抉擇':'The witch’s choice',
@@ -180,7 +182,7 @@ const COPY = {
   '畫面已過時，已重新同步。請確認目前階段後再操作。':'This view was outdated and has been synchronized. Check the current phase before trying again.'
 };
 
-const roles = {壞人陣營:'Bad side',好人陣營:'Good side',狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
+const roles = {守衛:'Guardian',騎士:'Knight',守墓人:'Gravedigger',白痴神:'Idiot',壞人陣營:'Bad side',好人陣營:'Good side',狼人:'Werewolf',預言家:'Seer',女巫:'Witch',獵人:'Hunter',平民:'Villager',好人:'Good team'};
 const list = value => value.replace(/、/g, ', ');
 const available = value => value === '無' ? 'none' : `seat ${value}`;
 
@@ -188,6 +190,9 @@ export function englishFor(value) {
   const text = value.trim().replace(/^[↻↩↗＋]\s*/, '').replace(/\s*[↗→]$/, '').replace(/^\/\s*/, '');
   if (COPY[text]) return COPY[text];
   let m;
+  if ((m=text.match(/^白痴神 (\d+) 號翻牌免於放逐，失去投票權。$/))) return `Idiot ${m[1]} reveals, survives exile and loses voting rights.`;
+  if ((m=text.match(/^騎士 (\d+) 號決鬥，(\d+) 號是狼人並出局。$/))) return `Knight ${m[1]} duels seat ${m[2]}, a werewolf, who is eliminated.`;
+  if ((m=text.match(/^騎士 (\d+) 號決鬥，(\d+) 號不是狼人，騎士出局。$/))) return `Knight ${m[1]} duels seat ${m[2]}, who is not a werewolf. The knight is eliminated.`;
   if ((m=text.match(/^(\d+) 號遺言結束。$/))) return `Seat ${m[1]} has finished their last words.`;
   if ((m=text.match(/^被獵人 (\d+) 號帶走$/))) return `Shot by hunter ${m[1]}`;
   if ((m=text.match(/^現場結果：(\d+) 號出局。$/))) return `Counted result: seat ${m[1]} is eliminated.`;
@@ -197,7 +202,7 @@ export function englishFor(value) {
   if ((m=text.match(/^第 (\d+) (晚|輪)$/))) return `${m[2]==='晚'?'Night':'Round'} ${m[1]}`;
   if ((m=text.match(/^(\d+) 號玩家投給$/))) return `Seat ${m[1]} votes for`;
   if ((m=text.match(/^(\d+) 號$/))) return `Seat ${m[1]}`;
-  if ((m=text.match(/^(\d+) 號 · (狼人|預言家|女巫|獵人|平民)$/))) return `Seat ${m[1]} · ${roles[m[2]]}`;
+  if ((m=text.match(/^(\d+) 號 · (狼人|預言家|守衛|女巫|獵人|騎士|守墓人|白痴神|平民)$/))) return `Seat ${m[1]} · ${roles[m[2]]}`;
   if ((m=text.match(/^現在輪到 (\d+) 號玩家。其他人請移開視線。$/))) return `Seat ${m[1]} is next. Everyone else, look away.`;
   if ((m=text.match(/^確認只有(.+)在看畫面。$/))) return `Confirm that only ${roles[m[1]] || m[1].replace(/(\d+) 號玩家/, 'player $1').replace(/(\d+) 號獵人/, 'hunter $1')} is viewing the screen.`;
   if ((m=text.match(/^你的狼人同伴：([\d、]+) 號。(.*)$/))) return `Fellow wolves: seats ${list(m[1])}. ${englishFor(m[2]) || ''}`;

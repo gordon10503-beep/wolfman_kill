@@ -171,3 +171,14 @@ test('winning teams have separate cached clips across games, and replay reuses t
   await narrator.speak();await narrator.speak({replay:true});
   assert.equal(requests,2);
 });
+
+
+test('public role announcements cannot reuse a prefetched generic cue or another event',async()=>{
+  const {ctx}=setup();const urls=[];globalThis.fetch=async url=>{urls.push(url);return response();};
+  ctx.state={phase:'discussion',narration:'Discuss'};await narrator.speak();
+  ctx.state={phase:'discussion',narration:'Knight 2 loses. Discuss',public_cue:'1:discussion:9:knight2'};
+  await narrator.speak();await narrator.speak({replay:true});
+  assert.equal(urls.length,2);assert.match(urls[1],/announcement=/);
+  ctx.state={phase:'discussion',narration:'Knight 3 loses. Discuss',public_cue:'1:discussion:10:knight3'};
+  await narrator.speak();assert.equal(urls.length,3);
+});

@@ -182,3 +182,12 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 ### 1.8.12 — Chat keyboard shortcuts
 
 Browser verified Enter sends and clears the composer, while Shift+Enter inserts a newline. Composition events, isComposing and legacy key code 229 bypass the send shortcut to protect IME input. JavaScript syntax checks passed.
+
+
+### 2.0.0 — Nine-role village
+
+- 144 backend tests passed locally; five PostgreSQL integration cases require the CI database. 57 frontend tests and module syntax checks passed.
+- 28 focused new-role cases cover protection/antidote/poison combinations, independent guardians, cover turns, public Idiot reveals and eligible ballot completion, knight timing/ownership/win resolution, private gravedigger results, old five-role compatibility, all three play modes and public audio cue validation.
+- Browser walkthrough: 13-seat remote DEBUG game; investigate → guardian (host’s own seat) protects wolf target → gravedigger confirms first-night no-result → dawn confirms no deaths → failed knight duel keeps discussion → vote spares Idiot and displays no voting rights. No console errors.
+- Reviewed the nine-card animated archive, verified guardian CSS animation, and checked the 390px mobile cast picker without horizontal overflow. New role art shares the existing lightweight SVG sprite, gold/blue palette, stationary ground and separate rotating aura.
+- Original presets and saves remain valid. New roles start at zero; standard special-role caps remain one and fun-mode caps remain 15 within the total/balance constraints.

@@ -12,13 +12,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
-from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report, narration
+from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report, narration, NIGHT_ROLES, current_announcement
 from .speech import PROFILES, Speech, speech_profile
 from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "1.8.12"
+VERSION = "2.0.0"
 
 
 class CreateGame(BaseModel):
@@ -161,10 +161,12 @@ def create_app(database=None, preload_audio=False):
     def private(game_id: str, credential=Depends(token)):
         state = app.state.store.get(game_id, credential, host_only=True)
         info = private_view(state)
-        if state["phase"] not in ("witch", "seer") or info["active"]:
+        if state["phase"] not in NIGHT_ROLES or info["active"]:
             rooms.guard_private(state)
         if state["phase"] == "wolves" and rooms.mode(state) == "multi":
             info["choices"] = rooms.network(state)["wolf_votes"]
+        if state["phase"] == "discussion" and rooms.mode(state) == "multi":
+            info["knights"] = [s for s in info["knights"] if s not in rooms.protected_seats(state)]
         return info
 
     @app.post("/api/games/{game_id}/actions")
@@ -270,6 +272,7 @@ def create_app(database=None, preload_audio=False):
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),
                     voice: Literal["original", "narrator"] | None = None,
                     morning: int | None = Query(default=None, ge=1),
+                    announcement: str | None = Query(default=None, max_length=100),
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
         state, host, _ = app.state.store.read_record(game_id)
         if rooms.remote(state):
@@ -289,9 +292,14 @@ def create_app(database=None, preload_audio=False):
         text = script[cue]
         if cue == "finished" and state["phase"] == "finished":
             text = narration(state, lang)
+        if announcement is not None:
+            public = current_announcement(state)
+            if not public or public["key"] != announcement or cue != state["phase"]:
+                raise HTTPException(409, "公開事件已變更。 / Public event changed.")
+            text = narration(state, lang)
         if morning is not None:
             report = morning_report(state)
-            if not report or morning != state["day"] or cue != state["phase"] or state["phase"] in ("reveal", "wolves", "witch", "seer", "dawn"):
+            if not report or morning != state["day"] or cue != state["phase"] or state["phase"] in ("reveal", "wolves", *NIGHT_ROLES, "dawn"):
                 raise HTTPException(409, "天亮結果尚未公布或階段已變更。 / Morning results are not published or the turn has changed.")
             text = report["en" if lang == "en" else "zh"] + " " + text
         try:

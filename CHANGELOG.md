@@ -1,6 +1,7 @@
 # Version 1.8.3 — 2026-10-20
 
 - Put host room status and invite/approval controls above the Village chronicle heading.
+- Focus the role card when opening private identity dialogs so long role tips cannot scroll the entrance offscreen.
 - Add continuous gentle role-card idle movement after the entrance and make halo rotation more visible. Keep ground geometry stationary.
 - Reflect system reduced-motion preferences accurately in the Motion button; explicitly selecting Motion on enables character animation, while Motion off still stops it.
 

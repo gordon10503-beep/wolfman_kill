@@ -1,4 +1,4 @@
-import {roleCard} from './role-cards.mjs';
+import {roleCard,focusRoleCard} from './role-cards.mjs';
 import {roleTip, roleEffect} from './role-effects.mjs';
 import {bilingualize,setBilingualText} from './bilingual.mjs';
 import {themeForPhase,englishSeatText,chineseSeatText,narrationChanged} from './presentation.mjs';
@@ -131,7 +131,7 @@ export async function startPlayer(hash) {
   }
   async function openPrivate(roleOnly=false) {
     if(busy)return;
-    try {const detail=await request('player/private');if(!detail.approved)return;drawPrivate(detail,roleOnly);if(!dialog.open)dialog.showModal();}
+    try {const detail=await request('player/private');if(!detail.approved)return;drawPrivate(detail,roleOnly);if(!dialog.open)dialog.showModal();focusRoleCard(dialog);}
     catch(e){error(e);}
   }
   function drawPrivate(detail,roleOnly=false) {

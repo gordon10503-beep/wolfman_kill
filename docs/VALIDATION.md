@@ -121,3 +121,5 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Browser host room status Y=201 precedes chronicle heading Y=444. Guest private role has identity-rise + identity-idle and a 32-second halo orbit, with changing computed transforms; its ground has no animation.
 - Browser checked guest Motion off produces no role/halo animation, and explicit Motion on restores both. Reopening host and guest role cards replays their entrance. System reduced-motion preference now controls the default button state and does not suppress an explicitly requested character animation.
 - Frontend syntax and all 56 tests passed. The preceding full backend run passed 114 tests; the additional backend change only bumps the displayed release version.
+
+- Found and fixed native dialog autofocus scrolling a guest role card to Y=-293 while Hide was focused beneath long tips (scrollTop=413). Private identity dialogs now focus the card and start at the top, making the entrance visible.

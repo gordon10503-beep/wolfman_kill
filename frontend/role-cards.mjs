@@ -51,3 +51,9 @@ export function roleCard(role, seat) {
   const [zh,en,title,side]=roles[role];
   return `<article class="identity-card ${role==='wolf'?'identity-bad':'identity-good'} ${artLoaded||artFallback?'identity-art-ready':''}" aria-label="${zh} / ${en}"><div class="identity-top"><span>MOONFALL</span><span>${seat==null?'THE ARCHIVE':`SEAT ${String(seat).padStart(2,'0')}`}</span></div><div class="identity-art">${characterArt(role)}</div><p class="identity-title">${title}</p><h3>${zh}<span class="english-subtext" lang="en">${en}</span></h3><p class="identity-side">${side}</p><span class="identity-seal" aria-hidden="true">✦</span></article>`;
 }
+
+/** Keep the entrance visible instead of auto-scrolling to Hide below long role tips. */
+export function focusRoleCard(dialog){
+  const card=dialog.querySelector('.identity-card');if(!card)return;
+  card.tabIndex=-1;card.focus({preventScroll:true});dialog.scrollTop=0;
+}

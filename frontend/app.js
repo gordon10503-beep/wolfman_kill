@@ -5,7 +5,7 @@ import {bilingualize, setBilingualText} from './bilingual.mjs';
 import {Narrator} from './audio.mjs';
 import {themeForPhase, englishSeatText, chineseSeatText, chineseDeathText, narrationChanged, roleLimit} from './presentation.mjs';
 import {RoomHost, startPlayer} from './rooms.mjs';
-import {roleCard,characterArt} from './role-cards.mjs';
+import {roleCard,characterArt,focusRoleCard} from './role-cards.mjs';
 import {openArchive} from './archive.mjs';
 import {RoomChat} from './chat.mjs';
 import {actionLabel,hasPlayerAction,voiceVolume,bindVolume,voteRecords} from './session-ui.mjs';
@@ -108,7 +108,7 @@ async function api(path, options = {}) {
   } catch (e) { if (e.name === 'AbortError') throw new Error('連線逾時，請檢查網絡並重新同步。'); throw e; }
   finally { clearTimeout(timeout); }
 }
-function showPrivate() { bilingualize(privateDialog); privateDialog.showModal(); }
+function showPrivate() { bilingualize(privateDialog); privateDialog.showModal(); focusRoleCard(privateDialog); }
 function closePrivate() {
   hostPrivate=false;hostPlayerTurn=null;
   privateDialog.getAnimations({subtree:true}).forEach(animation=>animation.cancel());

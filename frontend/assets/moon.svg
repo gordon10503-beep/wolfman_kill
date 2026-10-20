@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path fill="#c4ab77" d="M46 8a27 27 0 1 0 10 41A26 26 0 0 1 46 8Z"/><path fill="none" stroke="#c4ab77" stroke-width="1.5" d="m48 14 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs>
+  <path id="lunar-crescent" d="M46 8a27 27 0 1 0 10 41A26 26 0 0 1 46 8Z"/>
+  <clipPath id="lunar-mask"><use href="#lunar-crescent"/></clipPath>
+  <linearGradient id="lunar-gold" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#fff0be"/><stop offset=".45" stop-color="#d3bc87"/><stop offset="1" stop-color="#96744c"/></linearGradient>
+  <filter id="lunar-rim" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="1.4"/></filter>
+</defs>
+<use href="#lunar-crescent" fill="none" stroke="#edcc85" stroke-width="3" opacity=".3" filter="url(#lunar-rim)"/>
+<use href="#lunar-crescent" fill="url(#lunar-gold)"/>
+<g clip-path="url(#lunar-mask)">
+  <g fill="#776b55" opacity=".24"><circle cx="17" cy="27" r="5.4"/><circle cx="24" cy="48" r="6.8"/><circle cx="10" cy="40" r="2.5"/><circle cx="30" cy="15" r="3"/><circle cx="40" cy="54" r="2.5"/></g>
+  <g fill="none" stroke="#fff0c5" stroke-width=".75" opacity=".55"><path d="M12 27a5 5 0 0 1 8-4M18 48a6 6 0 0 1 9-5M27 15a3 3 0 0 1 4-3"/></g>
+  <path d="M11 18q-8 15 1 29t28 8" fill="none" stroke="#fff3ca" stroke-width=".7" opacity=".35"/>
+  <g fill="#fff2c8" opacity=".5"><circle cx="14" cy="35" r=".65"/><circle cx="23" cy="20" r=".6"/><circle cx="33" cy="53" r=".7"/></g>
+</g>
+<use href="#lunar-crescent" fill="none" stroke="#f8df9f" stroke-width=".8" opacity=".8"/>
+<path fill="#ead39b" fill-opacity=".18" stroke="#e6cd94" stroke-width="1.4" d="m48 14 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/>
+</svg>

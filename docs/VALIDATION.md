@@ -139,3 +139,9 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - The hero start button created a remote game with the selected 120-second discussion, self-save off, witch action when attacked off and parity victory off; the stored game was checked directly for this QA room.
 - At 390px width the document had no horizontal overflow, and the button remained within the hero bounds after the copy. Desktop screenshot verified bottom-right placement above the footer quote. Temporary viewport override reset.
 - JavaScript syntax and 56 frontend tests passed; all 20 API tests passed for the release version. Full backend coverage continues in CI.
+
+
+## Version 1.8.6 — 2026-10-20
+
+- Browser measured Motion/DEBUG/Voice at 156 × 44 CSS pixels and speaker/help/archive at 44 × 44 on desktop. At 390px width, the three toggles share equal ~110px widths and 44px height; document scroll width equals client width. Temporary viewport override reset.
+- SVG XML parsing passed for moon.svg and forest.svg. Browser visually checked crater shading, edge glow, original forest animation and the refreshed crescent logo; no console errors observed. The forest glow uses gradients, with no animated filters.

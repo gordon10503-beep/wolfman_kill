@@ -1,3 +1,9 @@
+# Version 1.8.6 — 2026-10-20
+
+- Add crater patterns, surface shading and soft rim light to the crescent icon and forest moon, retaining lightweight SVG artwork.
+- Unify header controls at 44px high with matching corners, padding and alignment. Motion, DEBUG and Voice share equal widths; help, archive and speaker buttons share a 44px square.
+- Allow the header to wrap cleanly, with equal-width toggles on mobile and room actions retaining the same control height.
+
 # Version 1.8.5 — 2026-10-20
 
 - Include witch self-saving, witch action when attacked, parity victory and discussion duration in the collapsed bilingual rules summary. Numeric edits update immediately.

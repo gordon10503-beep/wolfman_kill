@@ -1,3 +1,4 @@
+import {simplifyHandoff} from './handoff-ui.mjs';
 import {clearNarratorPanel,mountNarratorPanel,selectedPlayMode,updateRuleSummary} from './settings-ui.mjs';
 import {NightCoverTimer} from './night-cover.mjs';
 import {roleTip, roleEffect, privacyReminder} from './role-effects.mjs';
@@ -85,6 +86,7 @@ function applyDebugControl(){
   if(action && ['reveal','wolves','witch','seer','hunter','vote','runoff'].includes(state.phase))action.hidden=!debugControl.can_act;
   const voting=['vote','runoff'].includes(state.phase) && claimed.some(s=>state.players.some(p=>p.seat===s&&p.alive));
   if($('.quick-vote'))$('.quick-vote').hidden=voting;
+  const status=$('#handoff-control-status');if(status)status.textContent=claimed.length&&!debugControl.can_act?'等待玩家裝置確認 · Waiting for the player’s device':'';
   const note=$('#solo-debug-note');
   if(note && claimed.length)note.innerHTML=`已批准玩家保留自己的角色及投票。DEBUG 只代操作其餘座位。${!debugControl.can_act?' 本回合等待玩家裝置。':''}<span class="english-subtext" lang="en">Approved players keep their own roles and votes. DEBUG simulates the remaining seats.${!debugControl.can_act?' Waiting for the player’s device.':''}</span><span class="english-subtext">玩家控制 / Player-controlled seats: ${claimed.join(', ')}</span>`;
 }
@@ -286,6 +288,7 @@ function renderGame() {
   const table=$('.table-panel'),record=$('.chronicle');if(table&&record){table.before(record);record.insertAdjacentHTML('afterend',voteRecords(state.vote_history));}
   if(state.room?.remote){const chat=document.createElement('section');chat.className='room-chat';chat.id='host-chat';$('.game-grid > section').prepend(chat);hostChat.mount(chat);}else hostChat.mount(null);
   if(state.room?.remote){const note=$('.room-panel .room-status:nth-of-type(2)');if(note)note.innerHTML='遠端模式：每位玩家自行控制語音及音量，使用文字討論。<span class="english-subtext">Remote mode: each player controls their own narration and volume, with text discussion.</span>';}
+  if(p==='reveal')simplifyHandoff($('.stage-panel'),{debug,multi,seat:state.reveal_seat,ready:multi?state.room.ready:state.reveal_seat-1,total:state.players.length,viewer:session.viewer});
   bilingualize(app);mountNarratorPanel($('.narration'),$('#replay'));
 }
 function targetChoices(seats, optional=true) {

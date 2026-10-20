@@ -1,3 +1,9 @@
+# Version 1.8.10 — 2026-10-20
+
+- Simplify role setup to readiness progress, the current seat and core actions. DEBUG prioritizes Skip handoff, with current-seat role viewing secondary.
+- Collapse My role and longer DEBUG/privacy help under More options, retaining a short visible privacy reminder and a visible waiting status for player-controlled turns.
+- Keep existing handlers, permissions and readiness rules; normal hosts still confirm their own role from the primary action.
+
 # Version 1.8.9 — 2026-10-20
 
 - Default motion to on, including sessions that report system reduced motion. Preserve an explicitly saved Motion off choice; the header and archive toggles still control it.

@@ -1,10 +1,10 @@
 {
   "name": "moonfall-wolfman-kill",
-  "version": "1.8.9",
+  "version": "1.8.10",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check frontend/settings-ui.mjs && node --check frontend/chat.mjs && node --check frontend/guide.mjs && node --check frontend/session-ui.mjs && node --check frontend/archive.mjs && node --check frontend/rooms.mjs && node --check frontend/role-cards.mjs && node --check frontend/app.js && node --check frontend/audio.mjs && node --check frontend/presentation.mjs && node --check frontend/bilingual.mjs && node --check frontend/forest.mjs && node --check frontend/transitions.mjs && node --check frontend/night-cover.mjs && node --check frontend/role-effects.mjs && node --check frontend/install.mjs && node --check frontend/sw.js"
+    "check": "node --check frontend/handoff-ui.mjs && node --check frontend/settings-ui.mjs && node --check frontend/chat.mjs && node --check frontend/guide.mjs && node --check frontend/session-ui.mjs && node --check frontend/archive.mjs && node --check frontend/rooms.mjs && node --check frontend/role-cards.mjs && node --check frontend/app.js && node --check frontend/audio.mjs && node --check frontend/presentation.mjs && node --check frontend/bilingual.mjs && node --check frontend/forest.mjs && node --check frontend/transitions.mjs && node --check frontend/night-cover.mjs && node --check frontend/role-effects.mjs && node --check frontend/install.mjs && node --check frontend/sw.js"
   }
 }

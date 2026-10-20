@@ -165,3 +165,10 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 
 - Browser verified a fresh session starts with Motion on and root data-motion=on. Turning it off survives refresh; turning it on restores motion. This is now the requested default even when the system requests reduced animation.
 - Preserved the user's committed hero/chronicle copy changes (42f9e71). Frontend syntax and 56 tests passed; 21 API/invite-QR tests passed.
+
+
+## Version 1.8.10 — 2026-10-20
+
+- Browser DEBUG pass: six-player room, reveal and confirm seat 1, panel advances to 1/6 ready with prominent seat 2. More options exposes My role; skip action advances to wolves. Existing backend ownership restrictions remain intact.
+- Normal remote host pass: own primary Confirm role reveals the card, then advances readiness to 1/9. At 390px width, document scroll width equals client width (375px) and compact panel width is 339px. Temporary viewport override reset.
+- All 56 frontend tests and syntax checks passed, plus 38 API/room backend cases. Existing player-owned DEBUG and readiness cases passed without engine changes.

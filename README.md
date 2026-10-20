@@ -83,7 +83,7 @@ No Supabase account is required. The existing backend supports both modes with S
 
 <img src="docs/wolf-role-archive.png" alt="Bad-side chapter with five animated wolf character cards" width="720">
 
-New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All thirteen cards appear in the animated archive, divided into **All (13)**, **Bad side (5)** and **Good side (8)** chapters. Open the magic book first, then use the chapter tabs; the tabs also support arrow keys. Existing five-role games remain compatible; the 6-player preset keeps its traditional cast. The 9-player preset adds the Idiot, and the 12-player preset includes the nine original 2.0 roles; the new wolf variants are optional additions.
+New roles work in shared-device, in-person phone and remote games, including solo/hybrid DEBUG and fun mode. All thirteen cards appear in the animated archive, divided into **All (13)**, **Bad side (5)** and **Good side (8)** chapters. Open the magic book first, then use the chapter tabs; the tabs also support arrow keys. Existing five-role games remain compatible; the 6-player preset keeps its traditional cast. The 9-player preset adds the Guardian, and the 12-player preset includes the nine original 2.0 roles; the new wolf variants are optional additions.
 
 | Role | Ability |
 | --- | --- |

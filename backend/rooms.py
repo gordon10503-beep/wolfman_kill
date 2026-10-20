@@ -328,22 +328,32 @@ def player_action(g, token, key, action, data, *, member_key=None):
     return player_view(g, token, member_key=member_key)
 
 
+def chat_participant(g, credential, host_hash, viewer_hash):
+    if hmac.compare_digest(digest(credential), viewer_hash):
+        return network(g).setdefault("spectator", {"seat": None})
+    return participant(g, credential, host_hash)
+
+
 def chat_permissions(g, m):
     require(remote(g), "文字討論只適用於遠端模式。 / Text chat requires remote mode.")
+    if m["seat"] is None:
+        return {"public": False, "spectators": True}
     p, phase = player(g, m["seat"]), g["phase"]
     public = phase in ("reveal", "finished") or (p["alive"] and phase in ("discussion", "vote", "runoff")) or (phase == "last_words" and g["last_words_queue"][0] == p["seat"])
     channels = {"public": public}
+    if not p["alive"]:
+        channels["spectators"] = True
     if phase == "wolves" and p["role"] == "wolf" and p["alive"]:
         channels["wolves"] = True
     return channels
 
 
-def chat_view(g, m, after_public=0, after_wolves=0):
+def chat_view(g, m, after_public=0, after_wolves=0, after_spectators=0):
     allowed = chat_permissions(g, m)
     history = network(g).get("chat", {})
     return {"seat": m["seat"], "channels": {channel: {
         "can_send": can_send,
-        "messages": [message for message in history.get(channel, [])[-60:] if message["id"] > (after_public if channel == "public" else after_wolves)]
+        "messages": [message for message in history.get(channel, [])[-60:] if message["id"] > {"public": after_public, "wolves": after_wolves, "spectators": after_spectators}[channel]]
     } for channel, can_send in allowed.items()}}
 
 

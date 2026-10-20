@@ -96,4 +96,6 @@ The FastAPI/Starlette test client emits upstream deprecation warnings in this en
 - Browser two-device pass: approval, private identity separated from actions, real wolf votes preserved during host DEBUG simulation, private wolf discussion removed after the phase, completed voter attribution on both screens, and bilingual solo DEBUG guide. Guest replay played the original Cantonese audio; mute and volume were checked.
 - At a 390 × 844 browser viewport, the remote guest page had no horizontal overflow and the phase-specific action stayed accessible at the bottom. The viewport override was reset. No console errors observed in the guest tab; physical phone testing remains outstanding.
 - Regression cases cover peaceful-night audio not repeating after hunter shots, including interruption, late join, replay and unmute. Chat permission, cursor, room isolation and retention cases run against the API.
-- Local checks: 113 Python cases passed; 5 PostgreSQL cases require CI. All 56 frontend tests and JavaScript syntax checks passed. Voice chat remains deferred.
+- Local checks: 114 Python cases passed; 5 PostgreSQL cases require CI. All 56 frontend tests and JavaScript syntax checks passed. Voice chat remains deferred.
+
+- Spectator viewer passes and eliminated players share a separate chat; living players cannot read or write it. API tests verify public read-only access, wolf-channel denial, no public-state leakage, cursors and cross-room isolation. Viewer passes retain their existing restrictions on role actions and audio.

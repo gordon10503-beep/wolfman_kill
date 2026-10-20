@@ -221,7 +221,7 @@ function renderGame() {
   const living = state.players.filter(p=>p.alive).length;
   $('.topbar').classList.add('in-game');
   $('#session-tools').hidden=false;
-  $('#session-tools').innerHTML = !session.viewer ? '<button class="icon-button" id="audience">↗ 觀眾畫面<span class="english-subtext" lang="en">Audience view</span></button><button class="icon-button" id="new-game">＋ 新遊戲<span class="english-subtext" lang="en">New game</span></button>' : '<span class="status-pill">READ ONLY · 觀眾</span>';
+  $('#session-tools').innerHTML = !session.viewer ? '<button class="icon-button" id="audience">↗ 觀眾畫面<span class="english-subtext" lang="en">Audience view</span></button><button class="icon-button" id="new-game">＋ 新遊戲<span class="english-subtext" lang="en">New game</span></button>' : '<span class="status-pill">觀眾 · AUDIENCE</span>';
   app.innerHTML = `<div class="session-header"><div><p class="eyebrow">${session.viewer?'THE VILLAGE VIEW':'THE GAME MASTER’S TABLE'}</p><h1>村莊紀事 <span class="muted">/ 第 ${state.day} ${night?'晚':'輪'}</span></h1></div></div>
   ${p==='finished'?`<div class="winner-banner"><p class="eyebrow">THE TRUTH, AT LAST</p><h2>${{village:'好人陣營勝利',wolves:'狼人陣營勝利',draw:'雙方全滅 · 平局'}[state.winner]}</h2><p>月落之後，每個秘密都有了答案。完整身份與死亡原因已公開。</p></div>`:`<div class="progress">${stages.map(([key,text])=>`<span class="${key===actualStage?'current':''}">${text}</span>`).join('')}</div>`}
   ${session.viewer?'<div class="viewer-note">這是公開觀眾畫面。私人行動與查驗結果不會出現在這裡。每 3 秒同步。</div>':''}
@@ -281,7 +281,7 @@ function renderGame() {
     }
   } else if(multi){$('#replay').hidden=true;$('.voice-settings').hidden=true;}
   const table=$('.table-panel'),record=$('.chronicle');if(table&&record){table.before(record);record.insertAdjacentHTML('afterend',voteRecords(state.vote_history));}
-  if(state.room?.remote&&!session.viewer){const chat=document.createElement('section');chat.className='room-chat';chat.id='host-chat';$('.game-grid > section').prepend(chat);hostChat.mount(chat);}else hostChat.mount(null);
+  if(state.room?.remote){const chat=document.createElement('section');chat.className='room-chat';chat.id='host-chat';$('.game-grid > section').prepend(chat);hostChat.mount(chat);}else hostChat.mount(null);
   if(state.room?.remote){const note=$('.room-panel .room-status:nth-of-type(2)');if(note)note.innerHTML='遠端模式：每位玩家自行控制語音及音量，使用文字討論。<span class="english-subtext">Remote mode: each player controls their own narration and volume, with text discussion.</span>';}
   bilingualize(app);
 }

@@ -249,3 +249,5 @@ No license has been selected. Add an explicit license before inviting redistribu
 
 
 Role artwork is preloaded as a shared vector sprite. Private cards reveal the character first, then a fading, slowly orbiting halo. Homepage symbols have subtle idle motion. Player rooms share day/night animated scenery and the styled public village/chronicle, while private roles remain inside dialogs. Motion off and reduced-motion settings provide static artwork.
+
+Remote spectators and eliminated players have a separate chat, hidden from living players. They may read village chat but cannot post there, except an eliminated player during their designated last words. Spectators use the existing audience link; their messages are labelled Spectator (shared-link spectators share a one-second sending cooldown). Wolf chat remains inaccessible to spectators and eliminated players.

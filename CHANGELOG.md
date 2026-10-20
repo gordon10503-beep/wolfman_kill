@@ -110,3 +110,5 @@
 - Prevented overlapping/stale audio within a tab with a cancellable playback owner and offline text fallback.
 - Fixed premature victory before hunter actions and invalid multi-special-role setups, including the terminal version.
 - Added rules/privacy documentation, Docker packaging, and Python/Node checks in GitHub Actions.
+
+- Added a private spectator/eliminated-player chat on the audience and player pages, with read-only access to public village discussion and server-enforced separation from living players.

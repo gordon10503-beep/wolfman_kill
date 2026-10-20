@@ -116,3 +116,32 @@ def test_chat_history_is_bounded_and_does_not_change_the_game_turn(monkeypatch):
     messages=rooms.network(g)['chat']['public']
     assert len(messages)==120 and messages[0]['id']==7
     assert g['version']==version and rooms.turn_key(g)==key
+
+
+def test_spectators_and_dead_players_share_private_chat_but_only_read_public(remote, monkeypatch):
+    c,path,host,guest,_,created=remote;approve(remote)
+    viewer={'Authorization':'Bearer '+created['viewer_token']}
+    c.app.state.store.mutate(created['id'],lambda g,*_:g.update(phase='discussion'))
+    assert c.post(path+'/chat',headers=host,json={'channel':'public','text':'living discussion'}).status_code==200
+    view=c.get(path+'/chat',headers=viewer).json()
+    assert set(view['channels'])=={'public','spectators'}
+    assert not view['channels']['public']['can_send']
+    assert view['channels']['public']['messages'][0]['text']=='living discussion'
+    assert c.post(path+'/chat',headers=viewer,json={'channel':'public','text':'spoiler'}).status_code==409
+    assert c.post(path+'/chat',headers=viewer,json={'channel':'wolves','text':'spy'}).status_code==409
+    assert c.post(path+'/chat',headers=viewer,json={'channel':'spectators','text':'watching from outside'}).status_code==200
+    assert 'spectators' not in c.get(path+'/chat',headers=guest).json()['channels']
+    assert 'watching from outside' not in c.get(path,headers=viewer).text
+    assert c.post(path+'/chat',headers=host,json={'channel':'spectators','text':'living spy'}).status_code==409
+    c.app.state.store.mutate(created['id'],lambda g,*_:g['players'][1].update(alive=False))
+    dead=c.get(path+'/chat',headers=guest).json()['channels']
+    assert dead['spectators']['messages'][0]['seat'] is None
+    assert dead['spectators']['can_send'] and not dead['public']['can_send']
+    assert c.post(path+'/chat',headers=guest,json={'channel':'spectators','text':'now I can discuss secrets'}).status_code==200
+    view=c.get(path+'/chat?after_spectators=1',headers=viewer).json()
+    assert [m['seat'] for m in view['channels']['spectators']['messages']]==[2]
+    assert 'now I can discuss secrets' not in c.get(path+'/chat',headers=host).text
+    assert c.get(path+'/private',headers=viewer).status_code==403
+    assert c.get(path+'/audio',headers=viewer).status_code==403
+    other=c.post('/api/games',json={'counts':{'wolf':1,'seer':1,'witch':1,'hunter':0,'villager':2},'mode':'remote'}).json()
+    assert c.get('/api/games/'+other['id']+'/chat',headers=viewer).status_code==403

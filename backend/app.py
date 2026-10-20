@@ -61,7 +61,7 @@ class Speaker(BaseModel):
 
 class ChatMessage(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    channel: Literal["public", "wolves"]
+    channel: Literal["public", "wolves", "spectators"]
     text: str = Field(min_length=1, max_length=500)
 
 
@@ -240,13 +240,13 @@ def create_app(database=None, preload_audio=False):
                 "control": rooms.debug_control(state)}
 
     @app.get("/api/games/{game_id}/chat")
-    def chat(game_id: str, after_public: int = Query(default=0, ge=0), after_wolves: int = Query(default=0, ge=0), credential=Depends(token)):
-        g, host, _ = app.state.store.read_record(game_id)
-        return rooms.chat_view(g, rooms.participant(g, credential, host), after_public, after_wolves)
+    def chat(game_id: str, after_public: int = Query(default=0, ge=0), after_wolves: int = Query(default=0, ge=0), after_spectators: int = Query(default=0, ge=0), credential=Depends(token)):
+        g, host, viewer = app.state.store.read_record(game_id)
+        return rooms.chat_view(g, rooms.chat_participant(g, credential, host, viewer), after_public, after_wolves, after_spectators)
 
     @app.post("/api/games/{game_id}/chat")
     def send_chat(game_id: str, body: ChatMessage, credential=Depends(token)):
-        return app.state.store.mutate(game_id, lambda g, host, _: rooms.chat_send(g, rooms.participant(g, credential, host), body.channel, body.text))
+        return app.state.store.mutate(game_id, lambda g, host, viewer: rooms.chat_send(g, rooms.chat_participant(g, credential, host, viewer), body.channel, body.text))
 
     @app.get("/api/games/{game_id}/audio")
     async def audio(game_id: str, request: Request, phase: str | None = Query(default=None, max_length=24),

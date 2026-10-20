@@ -1,5 +1,5 @@
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const names={public:'村莊討論 · Village chat',wolves:'狼隊密談 · Private wolf chat'};
+const names={public:'村莊討論 · Village chat',wolves:'狼隊密談 · Private wolf chat',spectators:'觀眾與亡者 · Spectators & eliminated'};
 
 /** Separate cursors keep chat from invalidating private forms or replaying audio. */
 export class RoomChat{
@@ -45,10 +45,10 @@ export class RoomChat{
     this.root.querySelector('.chat-tabs').innerHTML=Object.keys(this.channels).map(name=>`<button type="button" class="icon-button" data-channel="${name}" aria-pressed="${this.active===name}">${names[name]}</button>`).join('');
     this.root.querySelectorAll('[data-channel]').forEach(button=>button.onclick=()=>{this.capture();this.active=button.dataset.channel;this.draw();});
     const channel=this.channels[this.active],messages=this.root.querySelector('.chat-messages');
-    const html=(channel?.messages||[]).map(m=>`<p><strong>${m.seat} 號 / Seat ${m.seat}</strong><span>${esc(m.text)}</span></p>`).join('')||'<p class="muted">還沒有訊息。 · No messages yet.</p>';
+    const html=(channel?.messages||[]).map(m=>`<p><strong>${m.seat===null?'觀眾 · Spectator':`${m.seat} 號 / Seat ${m.seat}`}</strong><span>${esc(m.text)}</span></p>`).join('')||'<p class="muted">還沒有訊息。 · No messages yet.</p>';
     if(messages.innerHTML!==html){const pinned=messages.scrollHeight-messages.scrollTop-messages.clientHeight<40;messages.innerHTML=html;if(pinned)messages.scrollTop=messages.scrollHeight;}
     const area=this.root.querySelector('textarea');if(area.value!==(this.drafts[this.active]||''))area.value=this.drafts[this.active]||'';area.disabled=!channel?.can_send;
     this.root.querySelector('form button').disabled=!channel?.can_send;
-    this.root.querySelector('.chat-status').textContent=channel?.can_send?(this.active==='wolves'?'僅限存活狼隊可讀。 · Only living wolves can read this channel.':'淘汰玩家可閱讀；輪到遺言時才可發言。 · Eliminated players may read and speak during their last words.'):'目前只可閱讀。 · Read only during this phase.';
+    this.root.querySelector('.chat-status').textContent=channel?.can_send?(this.active==='wolves'?'僅限存活狼隊可讀。 · Only living wolves can read this channel.':this.active==='spectators'?'僅觀眾與已出局玩家可讀；存活玩家看不到。 · Only spectators and eliminated players can read this chat.':'淘汰玩家可閱讀；輪到遺言時才可發言。 · Eliminated players may read and speak during their last words.'):'目前只可閱讀。 · Read only during this phase.';
   }
 }

@@ -2,7 +2,7 @@
 
 Live site: [Moonfall](https://moonfall-wolfman.onrender.com/).
 
-One HTTPS website serves the frontend and Python API on iPhone, Android, Windows and Mac. This remains an in-person game: one host device handles private handoffs; audience links are read-only, not remote player accounts.
+One HTTPS website serves the frontend and Python API on iPhone, Android, Windows and Mac. Tables can use one shared device, separate phones in person, or remote play with text chat. The host also plays; audience links remain read-only.
 
 ## Recommended free setup
 
@@ -31,7 +31,7 @@ Keep both accounts on Free and check usage dashboards. These are hobby allowance
 
 5. Add the secret environment variable `DATABASE_URL` with the Neon URL. Never commit it or put it in frontend code/screenshots. `render.yaml` also describes this configuration for Blueprints.
 6. Set health check `/api/health`, deploy, and wait for **Live**. Open the assigned `https://…onrender.com` URL. Create a test game, refresh, finish a night and check narration. Fix database errors rather than removing `DATABASE_URL` and silently falling back to temporary disk.
-7. Share the **home URL** for friends to create tables. Use **Audience view** in the top bar to share a read-only view of your active game. Keep the host tab private.
+7. Share the **home URL** for friends to create tables. For a current game, share the QR/invite from **Room / devices**, then approve each player. Use **Audience view** to share a read-only view. Keep the host tab and private recovery code to yourself.
 
 Cloud storage starts fresh: local SQLite games and MP3s are not automatically uploaded. MP3s can regenerate after restart; game snapshots stay in Neon. Use one Uvicorn worker for speech caching. Edge TTS access must be verified on the live host; on-screen instructions remain usable if speech is unavailable.
 
@@ -44,7 +44,7 @@ Cloud storage starts fresh: local SQLite games and MP3s are not automatically up
 
 This is an installable web app, not an App Store/Play Store binary. It includes a standalone manifest, icons, responsive panels, touch controls and safe-area spacing. HTTPS is required for installation features except localhost. Availability varies by browser.
 
-**Play requires a connection.** The service worker does not cache API responses, private screens or stale frontend code. Install before creating a game: the host pass lives in that tab's session storage, and browser/installed-app sessions can differ. Keep the host session open while playing.
+**Play requires a connection.** The service worker does not cache API responses or private screens. Install before creating a game: browser and installed-app sessions can differ. If the host session is lost, use the private recovery code copied from **Room / devices** on the homepage. Anyone with that code can act as host, including an older browser that still has it.
 
 ## Persistence validation
 

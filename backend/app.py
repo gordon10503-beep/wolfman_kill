@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
 from .engine import NARRATION, NARRATION_EN, RuleError, new_game, private_view, public_view, witch_potions, morning_report, narration, NIGHT_ROLES, current_announcement
@@ -18,7 +19,7 @@ from .store import Store
 from . import rooms
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 
 class CreateGame(BaseModel):
@@ -94,8 +95,11 @@ def create_app(database=None, preload_audio=False):
                 warmup.cancel()
                 await asyncio.gather(warmup, return_exceptions=True)
             await app.state.speech.close()
+            if hasattr(app.state.store, "close"):
+                await asyncio.to_thread(app.state.store.close)
 
     app = FastAPI(title="Moonfall · 狼人殺", version=VERSION, lifespan=lifespan, docs_url=None, redoc_url=None)
+    app.add_middleware(GZipMiddleware, minimum_size=1024)
     auth = HTTPBearer(auto_error=False)
 
     def token(credentials: HTTPAuthorizationCredentials | None = Depends(auth)):
@@ -117,7 +121,15 @@ def create_app(database=None, preload_audio=False):
             if length > 32768:
                 return JSONResponse({"detail": "Request too large."}, status_code=413)
         response = await call_next(request)
-        response.headers["Cache-Control"] = "no-store"
+        path = request.url.path
+        # Public files can use conditional requests; game, chat and audio data cannot.
+        if path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
+        elif path.endswith((".js", ".mjs", ".css")) and path != "/sw.js":
+            # Revalidate code on every load so a deploy cannot mix old modules with a new API.
+            response.headers["Cache-Control"] = "public, max-age=0, must-revalidate"
+        else:
+            response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["X-Moonfall-Version"] = VERSION
@@ -217,7 +229,13 @@ def create_app(database=None, preload_audio=False):
         return rooms.player_view(g, credential)
 
     @app.post("/api/games/{game_id}/host-player")
+    @app.get("/api/games/{game_id}/host-player")
     def host_player(game_id: str, credential=Depends(token)):
+        state = app.state.store.get(game_id, credential, host_only=True)
+        key = rooms.host_key(state)
+        if key is not None:
+            return rooms.player_view(state, "", member_key=key)
+        # Older saves may predate the automatic host seat.
         def operation(g, host, viewer):
             rooms.authorize(credential, host)
             key = rooms.ensure_host(g)
@@ -275,13 +293,13 @@ def create_app(database=None, preload_audio=False):
                     morning: int | None = Query(default=None, ge=1),
                     announcement: str | None = Query(default=None, max_length=100),
                     lang: Literal["yue", "en"] = "yue", credential=Depends(token)):
-        state, host, _ = app.state.store.read_record(game_id)
+        state, host, _ = await asyncio.to_thread(app.state.store.read_record, game_id)
         if rooms.remote(state):
             rooms.participant(state, credential, host)
         else:
-            app.state.store.get(game_id, credential)
+            await asyncio.to_thread(app.state.store.get, game_id, credential)
         if rooms.mode(state) == "multi" and not rooms.remote(state):
-            app.state.store.get(game_id, credential, host_only=True)
+            await asyncio.to_thread(app.state.store.get, game_id, credential, host_only=True)
             if not rooms.owns_speaker(state, request.headers.get("X-Moonfall-Speaker")):
                 raise HTTPException(403, "只有主裝置可以播放語音。 / Only the main device may narrate.")
         cue = phase or state["phase"]

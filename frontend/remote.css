@@ -59,3 +59,28 @@ body:has(#motion[aria-pressed="false"]) .chat-overlay{animation:none}
 .solo-debug-help summary{cursor:pointer;font-size:12px;line-height:1.6;color:var(--gold)}.solo-debug-help summary span{margin-left:10px;font-size:11px}
 .solo-debug-help #solo-debug-note{margin:12px 0 0;padding:0;border:0;background:none;font-size:12px;line-height:1.8}.solo-debug-help .english-subtext{margin-top:7px}
 .stage-panel>#host-own-role{display:block;width:100%;margin:0 0 24px;white-space:normal;line-height:1.6;padding:12px}
+
+/* Keep mode selection beside the cast, and leave a single reachable create action on phones. */
+#app>.play-modes{margin:16px 0 25px;padding:15px 18px;border:1px solid var(--border);border-radius:18px;background:var(--panel)}
+#app>.play-modes legend{padding:0 8px;color:var(--gold)}
+.player-chronicle{padding:15px 18px;border:1px solid var(--border);border-radius:16px;background:var(--panel)}
+.player-chronicle summary{cursor:pointer;color:var(--gold);font:18px var(--serif)}
+.player-chronicle .chronicle-latest{display:block;margin-top:9px;color:var(--muted);font:11px/1.6 'Segoe UI',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.player-chronicle .chronicle-history{max-height:350px;overflow:auto;margin-top:12px}
+.player-ballot-status{margin:16px 0;padding:13px 16px;border:1px solid var(--gold);border-radius:13px;background:#c4ab7712;color:var(--gold);font-size:12px}
+.host-recovery,.recovery-entry{margin-top:18px;padding:14px 16px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--panel) 86%,transparent)}
+.host-recovery summary,.recovery-entry summary{cursor:pointer;color:var(--gold);font-size:12px}
+.host-recovery p{font-size:11px;line-height:1.6}
+.host-recovery button{width:auto}
+.recovery-entry form{display:grid;gap:10px;margin-top:14px;font-size:11px}
+.recovery-entry input{width:100%;min-height:44px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text)}
+@media(max-width:720px){
+  .hero .hero-start{display:none}
+  body:has(.setup-grid) main{padding-bottom:96px}
+  .house-rules #create{position:fixed;left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:40;width:auto;min-height:54px;margin:0;border-radius:17px;box-shadow:0 10px 38px #0009}
+  .role-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .role-card .cast-art{height:68px}
+  .stepper button{min-width:44px;min-height:44px;width:44px;height:44px}
+  .stepper{justify-content:space-between;gap:2px}
+  .stepper output{min-width:17px}
+}

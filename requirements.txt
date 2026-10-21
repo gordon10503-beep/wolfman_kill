@@ -2,4 +2,5 @@ fastapi==0.143.1
 uvicorn==0.53.0
 edge-tts==7.3.1
 psycopg[binary]==3.3.6
+psycopg-pool==3.3.3
 qrcode==8.2

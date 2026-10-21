@@ -290,6 +290,10 @@ def private_view(g):
     elif phase == "wolves":
         result["wolves"] = killing_wolves(g)
         result["can_abstain"] = g["rules"].get("wolves_can_abstain", True)
+        result["runoff"] = list(g.get("wolf_runoff", []))
+        result["round"] = 2 if result["runoff"] else 1
+        if result["runoff"]:
+            result["targets"] = result["runoff"]
     return result
 
 
@@ -372,7 +376,7 @@ def act(original, action, data):
     g = deepcopy(original)
     phase = g["phase"]
     require(phase != "finished", "遊戲已結束。")
-    fields = {"ack": set(), "wolves": {"target"}, "witch": {"save", "poison"},
+    fields = {"ack": set(), "wolves": {"target"}, "wolf_ballots": {"ballots"}, "witch": {"save", "poison"},
               "hidden_ack": set(), "charm": {"target"}, "explode": {"actor", "target"}, "protect": {"target"}, "grave_ack": set(), "duel": {"actor", "target"}, "inspect": {"target"}, "dawn": set(), "shoot": {"target"},
               "vote": set(), "ballots": {"ballots"}, "debug_skip_reveal": set(),
               "vote_result": {"leaders"}, "inactive_pass": set(), "last_words_done": set()}
@@ -389,13 +393,28 @@ def act(original, action, data):
             g["phase"] = "wolves"
         else:
             g["reveal_seat"] += 1
-    elif phase == "wolves" and action == "wolves":
-        target(g, data.get("target"), optional=g["rules"].get("wolves_can_abstain", True))
-        g["kill"], g["phase"] = data.get("target"), "hidden_wolf"
-        g["wolf_target"] = g["kill"]
-        for role in NIGHT_ROLES:
-            g[role + "_cursor"] = 0
-        g["poisons"], g["protected"], g["saved_targets"] = [], [], []
+    elif phase == "wolves" and action in ("wolves", "wolf_ballots"):
+        runoff = g.get("wolf_runoff", [])
+        if action == "wolf_ballots":
+            ballots = data.get("ballots")
+            require(isinstance(ballots, dict) and set(ballots) == {str(s) for s in killing_wolves(g)}, "必須記錄每位有狼刀權玩家的一票。 / Record every eligible wolf's ballot.")
+            choices = list(ballots.values())
+        else:
+            choices = [data.get("target")]
+        for choice in choices:
+            target(g, choice, optional=g["rules"].get("wolves_can_abstain", True))
+            require(choice is None or not runoff or choice in runoff, "狼刀加賽只可投平票玩家。 / Wolf runoff votes must target a tied player.")
+        tally = Counter(s for s in choices if s is not None)
+        leaders = sorted(s for s, n in tally.items() if n == max(tally.values())) if tally else []
+        if len(leaders) > 1 and not runoff:
+            g["wolf_runoff"] = leaders
+        else:
+            g.pop("wolf_runoff", None)
+            g["kill"], g["phase"] = leaders[0] if len(leaders) == 1 else None, "hidden_wolf"
+            g["wolf_target"] = g["kill"]
+            for role in NIGHT_ROLES:
+                g[role + "_cursor"] = 0
+            g["poisons"], g["protected"], g["saved_targets"] = [], [], []
     elif phase == "hidden_wolf" and action == "hidden_ack":
         finish_role_turn(g, "hidden_wolf", "wolf_beauty")
     elif phase == "wolf_beauty" and action == "charm":

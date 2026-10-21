@@ -6,6 +6,9 @@ import time
 from copy import deepcopy
 from .engine import act, alive, player, private_view, public_view, require, target, turn_actor, NIGHT_ROLES, voters, vote_targets, WOLF_ROLES, killing_wolves, wolf_team
 
+# Old saves without a per-room secret resynchronize after a server restart.
+LEGACY_TURN_SECRET = secrets.token_hex(32)
+
 
 def digest(value):
     return hashlib.sha256(value.encode()).hexdigest()
@@ -30,7 +33,9 @@ def owns_speaker(g, device):
 
 
 def network(g):
-    return g.setdefault("network", {"mode": "single", "epoch": 0, "members": {}, "ready": [], "ballots": {}, "wolf_votes": {}})
+    if "network" not in g:
+        g["network"] = {"mode": "single", "epoch": 0, "members": {}, "ready": [], "ballots": {}, "wolf_votes": {}, "turn_secret": secrets.token_hex(32)}
+    return g["network"]
 
 
 def mode(g):
@@ -70,7 +75,10 @@ def ensure_host(g):
 
 def turn_key(g):
     n = network(g)
-    return f'{n["epoch"]}:{g["day"]}:{g["phase"]}:{g.get("witch_cursor",0)}:{g.get("seer_cursor",0)}:{g.get("hunters",[])}:{g.get("inspection")}:{g.get("guard_cursor",0)}:{g.get("gravedigger_cursor",0)}:{g.get("hidden_wolf_cursor",0)}:{g.get("wolf_beauty_cursor",0)}'
+    # Synchronization metadata must never serialize private results or future shooters.
+    shooter = g["hunters"][0] if g["phase"] in ("hunter", "wolf_king_shot") else None
+    turn = ':'.join(map(str, (n["epoch"], g["day"], g["phase"], *(g.get(role + "_cursor", 0) for role in NIGHT_ROLES), shooter, bool(g.get("inspection")), bool(g.get("wolf_runoff")))))
+    return hmac.new(n.get("turn_secret", LEGACY_TURN_SECRET).encode(), turn.encode(), hashlib.sha256).hexdigest()
 
 
 def public_room(g):
@@ -134,6 +142,7 @@ def host_action(g, action, data, debug=False):
         require(action in ("dawn", "vote", "last_words_done", "inactive_pass", "debug_skip_reveal"),
                 "此模式請由玩家手機操作，或先切回單機。 / Use the player's device or switch to single device.")
     protected = protected_seats(g) if mode(g) == "multi" else set()
+    require(action != "wolf_ballots" or not protected, "狼隊選票必須由各玩家提交。 / Wolves must submit their own ballots.")
     if protected and g["phase"] == "reveal" and action in ("debug_skip_reveal", "ack"):
         updated = act(g, action, data)  # Keep normal action/field validation.
         if action == "ack":
@@ -156,7 +165,8 @@ def host_action(g, action, data, debug=False):
             require(bool(simulated), "所有存活狼人由玩家操作。 / All living wolves are player-controlled.")
             if set(wolves) & protected:
                 choices = {**network(g)["wolf_votes"], **{str(s): data.get("target") for s in simulated}}
-                if all(str(s) in choices for s in wolves) and len({choices[str(s)] for s in wolves}) == 1:
+                if all(str(s) in choices for s in wolves):
+                    updated = act(g, "wolf_ballots", {"ballots": {str(s): choices[str(s)] for s in wolves}})
                     clear_round_inputs(updated, previous)
                 else:
                     updated = deepcopy(g)
@@ -201,6 +211,7 @@ def host_operation(g, command, data):
             n["mode"], n["remote"] = next_mode, next_remote
             n["epoch"] += 1
             n["ballots"], n["wolf_votes"] = {}, {}
+            g.pop("wolf_runoff", None)
             # Roles already checked on the shared device remain acknowledged.
             if g["phase"] == "reveal":
                 n["ready"] = sorted(set(n["ready"]) | set(range(1, g["reveal_seat"])))
@@ -219,6 +230,9 @@ def host_operation(g, command, data):
         require(not m.get("host"), "主持人保留自己的座位。 / The host keeps their seat.")
         if command == "revoke":
             del n["members"][key]
+            n["ballots"].pop(str(m["seat"]), None)
+            n["wolf_votes"].pop(str(m["seat"]), None)
+            n["ready"] = [s for s in n["ready"] if s != m["seat"]]
         else:
             require(not any(other["approved"] and other["seat"] == m["seat"] for other in n["members"].values()),
                     "座位已有玩家，請先撤銷舊裝置。 / Revoke the old device before replacing this seat.")
@@ -267,6 +281,11 @@ def player_view(g, token, include_private=False, *, member_key=None):
                  or (phase in ("vote", "runoff") and p["seat"] in voters(g))
                  or (phase == "discussion" and p["role"] in ("knight", "white_wolf_king") and p["alive"] and not p.get("duel_used")))
     result = {"approved": True, "seat": m["seat"], "state": public_view(g), "turn_key": turn_key(g), "can_act": available and mode(g) == "multi"}
+    if phase in ("vote", "runoff") and p["seat"] in voters(g):
+        ballots = network(g)["ballots"]
+        if str(p["seat"]) in ballots:
+            result["own_ballot"] = ballots[str(p["seat"])]
+            result["ballot_submitted"] = True
     if available and phase == "discussion":
         result["day_action"] = "explode" if p["role"] == "white_wolf_king" else "duel"
     if not include_private:
@@ -291,7 +310,8 @@ def player_view(g, token, include_private=False, *, member_key=None):
         result.update(can_act=True, info={"actor_seat": p["seat"], "day_action": "explode" if p["role"] == "white_wolf_king" else "duel", "targets": [s for s in alive(g) if s != p["seat"]]})
     elif phase in ("vote", "runoff") and p["seat"] in voters(g):
         result.update(can_act=True, info={"targets": g["runoff"] if phase == "runoff" else vote_targets(g),
-                                         "submitted": str(p["seat"]) in network(g)["ballots"]})
+                                         "submitted": str(p["seat"]) in network(g)["ballots"],
+                                         "submitted_target": network(g)["ballots"].get(str(p["seat"]))})
     return result
 
 
@@ -314,11 +334,12 @@ def player_action(g, token, key, action, data, *, member_key=None):
     elif phase == "wolves":
         require(action == "wolves" and set(data) == {"target"}, "無效狼人行動。 / Invalid wolf action.")
         target(g, data["target"], optional=g["rules"].get("wolves_can_abstain", True))
+        require(data["target"] is None or not g.get("wolf_runoff") or data["target"] in g["wolf_runoff"], "狼刀加賽只可投平票玩家。 / Wolf runoff votes must target a tied player.")
         n["wolf_votes"][str(p["seat"])] = data["target"]
         wolves = private_view(g)["wolves"]
         choices = n["wolf_votes"]
-        if all(str(s) in choices for s in wolves) and len({choices[str(s)] for s in wolves}) == 1:
-            replace_state(g, act(g, "wolves", data))
+        if all(str(s) in choices for s in wolves):
+            replace_state(g, act(g, "wolf_ballots", {"ballots": {str(s): choices[str(s)] for s in wolves}}))
         else:
             g["version"] += 1
     elif phase in ("vote", "runoff"):
@@ -367,9 +388,14 @@ def chat_permissions(g, m, debug=False):
 def chat_view(g, m, after_public=0, after_wolves=0, after_spectators=0, debug=False):
     allowed = chat_permissions(g, m, debug)
     history = network(g).get("chat", {})
+    def messages(channel):
+        after = {"public": after_public, "wolves": after_wolves, "spectators": after_spectators}[channel]
+        retained = history.get(channel, [])
+        # New readers start at recent history; existing readers catch up in order.
+        return [message for message in retained if message["id"] > after][:60] if after else retained[-60:]
     return {"seat": m["seat"], "solo_debug": bool(debug and m.get("host", False) and not protected_seats(g)), "channels": {channel: {
         "can_send": can_send,
-        "messages": [message for message in history.get(channel, [])[-60:] if message["id"] > {"public": after_public, "wolves": after_wolves, "spectators": after_spectators}[channel]]
+        "messages": messages(channel)
     } for channel, can_send in allowed.items()}}
 
 

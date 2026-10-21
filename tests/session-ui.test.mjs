@@ -1,6 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {actionLabel,hasPlayerAction,voteRecords} from '../frontend/session-ui.mjs';
+import {actionLabel,hasPlayerAction,voteRecords,wolfVoteSummary} from '../frontend/session-ui.mjs';
+
+test('wolf voting explains highest-vote selection and private runoff targets',()=>{
+  assert.match(wolfVoteSummary({round:1}),/most votes wins/);
+  const runoff=wolfVoteSummary({round:2,runoff:[3,5]});
+  assert.match(runoff,/Runoff/);assert.match(runoff,/Tied targets: 3, 5/);
+  assert.match(runoff,/second tie means no kill/);
+});
 
 test('the action button follows the actual phase instead of a generic role/action label',()=>{
   assert.equal(actionLabel('vote'),'投票 · Vote');assert.equal(actionLabel('seer'),'查驗玩家 · Investigate a player');

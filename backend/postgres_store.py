@@ -3,7 +3,7 @@ import hmac
 import json
 import secrets
 
-import psycopg
+from psycopg_pool import ConnectionPool
 
 from .engine import RuleError, act
 from .store import Store
@@ -13,13 +13,21 @@ class PostgresStore:
     digest = staticmethod(Store.digest)
 
     def __init__(self, url):
-        self._url = url
-        with self.connect() as db:
-            db.execute("CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, host TEXT NOT NULL, viewer TEXT NOT NULL, state TEXT NOT NULL)")
+        # A small pool caps concurrent Neon connections across FastAPI worker threads.
+        self._pool = ConnectionPool(url, min_size=0, max_size=4, timeout=10,
+                                    kwargs={"connect_timeout": 10, "prepare_threshold": None})
+        try:
+            with self.connect() as db:
+                db.execute("CREATE TABLE IF NOT EXISTS games (id TEXT PRIMARY KEY, host TEXT NOT NULL, viewer TEXT NOT NULL, state TEXT NOT NULL)")
+        except Exception:
+            self.close()
+            raise
 
     def connect(self):
-        # Disable prepared statements for compatibility with pooled endpoints.
-        return psycopg.connect(self._url, connect_timeout=10, prepare_threshold=None)
+        return self._pool.connection()
+
+    def close(self):
+        self._pool.close()
 
     def create(self, state):
         game_id, host, viewer = secrets.token_urlsafe(12), secrets.token_urlsafe(32), secrets.token_urlsafe(32)

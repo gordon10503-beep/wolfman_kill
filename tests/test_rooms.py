@@ -31,13 +31,11 @@ def test_debug_cannot_act_for_an_approved_guest(role,action,data):
     with pytest.raises(RuleError):rooms.guard_private(g)
 
 
-def test_hybrid_wolves_require_the_real_players_agreement():
+def test_hybrid_wolves_wait_for_real_votes_then_choose_the_most_votes():
     g,guest=hybrid_game('wolf','wolves')
     g=rooms.host_action(g,'wolves',{'target':7},debug=True)
     assert g['phase']=='wolves' and rooms.network(g)['wolf_votes']=={'1':7,'3':7}
     rooms.player_action(g,guest,rooms.turn_key(g),'wolves',{'target':8})
-    assert g['phase']=='wolves'
-    rooms.player_action(g,guest,rooms.turn_key(g),'wolves',{'target':7})
     assert g['phase']=='witch' and g['kill']==7
 
 
@@ -58,6 +56,16 @@ def test_hybrid_simulated_ballots_wait_for_the_real_player():
     assert g['phase']=='vote' and len(rooms.network(g)['ballots'])==8
     rooms.player_action(g,guest,rooms.turn_key(g),'ballot',{'target':None})
     assert g['phase']=='wolves' and g['day']==2
+
+
+def test_pending_ballot_confirmation_is_visible_only_to_its_voter():
+    g, guest = hybrid_game('villager', 'vote')
+    rooms.player_action(g, guest, rooms.turn_key(g), 'ballot', {'target': 2})
+    mine = rooms.player_view(g, guest)
+    host = rooms.player_view(g, '', member_key=rooms.host_key(g))
+    assert mine['ballot_submitted'] is True and mine['own_ballot'] == 2
+    assert 'own_ballot' not in host and 'ballot_submitted' not in host
+    assert 'ballots' not in mine['state']
 
 
 def test_approval_discards_a_seats_simulated_inputs():
@@ -173,7 +181,11 @@ def test_role_actions_consensus_seer_and_mode_switch(room):
     assert c.post(path+'/actions',headers=host,json={'version':c.get(path,headers=host).json()['version'],'action':'wolves','data':{'target':1}}).status_code==409
     assert play(room,passes[wolves[0]],'wolves',{'target':1},key).json()['state']['phase']=='wolves'
     assert play(room,passes[wolves[1]],'wolves',{'target':2},key).json()['state']['phase']=='wolves'
-    assert play(room,passes[wolves[1]],'wolves',{'target':1},key).json()['state']['phase']=='witch'
+    assert play(room,passes[wolves[1]],'wolves',{'target':1},key).status_code==409
+    runoff_key=detail(room,passes[wolves[0]])['turn_key']
+    assert detail(room,passes[wolves[0]])['info']['runoff']==[1,2]
+    assert play(room,passes[wolves[0]],'wolves',{'target':1},runoff_key).json()['state']['phase']=='wolves'
+    assert play(room,passes[wolves[1]],'wolves',{'target':1},runoff_key).json()['state']['phase']=='witch'
     assert detail(room,passes[seer])['info'] is None
     assert detail(room,passes[witch])['info']['kill']==1
     assert play(room,passes[witch],'witch',{'save':False,'poison':None}).json()['state']['phase']=='seer'
